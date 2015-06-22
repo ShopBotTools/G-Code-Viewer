@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GCode viewer</title>
+    <textarea id="gcode" name="" cols="30" rows="10"></textarea>
+    <button id="view">View</button>
+</head>
+<body>
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="gcodeviewer.js"></script>
+    <script type="text/javascript">
+        GCodeViewer.initialize();
+        GCodeViewer.test();
+        document.getElementById("view").onclick = function() {
+            GCodeViewer.viewGCode(document.getElementById("gcode").value);
+        }
+    </script>
+</body>
+</html>
