@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>GCode viewer</title>
-    <textarea id="gcode" name="" cols="30" rows="10"></textarea>
-    <button id="view">View</button>
 </head>
 <body>
+    <textarea id="gcode" name="" cols="30" rows="10"></textarea>
+    <button id="view">View</button>
+    <button id="test">Test</button>
+    <canvas id="canvas" width="300" height="300"></canvas>
     <script src="three.min.js"></script>
     <script src="OrbitControls.js"></script>
     <script src="gcodeviewer.js"></script>
     <script type="text/javascript">
-        GCodeViewer.initialize();
-        GCodeViewer.test();
+        GCodeViewer.initialize({}, document.getElementById("canvas"));
         document.getElementById("view").onclick = function() {
             GCodeViewer.viewGCode(document.getElementById("gcode").value);
+        }
+        document.getElementById("test").onclick = function() {
+            GCodeViewer.test();
         }
     </script>
 </body>

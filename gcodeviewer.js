@@ -10,40 +10,53 @@ var GCodeViewer = {
     camera: {},
     scene: {},
     controls: {},
-    width : window.innerWidth,
-    height: window.innerHeight,
     initialized : false,
     lines: [],  //Represents the paths of the bit
     cncConfiguration: {},
     gcode: [],
 
-    initialize: function(configuration) {
+    initialize: function(configuration, domElement) {
+        console.log(domElement);
         var that = GCodeViewer;
+        var width = window.innerWidth, height = window.innerHeight;
         if(that.initialized === true) {
             return;
         }
+
         that.cncConfiguration = configuration;
+
+        if(typeof domElement === "undefined" || domElement === null) {
+            that.renderer = new THREE.WebGLRenderer();
+            that.renderer.setSize(width, height);
+            document.body.appendChild(that.renderer.domElement);
+        } else {
+            that.renderer = new THREE.WebGLRenderer({canvas: domElement});
+            width = parseInt(domElement.width, 10);
+            height = parseInt(domElement.height, 10);
+        }
+
         that.scene = new THREE.Scene();
-        that.camera = new THREE.PerspectiveCamera(75, that.width/that.height,
+        that.camera = new THREE.PerspectiveCamera(75, width/height,
                 0.1, 1000);
         //TODO: configure OrthographicCamera
-        // that.camera = new THREE.OrthographicCamera(that.width / - 2, that.width / 2,
-        //         that.height / 2, that.height / - 2, 1, 1000);
-        that.renderer = new THREE.WebGLRenderer();
-        that.renderer.setSize(that.width, that.height);
-        document.body.appendChild(that.renderer.domElement);
-        that.initialized = true;
+        // that.camera = new THREE.OrthographicCamera(width / - 2, width / 2,
+        //         height / 2, height / - 2, 1, 1000);
 
-        that.controls = new THREE.OrbitControls(that.camera);
+        that.controls = new THREE.OrbitControls(that.camera,
+                that.renderer.domElement);
         that.controls.damping = 0.2;
         that.controls.addEventListener('change', that.render);
+
+        that.initialized = true;
+    },
+
+    animate: function() {
+        window.requestAnimationFrame(GCodeViewer.animate);
+        GCodeViewer.controls.update();
     },
 
     render: function() {
-        var that = GCodeViewer;
-        window.requestAnimationFrame(that.render);
-        // that.controls.update();
-        that.renderer.render(that.scene, that.camera);
+        GCodeViewer.renderer.render(GCodeViewer.scene, GCodeViewer.camera);
     },
 
     addCurveToLines: function(curve) {
@@ -63,6 +76,22 @@ var GCodeViewer = {
             new THREE.Vector3(end.x, end.z, end.y)
         );
         GCodeViewer.addCurveToLines(curve);
+    },
+
+    showLines : function() {
+        var that = GCodeViewer;
+        var i = 0;
+        for(i=0; i < that.lines.length; i++) {
+            that.scene.add(that.lines[i]);
+        }
+    },
+
+    hideLines : function() {
+        var that = GCodeViewer;
+        var i = 0;
+        for(i=0; i < that.lines.length; i++) {
+            that.scene.remove(that.lines[i]);
+        }
     },
 
     setGCode: function(string) {
@@ -156,19 +185,40 @@ var GCodeViewer = {
     viewGCode: function(code) {
         var that = GCodeViewer;
         var i = 0;
-        var lastPosition = { x:0, y:0, z:0 };
+        var last = { x:0, y:0, z:0 }, end = { x:0, y:0, z:0 };
         var result = {};
         that.setGCode(code);
 
         for(i=0; i < that.gcode.length; i++) {
             result = that.parseGCode(that.gcode[i]);
+            if(result.type === "G0" || result.type === "G1") {
+                end.x = (typeof result.x === "undefined") ? last.x : result.x;
+                end.y = (typeof result.y === "undefined") ? last.y : result.y;
+                end.z = (typeof result.z === "undefined") ? last.z : result.z;
+                that.addStraightPath(last, end);
+                last = end;
+            }
             //TODO: look the type and do stuff
+            // } else if(result.type === "G2" || result.type === "G3") {
+            // } else if(result.type === "G4") {
+            // } else if(result.type === "G20") {
+            // } else if(result.type === "G21") {
+            // } else if(result.type === "G90") {
+            // } else if(result.type === "G91") {
+            // } else if(result.type === "M4") {
+            // } else if(result.type === "M8") {
+            // } else if(result.type === "M30") {
+            // }
         }
+
+        that.showLines();
+
+        that.render();
+        that.animate();
     },
 
     test: function() {
         var that = GCodeViewer;
-        var i = 0;
 
         that.addStraightPath({x:0,y:0,z:0}, {x:0,y:0,z:-1});
         that.addStraightPath({x:0,y:0,z:-1}, {x:1,y:1,z:-1});
@@ -177,16 +227,14 @@ var GCodeViewer = {
         that.addStraightPath({x:0,y:0,z:2}, {x:0,y:0,z:0});
 
         that.scene.add(that.createGrid());
-        for(i=0; i < that.lines.length; i++) {
-            that.scene.add(that.lines[i]);
-        }
+        that.showLines();
 
-        console.log("done");
         that.camera.position.x = 1;
         that.camera.position.y = 1;
         that.camera.position.z = 1;
         that.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         that.render();
+        that.animate();
     }
 };
