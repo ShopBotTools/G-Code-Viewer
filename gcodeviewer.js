@@ -16,7 +16,6 @@ var GCodeViewer = {
     gcode: [],
 
     initialize: function(configuration, domElement) {
-        console.log(domElement);
         var that = GCodeViewer;
         var width = window.innerWidth, height = window.innerHeight;
         if(that.initialized === true) {
@@ -36,8 +35,7 @@ var GCodeViewer = {
         }
 
         that.scene = new THREE.Scene();
-        that.camera = new THREE.PerspectiveCamera(75, width/height,
-                0.1, 1000);
+        that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
         //TODO: configure OrthographicCamera
         // that.camera = new THREE.OrthographicCamera(width / - 2, width / 2,
         //         height / 2, height / - 2, 1, 1000);
@@ -114,16 +112,16 @@ var GCodeViewer = {
 
     //TODO: do for more than a command by line
     parseGCode: function(command) {
-        if(command === "") {
-            return {};
-        }
+        var obj = { type : "" };
         var that = GCodeViewer;
-        var com = that.removeComments(command);  //COMmand
-        var obj = {};
         var res;
+        if(command === "") {
+            return obj;
+        }
+        var com = that.removeComments(command);  //COMmand
 
         if(com === "") {
-            return {};
+            return obj;
         }
 
         //TODO: do the same for all commands
@@ -134,15 +132,15 @@ var GCodeViewer = {
                 obj = { type: "G1" };
             }
 
-            res = /X(\d+(\.\d*)?)/.exec(com);
+            res = /X(-?\d+(\.\d*)?)/.exec(com);
             if(res !== null && res.length > 1) {
                 obj.x = parseFloat(res[1], 10);
             }
-            res = /Y(\d+(\.\d*)?)/.exec(com);
+            res = /Y(-?\d+(\.\d*)?)/.exec(com);
             if(res !== null && res.length > 1) {
                 obj.y = parseFloat(res[1], 10);
             }
-            res = /Z(\d+(\.\d*)?)/.exec(com);
+            res = /Z(-?\d+(\.\d*)?)/.exec(com);
             if(res !== null && res.length > 1) {
                 obj.z = parseFloat(res[1], 10);
             }
@@ -196,19 +194,20 @@ var GCodeViewer = {
                 end.y = (typeof result.y === "undefined") ? last.y : result.y;
                 end.z = (typeof result.z === "undefined") ? last.z : result.z;
                 that.addStraightPath(last, end);
-                last = end;
+                last.x = end.x;
+                last.y = end.y;
+                last.z = end.z;
+            } else if(result.type === "G2" || result.type === "G3") {
+                //TODO: look the type and do stuff
+            } else if(result.type === "G4") {
+            } else if(result.type === "G20") {
+            } else if(result.type === "G21") {
+            } else if(result.type === "G90") {
+            } else if(result.type === "G91") {
+            } else if(result.type === "M4") {
+            } else if(result.type === "M8") {
+            } else if(result.type === "M30") {
             }
-            //TODO: look the type and do stuff
-            // } else if(result.type === "G2" || result.type === "G3") {
-            // } else if(result.type === "G4") {
-            // } else if(result.type === "G20") {
-            // } else if(result.type === "G21") {
-            // } else if(result.type === "G90") {
-            // } else if(result.type === "G91") {
-            // } else if(result.type === "M4") {
-            // } else if(result.type === "M8") {
-            // } else if(result.type === "M30") {
-            // }
         }
 
         that.showLines();
