@@ -39,6 +39,10 @@ var GCodeViewer = {
         //TODO: configure OrthographicCamera
         // that.camera = new THREE.OrthographicCamera(width / - 2, width / 2,
         //         height / 2, height / - 2, 1, 1000);
+        that.camera.position.x = -1;
+        that.camera.position.y = 1;
+        that.camera.position.z = -1;
+        that.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         that.controls = new THREE.OrbitControls(that.camera,
                 that.renderer.domElement);
@@ -59,7 +63,8 @@ var GCodeViewer = {
 
     addCurveToLines: function(curve) {
         var that = GCodeViewer;
-        var path = new THREE.Path(curve.getPoints(50));
+        var path = new THREE.CurvePath();
+        path.add(curve);
         var geometry = path.createPointsGeometry(50);
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
 
@@ -210,6 +215,7 @@ var GCodeViewer = {
             }
         }
 
+        that.scene.add(that.createGrid());
         that.showLines();
 
         that.render();
@@ -219,6 +225,8 @@ var GCodeViewer = {
     test: function() {
         var that = GCodeViewer;
 
+        that.addStraightPath({x:0,y:0,z:1}, {x:0,y:1,z:1});
+
         that.addStraightPath({x:0,y:0,z:0}, {x:0,y:0,z:-1});
         that.addStraightPath({x:0,y:0,z:-1}, {x:1,y:1,z:-1});
         that.addStraightPath({x:1,y:1,z:-1}, {x:1,y:1,z:2});
@@ -227,11 +235,6 @@ var GCodeViewer = {
 
         that.scene.add(that.createGrid());
         that.showLines();
-
-        that.camera.position.x = 1;
-        that.camera.position.y = 1;
-        that.camera.position.z = 1;
-        that.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
         that.render();
         that.animate();
