@@ -75,8 +75,8 @@ var GCodeViewer = {
     //Careful, we use Z as up, THREE3D use Y as up
     addStraightPath: function(start, end) {
         var curve = new THREE.LineCurve3(
-            new THREE.Vector3(start.x, start.z, start.y),
-            new THREE.Vector3(end.x, end.z, end.y)
+            new THREE.Vector3(start.y, start.z, start.x),
+            new THREE.Vector3(end.y, end.z, end.x)
         );
         GCodeViewer.addCurveToLines(curve);
     },
