@@ -39,10 +39,10 @@ var GCodeViewer = {
         //TODO: configure OrthographicCamera
         // that.camera = new THREE.OrthographicCamera(width / - 2, width / 2,
         //         height / 2, height / - 2, 1, 1000);
-        that.camera.position.x = -1;
-        that.camera.position.y = 1;
-        that.camera.position.z = -1;
-        that.camera.lookAt(new THREE.Vector3(0, 0, 0));
+        that.camera.position.x = -10;
+        that.camera.position.y = 10;
+        that.camera.position.z = -10;
+        // that.camera.lookAt(new THREE.Vector3(that.camera.position.x, 0, that.camera.position.z));
 
         that.controls = new THREE.OrbitControls(that.camera,
                 that.renderer.domElement);
@@ -65,11 +65,11 @@ var GCodeViewer = {
         var that = GCodeViewer;
         var path = new THREE.CurvePath();
         path.add(curve);
-        var geometry = path.createPointsGeometry(50);
+        var geometry = path.createPointsGeometry(2);
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
 
-        // Create the final Object3d to add to the scene
-        that.lines.push(new THREE.Line(geometry, material));
+        // that.lines.push(new THREE.Line(geometry, material));
+        that.lines.push(geometry);
     },
 
     //Careful, we use Z as up, THREE3D use Y as up
@@ -84,9 +84,17 @@ var GCodeViewer = {
     showLines : function() {
         var that = GCodeViewer;
         var i = 0;
+        var combinedGeo = new THREE.Geometry();
+        var material = new THREE.LineBasicMaterial({ color : 0xffffff });
         for(i=0; i < that.lines.length; i++) {
-            that.scene.add(that.lines[i]);
+            // THREE.GeometryUtils.merge(combinedGeo, that.lines[i] );
+            combinedGeo.merge(that.lines[i] );
+            // console.log(that.lines[i]);
+            // that.scene.add(that.lines[i]);
         }
+        // var l = new THREE.Line(combinedGeo, material, THREE.LinePieces);
+        var l = new THREE.Line(combinedGeo, material);
+        that.scene.add(l);
     },
 
     hideLines : function() {
