@@ -11,9 +11,13 @@ var GCodeViewer = {
     scene: {},
     controls: {},
     initialized : false,
-    lines: [],  //Represents the paths of the bit
+    lines: [],  //Represents the paths of the bit (lines are straight or curve)
+    pathMesh : {},  // The mesh of the total path
     cncConfiguration: {},
     gcode: [],
+
+    STRAIGHT : 0,
+    CURVE : 1,
 
     initialize: function(configuration, domElement) {
         var that = GCodeViewer;
@@ -61,53 +65,51 @@ var GCodeViewer = {
         GCodeViewer.renderer.render(GCodeViewer.scene, GCodeViewer.camera);
     },
 
-    addCurveToLines: function(curve) {
-        var that = GCodeViewer;
-        var path = new THREE.CurvePath();
-        path.add(curve);
-        var geometry = path.createPointsGeometry(2);
-        var material = new THREE.LineBasicMaterial({ color : 0xffffff });
-
-        // that.lines.push(new THREE.Line(geometry, material));
-        that.lines.push(geometry);
+    //Careful, we use Z as up, THREE3D use Y as up
+    addStraightTo : function(point) {
+        GCodeViewer.lines.push({
+            "type": GCodeViewer.STRAIGHT,
+            "point": { x : point.y, y : point.z, z : point.x }
+        });
     },
 
-    //Careful, we use Z as up, THREE3D use Y as up
-    addStraightPath: function(start, end) {
-        var curve = new THREE.LineCurve3(
-            new THREE.Vector3(start.y, start.z, start.x),
-            new THREE.Vector3(end.y, end.z, end.x)
-        );
-        GCodeViewer.addCurveToLines(curve);
+    //TODO: rename
+    getGeometryFromLines: function() {
+        var that = GCodeViewer;
+        var i = 0;
+        var geometry = new THREE.Geometry();
+        if(that.lines.length === 0) {
+            return geometry;
+        }
+        geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+        for(i=0; i < that.lines.length; i++) {
+            if(that.lines[i].type === that.STRAIGHT) {
+                geometry.vertices.push(new THREE.Vector3(
+                            that.lines[i].point.x,
+                            that.lines[i].point.y,
+                            that.lines[i].point.z)
+                );
+            }
+            //TODO: do for the curves
+        }
+        return geometry;
     },
 
     showLines : function() {
         var that = GCodeViewer;
-        var i = 0;
-        var combinedGeo = new THREE.Geometry();
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
-        for(i=0; i < that.lines.length; i++) {
-            // THREE.GeometryUtils.merge(combinedGeo, that.lines[i] );
-            combinedGeo.merge(that.lines[i] );
-            // console.log(that.lines[i]);
-            // that.scene.add(that.lines[i]);
-        }
-        // var l = new THREE.Line(combinedGeo, material, THREE.LinePieces);
-        var l = new THREE.Line(combinedGeo, material);
-        that.scene.add(l);
+        var geometry = that.getGeometryFromLines();
+
+        that.pathMesh = new THREE.Line(geometry, material);
+        that.scene.add(that.pathMesh);
     },
 
     hideLines : function() {
-        var that = GCodeViewer;
-        var i = 0;
-        for(i=0; i < that.lines.length; i++) {
-            that.scene.remove(that.lines[i]);
-        }
+        GCodeViewer.scene.remove(GCodeViewer.pathMesh);
     },
 
     setGCode: function(string) {
-        var that = GCodeViewer;
-        that.gcode = string.split('\n');
+        GCodeViewer.gcode = string.split('\n');
     },
 
     createGrid : function() {
@@ -196,20 +198,18 @@ var GCodeViewer = {
     viewGCode: function(code) {
         var that = GCodeViewer;
         var i = 0;
-        var last = { x:0, y:0, z:0 }, end = { x:0, y:0, z:0 };
+        var end = { x:0, y:0, z:0 };
         var result = {};
         that.setGCode(code);
 
         for(i=0; i < that.gcode.length; i++) {
             result = that.parseGCode(that.gcode[i]);
             if(result.type === "G0" || result.type === "G1") {
-                end.x = (typeof result.x === "undefined") ? last.x : result.x;
-                end.y = (typeof result.y === "undefined") ? last.y : result.y;
-                end.z = (typeof result.z === "undefined") ? last.z : result.z;
-                that.addStraightPath(last, end);
-                last.x = end.x;
-                last.y = end.y;
-                last.z = end.z;
+                end.x = (typeof result.x === "undefined") ? end.x : result.x;
+                end.y = (typeof result.y === "undefined") ? end.y : result.y;
+                end.z = (typeof result.z === "undefined") ? end.z : result.z;
+
+                that.addStraightTo(end);
             } else if(result.type === "G2" || result.type === "G3") {
                 //TODO: look the type and do stuff
             } else if(result.type === "G4") {
@@ -233,13 +233,11 @@ var GCodeViewer = {
     test: function() {
         var that = GCodeViewer;
 
-        that.addStraightPath({x:0,y:0,z:1}, {x:0,y:1,z:1});
-
-        that.addStraightPath({x:0,y:0,z:0}, {x:0,y:0,z:-1});
-        that.addStraightPath({x:0,y:0,z:-1}, {x:1,y:1,z:-1});
-        that.addStraightPath({x:1,y:1,z:-1}, {x:1,y:1,z:2});
-        that.addStraightPath({x:1,y:1,z:2}, {x:0,y:0,z:2});
-        that.addStraightPath({x:0,y:0,z:2}, {x:0,y:0,z:0});
+        that.addStraightTo({x:0,y:0,z:-1});
+        that.addStraightTo({x:1,y:1,z:-1});
+        that.addStraightTo({x:1,y:1,z:2});
+        that.addStraightTo({x:0,y:0,z:2});
+        that.addStraightTo({x:0,y:0,z:0});
 
         that.scene.add(that.createGrid());
         that.showLines();
