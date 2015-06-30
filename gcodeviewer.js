@@ -29,14 +29,19 @@ var GCodeViewer = {
         that.cncConfiguration = configuration;
 
         if(typeof domElement === "undefined" || domElement === null) {
-            that.renderer = new THREE.WebGLRenderer();
+            that.renderer = new THREE.WebGLRenderer({antialias: true});
             that.renderer.setSize(width, height);
             document.body.appendChild(that.renderer.domElement);
         } else {
-            that.renderer = new THREE.WebGLRenderer({canvas: domElement});
+            that.renderer = new THREE.WebGLRenderer({
+                canvas: domElement,
+                antialias: true
+            });
             width = parseInt(domElement.width, 10);
             height = parseInt(domElement.height, 10);
         }
+        that.renderer.setClearColor( 0xf0f0f0 );
+        that.renderer.setPixelRatio( window.devicePixelRatio );
 
         that.scene = new THREE.Scene();
         that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
@@ -47,6 +52,10 @@ var GCodeViewer = {
         that.camera.position.y = 10;
         that.camera.position.z = -10;
         // that.camera.lookAt(new THREE.Vector3(that.camera.position.x, 0, that.camera.position.z));
+
+        var light = new THREE.PointLight( 0xffffff, 0.8 );
+        light.position.set(0, 1, 1);
+        that.scene.add( light );
 
         that.controls = new THREE.OrbitControls(that.camera,
                 that.renderer.domElement);
@@ -230,17 +239,60 @@ var GCodeViewer = {
         that.animate();
     },
 
+    // returns the object
+    testCreateObject: function() {
+        var californiaPts = [];
+
+        californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
+        californiaPts.push( new THREE.Vector2 ( 450, 300 ) );
+        californiaPts.push( new THREE.Vector2 ( 392, 392 ) );
+        californiaPts.push( new THREE.Vector2 ( 266, 438 ) );
+        californiaPts.push( new THREE.Vector2 ( 190, 570 ) );
+        californiaPts.push( new THREE.Vector2 ( 190, 600 ) );
+        californiaPts.push( new THREE.Vector2 ( 160, 620 ) );
+        californiaPts.push( new THREE.Vector2 ( 160, 650 ) );
+        californiaPts.push( new THREE.Vector2 ( 180, 640 ) );
+        californiaPts.push( new THREE.Vector2 ( 165, 680 ) );
+        californiaPts.push( new THREE.Vector2 ( 150, 670 ) );
+        californiaPts.push( new THREE.Vector2 (  90, 737 ) );
+        californiaPts.push( new THREE.Vector2 (  80, 795 ) );
+        californiaPts.push( new THREE.Vector2 (  50, 835 ) );
+        californiaPts.push( new THREE.Vector2 (  64, 870 ) );
+        californiaPts.push( new THREE.Vector2 (  60, 945 ) );
+        californiaPts.push( new THREE.Vector2 ( 300, 945 ) );
+        californiaPts.push( new THREE.Vector2 ( 300, 743 ) );
+        californiaPts.push( new THREE.Vector2 ( 600, 473 ) );
+        californiaPts.push( new THREE.Vector2 ( 626, 425 ) );
+        californiaPts.push( new THREE.Vector2 ( 600, 370 ) );
+        californiaPts.push( new THREE.Vector2 ( 610, 320 ) );
+
+        for( var i = 0; i < californiaPts.length; i ++ ) californiaPts[ i ].multiplyScalar( 0.25 );
+
+        var californiaShape = new THREE.Shape( californiaPts );
+
+        var extrudeSettings = { amount: 8, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+
+        var geometry = new THREE.ExtrudeGeometry(californiaShape, extrudeSettings );
+        var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xf08000 } ) );
+        mesh.position.set(0, 0, 0);
+        mesh.rotation.set(0, 0, 0);
+        mesh.scale.set(1, 1, 1);
+        console.log(mesh);
+        return mesh;
+    },
+
     test: function() {
         var that = GCodeViewer;
 
-        that.addStraightTo({x:0,y:0,z:-1});
-        that.addStraightTo({x:1,y:1,z:-1});
-        that.addStraightTo({x:1,y:1,z:2});
-        that.addStraightTo({x:0,y:0,z:2});
-        that.addStraightTo({x:0,y:0,z:0});
+        // that.addStraightTo({x:0,y:0,z:-1});
+        // that.addStraightTo({x:1,y:1,z:-1});
+        // that.addStraightTo({x:1,y:1,z:2});
+        // that.addStraightTo({x:0,y:0,z:2});
+        // that.addStraightTo({x:0,y:0,z:0});
+        // that.showLines();
 
+        that.scene.add(that.testCreateObject());
         that.scene.add(that.createGrid());
-        that.showLines();
 
         that.render();
         that.animate();
