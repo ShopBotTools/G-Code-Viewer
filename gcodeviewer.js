@@ -15,6 +15,7 @@ var GCodeViewer = {
     pathMesh : {},  // The mesh of the total path
     cncConfiguration: {},
     gcode: [],
+    boardColor: 0xf08000,
 
     STRAIGHT : 0,
     CURVE : 1,
@@ -72,6 +73,18 @@ var GCodeViewer = {
 
     render: function() {
         GCodeViewer.renderer.render(GCodeViewer.scene, GCodeViewer.camera);
+    },
+
+    //Convert a coordinate where z is the up direction to a coordinate where
+    // y is the up direction
+    zUpToyUp: function(point) {
+        return { x : point.y, y : point.z, z : point.x};
+    },
+
+    //Convert a coordinate where y is the up direction to a coordinate where
+    // z is the up direction
+    yUpTozUp: function(point) {
+        return { x : point.z, y : point.x, z : point.y };
     },
 
     //Careful, we use Z as up, THREE3D use Y as up
@@ -239,6 +252,18 @@ var GCodeViewer = {
         that.animate();
     },
 
+    createSimpleBoard: function(width, length, height) {
+        var that = GCodeViewer;
+        var param = that.zUpToyUp({ x : width, y : length, z : height });
+        var geometry = new THREE.BoxGeometry(param.x, param.y, param.z);
+        var material = new THREE.MeshBasicMaterial({color: that.boardColor});
+        var board = new THREE.Mesh(geometry, material);
+        board.position.x = param.x / 2;
+        board.position.y = param.y / 2;
+        board.position.z = param.z / 2;
+        return board;
+    },
+
     // returns the object
     testCreateObject: function() {
         var californiaPts = [];
@@ -291,7 +316,9 @@ var GCodeViewer = {
         // that.addStraightTo({x:0,y:0,z:0});
         // that.showLines();
 
-        that.scene.add(that.testCreateObject());
+        // that.scene.add(that.testCreateObject());
+        GCodeViewer.board = that.createSimpleBoard(10, 5, 3);
+        that.scene.add(GCodeViewer.board);
         that.scene.add(that.createGrid());
 
         that.render();
