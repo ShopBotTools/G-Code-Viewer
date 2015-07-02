@@ -17,6 +17,8 @@ var GCodeViewer = {
     gcode: [],
     boardColor: 0xf08000,
 
+    pathComplexGeometries: [],  //Stores the geometries use for substracting
+
     STRAIGHT : 0,
     CURVE : 1,
 
@@ -41,7 +43,7 @@ var GCodeViewer = {
             width = parseInt(domElement.width, 10);
             height = parseInt(domElement.height, 10);
         }
-        that.renderer.setClearColor( 0xf0f0f0 );
+        // that.renderer.setClearColor( 0xf0f0f0 );
         that.renderer.setPixelRatio( window.devicePixelRatio );
 
         that.scene = new THREE.Scene();
@@ -89,14 +91,48 @@ var GCodeViewer = {
 
     //Careful, we use Z as up, THREE3D use Y as up
     addStraightTo : function(point) {
+        var p = GCodeViewer.zUpToyUp(point);
         GCodeViewer.lines.push({
             "type": GCodeViewer.STRAIGHT,
-            "point": { x : point.y, y : point.z, z : point.x }
+            "point": p
         });
     },
 
+    generateLines: function() {
+        var that = GCodeViewer;
+        var i = 0;
+        var end = { x:0, y:0, z:0 };
+        var result = {};
+
+        that.lines = [];
+        if(that.gcode.length === 0) {
+            return -1;
+        }
+
+        for(i=0; i < that.gcode.length; i++) {
+            result = that.parseGCode(that.gcode[i]);
+            if(result.type === "G0" || result.type === "G1") {
+                end.x = (typeof result.x === "undefined") ? end.x : result.x;
+                end.y = (typeof result.y === "undefined") ? end.y : result.y;
+                end.z = (typeof result.z === "undefined") ? end.z : result.z;
+
+                that.addStraightTo(end);
+            } else if(result.type === "G2" || result.type === "G3") {
+                //TODO: look the type and do stuff
+            } else if(result.type === "G4") {
+            } else if(result.type === "G20") {
+            } else if(result.type === "G21") {
+            } else if(result.type === "G90") {
+            } else if(result.type === "G91") {
+            } else if(result.type === "M4") {
+            } else if(result.type === "M8") {
+            } else if(result.type === "M30") {
+            }
+        }
+    },
+
     //TODO: rename
-    getGeometryFromLines: function() {
+    getPathGeometryFromLines: function() {
         var that = GCodeViewer;
         var i = 0;
         var geometry = new THREE.Geometry();
@@ -120,7 +156,7 @@ var GCodeViewer = {
     showLines : function() {
         var that = GCodeViewer;
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
-        var geometry = that.getGeometryFromLines();
+        var geometry = that.getPathGeometryFromLines();
 
         that.pathMesh = new THREE.Line(geometry, material);
         that.scene.add(that.pathMesh);
@@ -132,6 +168,7 @@ var GCodeViewer = {
 
     setGCode: function(string) {
         GCodeViewer.gcode = string.split('\n');
+        GCodeViewer.generateLines();
     },
 
     createGrid : function() {
@@ -217,33 +254,120 @@ var GCodeViewer = {
         return obj;
     },
 
-    viewGCode: function(code) {
+    //currentResult is the current result of the board before adding this path
+    getComplexGeometryFromPathStraight: function(start, end, currentResult) {
+
+        // var sphere_geometry = new THREE.SphereGeometry( 2, 16, 16 );
+        // var sphere_bsp = new ThreeBSP( sphere_geometry );
+        //
+        // var cube_geometry = new THREE.CubeGeometry( 7, .5, 3 );
+        // var cube_bsp = new ThreeBSP( cube_geometry );
+        //
+        // var union_bsp = sphere_bsp.intersect( cube_bsp );
+        //
+        // // var result = union_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading, map: THREE.ImageUtils.loadTexture('texture.png') }) );
+        // // result.geometry.computeVertexNormals();
+        // var result = union_bsp.toGeometry();
+        // return result;
+
+///////////
+
+        //For the moment, a simple polyhedron
+        var pathGeometry = new THREE.Geometry();
+        var pathGeometryBSP = {}, boardBSP = {};
+        var i = 0;
+
+        var perp = new THREE.Vector3(0, 0, 0);  //TODO: delete, Here only for test
+        perp.crossVectors(
+            new THREE.Vector3(end.x - start.x, end.y - start.y, end.z - start.z),
+            new THREE.Vector3(0, 1, 0)
+        );
+        perp.setLength(1);
+        console.log(perp);
+
+        //TODO: see the configuration for the bit and board length etc
+
+        //I know I can use a plane, but I will need to do like that later
+        // pathGeometry.vertices.push(
+        //         new THREE.Vector3(start.x - perp.x, start.y, start.z - perp.z),
+        //         new THREE.Vector3(start.x + perp.x, start.y, start.z + perp.z),
+        //         new THREE.Vector3(end.x - perp.x, end.y, end.z - perp.z),
+        //         new THREE.Vector3(end.x + perp.x, end.y, end.z + perp.z),
+        //         new THREE.Vector3(start.x - perp.x, start.y + 10, start.z - perp.z),
+        //         new THREE.Vector3(start.x + perp.x, start.y + 10, start.z + perp.z),
+        //         new THREE.Vector3(end.x - perp.x, end.y + 10, end.z - perp.z),
+        //         new THREE.Vector3(end.x + perp.x, end.y + 10, end.z + perp.z)
+        // );
+        // pathGeometry.faces.push(
+        //         new THREE.Face3(0, 1, 2),
+        //         new THREE.Face3(1, 2, 3),
+        //         new THREE.Face3(0, 1, 4),
+        //         new THREE.Face3(1, 4, 5),
+        //         new THREE.Face3(1, 3, 5),
+        //         new THREE.Face3(3, 5, 7),
+        //         new THREE.Face3(0, 2, 4),
+        //         new THREE.Face3(2, 4, 6),
+        //         new THREE.Face3(2, 3, 6),
+        //         new THREE.Face3(3, 6, 7),
+        //         new THREE.Face3(4, 5, 6),
+        //         new THREE.Face3(5, 6, 7)
+        // );
+        // for (i = 0; i < pathGeometry.faces.length; i++) {
+        //     pathGeometry.faces[i].color = 0xbada55;
+        // }
+        // pathGeometry.computeFaceNormals();
+        // pathGeometry.computeVertexNormals();
+
+        pathGeometry = THREE.CubeGeometry(1, 10, 3);
+
+        pathGeometryBSP = new ThreeBSP(pathGeometry);
+        boardBSP = new ThreeBSP(currentResult.geometry);
+        console.log(boardBSP);
+
+        var resultBSP = boardBSP.union(pathGeometryBSP);
+        // var resultBSP =  pathGeometryBSP.subtract(boardBSP);
+        return resultBSP.toGeometry();
+        // return pathGeometry;
+    },
+
+    generateComplexGeometriesFromPaths: function() {
         var that = GCodeViewer;
         var i = 0;
-        var end = { x:0, y:0, z:0 };
-        var result = {};
-        that.setGCode(code);
 
-        for(i=0; i < that.gcode.length; i++) {
-            result = that.parseGCode(that.gcode[i]);
-            if(result.type === "G0" || result.type === "G1") {
-                end.x = (typeof result.x === "undefined") ? end.x : result.x;
-                end.y = (typeof result.y === "undefined") ? end.y : result.y;
-                end.z = (typeof result.z === "undefined") ? end.z : result.z;
-
-                that.addStraightTo(end);
-            } else if(result.type === "G2" || result.type === "G3") {
-                //TODO: look the type and do stuff
-            } else if(result.type === "G4") {
-            } else if(result.type === "G20") {
-            } else if(result.type === "G21") {
-            } else if(result.type === "G90") {
-            } else if(result.type === "G91") {
-            } else if(result.type === "M4") {
-            } else if(result.type === "M8") {
-            } else if(result.type === "M30") {
-            }
+        if(that.lines.length === 0) {
+            return;
         }
+
+        for(i=1; i < that.lines.length; i++) {
+            //For the moment, just a plane
+            if(that.lines[i].type === that.STRAIGHT) {
+                //TODO: rename stuff! Careful with the index
+                that.pathComplexGeometries.push(
+                    that.getComplexGeometryFromPathStraight(
+                        that.lines[i-1].point,
+                        that.lines[i].point
+                    )
+                );
+            }
+            //TODO: do for the curves
+        }
+
+    },
+
+    viewResult: function() {
+        var that = GCodeViewer;
+        var i = 0;
+        // var end = { x:0, y:0, z:0 };
+        // var result = {};
+
+        if(that.gcode.length <= 1) {
+            return -1;
+        }
+    },
+
+    //gcode must be set before using this function
+    viewPaths: function() {
+        var that = GCodeViewer;
 
         that.scene.add(that.createGrid());
         that.showLines();
@@ -320,6 +444,18 @@ var GCodeViewer = {
         GCodeViewer.board = that.createSimpleBoard(10, 5, 3);
         that.scene.add(GCodeViewer.board);
         that.scene.add(that.createGrid());
+
+        var material = new THREE.MeshBasicMaterial({color: 0xffffff, vertexColors: THREE.FaceColors, wireframe: true});
+        material.side = THREE.DoubleSide;
+        var geo = that.getComplexGeometryFromPathStraight(
+            {x:0, y:0,z:0}, {x:1,y:2,z:1},GCodeViewer.board
+        );
+        var mesh = new THREE.Mesh(geo, material);
+        // mesh.position.x = -3;
+        // mesh.position.y = 3;
+        // mesh.position.z = -3;
+        console.log(mesh);
+        that.scene.add(mesh);
 
         that.render();
         that.animate();

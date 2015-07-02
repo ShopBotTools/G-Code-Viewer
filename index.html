@@ -12,12 +12,14 @@
     <script src="three.min.js"></script>
     <script src="OrbitControls.js"></script>
     <!-- <script src="test.js"></script> -->
+    <script src="ThreeCSG.js"></script>
     <script src="gcodeviewer.js"></script>
     <script type="text/javascript">
         GCodeViewer.initialize({}, document.getElementById("canvas"));
         GCodeViewer.initialize({});
         document.getElementById("view").onclick = function() {
-            GCodeViewer.viewGCode(document.getElementById("gcode").value);
+            GCodeViewer.setGCode(document.getElementById("gcode").value);
+            GCodeViewer.viewPaths();
         }
         document.getElementById("test").onclick = function() {
             GCodeViewer.test();
