@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE */
+/*global THREE, GParser */
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -86,74 +86,25 @@ var GCodeViewer = (function () {
         };
 
         //Returns a string if no command
-        that.removeComments = function(command) {
-            return command.split('(')[0].split(';')[0]; //No need to use regex
+        that.removeCommentsAndSpaces = function(command) {
+            var s = command.split('(')[0].split(';')[0]; //No need to use regex
+            return s.split(' ').join('').split('\t').join('');
         };
 
-        //TODO: do for more than a command by line
-        that.parseGCode = function(command) {
-            var obj = { type : "" };
-            var res;
-            if(command === "") {
-                return obj;
-            }
-            var com = that.removeComments(command);  //COMmand
+        //Parsing the result of GParser.parse
+        that.parseParsedGCode = function(parsed) {
+            var obj = {};
+            var i = 0;
+            var w1 = "", w2 = "";
 
-            if(com === "") {
-                return obj;
-            }
-
-            //TODO: do the same for all commands
-            if(com.indexOf("G0") !== -1 || com.indexOf("G1") !== -1) {
-                if(com.indexOf("G0") !== -1) {
-                    obj = { type: "G0" };
-                } else {
-                    obj = { type: "G1" };
+            for(i=0; i < parsed.words.length; i++) {
+                w1 = parsed.words[i][0];
+                w2 = parsed.words[i][1];
+                if(w1 === "G" || w2 === "M") {
+                    obj.type = w1 + w2;
+                } else  {
+                    obj[w1.toLowerCase()] = parseFloat(w2, 10);
                 }
-
-                res = /X(-?\d+(\.\d*)?)/.exec(com);
-                if(res !== null && res.length > 1) {
-                    obj.x = parseFloat(res[1], 10);
-                }
-                res = /Y(-?\d+(\.\d*)?)/.exec(com);
-                if(res !== null && res.length > 1) {
-                    obj.y = parseFloat(res[1], 10);
-                }
-                res = /Z(-?\d+(\.\d*)?)/.exec(com);
-                if(res !== null && res.length > 1) {
-                    obj.z = parseFloat(res[1], 10);
-                }
-            } else if(com.indexOf("G2") !== -1 || com.indexOf("G3") !== -1) {
-                //NOTE: not implemented yet
-                if(com.indexOf("G2") !== -1) {
-                    obj = { type: "G2" };
-                } else {
-                    obj = { type: "G3" };
-                }
-            } else if(com.indexOf("G4") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "G4" };
-            } else if(com.indexOf("G20") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "G20" };
-            } else if(com.indexOf("G21") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "G21" };
-            } else if(com.indexOf("G90") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "G90" };
-            } else if(com.indexOf("G91") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "G91" };
-            } else if(com.indexOf("M4") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "M4" };
-            } else if(com.indexOf("M8") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "M8" };
-            } else if(com.indexOf("M30") !== -1) {
-                //NOTE: not implemented yet
-                obj = { type: "M30" };
             }
 
             return obj;
@@ -166,7 +117,13 @@ var GCodeViewer = (function () {
             var result = {};
 
             for(i=0; i < that.gcode.length; i++) {
-                result = that.parseGCode(that.gcode[i]);
+                //Sorry for not being really readable :'(
+                result = that.parseParsedGCode(
+                    GParser.parse(
+                        that.removeCommentsAndSpaces(that.gcode[i])
+                    )
+                );
+
                 if(result.type === "G0" || result.type === "G1") {
                     end.x = (typeof result.x === "undefined") ? end.x : result.x;
                     end.y = (typeof result.y === "undefined") ? end.y : result.y;
