@@ -11,16 +11,15 @@
     <canvas id="canvas" width="600" height="400"></canvas>
     <script src="three.min.js"></script>
     <script src="OrbitControls.js"></script>
-    <!-- <script src="test.js"></script> -->
     <script src="gcodeviewer.js"></script>
     <script type="text/javascript">
-        GCodeViewer.initialize({}, document.getElementById("canvas"));
-        GCodeViewer.initialize({});
+        var g = new GCodeViewer({}, document.getElementById("canvas"));
         document.getElementById("view").onclick = function() {
-            GCodeViewer.viewGCode(document.getElementById("gcode").value);
+            g.setGCode(document.getElementById("gcode").value);
+            g.viewPaths();
         }
         document.getElementById("test").onclick = function() {
-            GCodeViewer.test();
+            g.test();
         }
     </script>
 </body>
