@@ -119,36 +119,33 @@ var GCodeViewer = (function () {
             lSE = Math.sqrt(se[re] * se[re] + se[im] * se[im]);
             angle = Math.acos(lSE / (2 * r));
             l = r / lSE;
-
             that.scaleAndRotation(start, end, center, angle, l, re, im);
-
-            console.log("l = " + l);
-            console.log("start[re] = " + start[re]);
-            console.log("start[im] = " + start[im]);
-            console.log("end[re] = " + end[re]);
-            console.log("end[im] = " + end[im]);
-            console.log("angle = " + angle);
-            console.log(center[re] +" ; " + center[im]);
-
             aCSCE = that.findAngleVectors2(
                 { x : start[re] - center[re], y : start[im] - center[im] },
                 { x : end[re] - center[re], y : end[im] - center[im] }
             );
 
             if(clockwise === true) {
-                if(radius > 0 && -180 <= aCSCE && aCSCE < 0) {
+                if(radius > 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
                     console.log("radius > 0 && -180 <= aCSCE && aCSCE < 0");
                     return center;
                 }
+                if(radius < 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
+                    console.log("radius < 0 && -Math.PI * 2 <= aCSCE && aCSCE < -Math.PI");
+                    return center;
+                }
             } else {
-                if(radius > 0 && 0 < aCSCE && aCSCE >= 180) {
+                if(radius > 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
                     console.log("radius > 0 && 0 < aCSCE && aCSCE >= 180");
+                    return center;
+                }
+                if(radius < 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
+                    console.log("radius < 0 && Math.PI / 2 <= aCSCE && aCSCE <= Math.PI");
                     return center;
                 }
             }
 
-            center[re] = 2 * start[re] - center[re];
-            center[im] = 2 * start[im] - center[im];
+            that.scaleAndRotation(start, end, center, -angle, l, re, im);
             return center;
         };
 
@@ -400,25 +397,31 @@ var GCodeViewer = (function () {
             var material = new THREE.LineBasicMaterial({ color: 0xffffff });
             var circleGeometry = new THREE.CircleGeometry(radius, segments);
             that.circleGeometry = circleGeometry;
-            console.log(that.circleGeometry);
+            // console.log(that.circleGeometry);
             return new THREE.Line(circleGeometry , material);
         };
 
         that.testCenter = function() {
             var radius = -20;
-            var clockwise = true;
+            var clockwise = false;
             var crossAxe = "z";
             var start = { x : 0, y : 0, z : 0 };
-            // var end = { x : 10, y : 15, z : 0 };
-            var end = { x : 1, y : 1, z : 0 };
+            var end = { x : 10, y : 15, z : 0 };
+            // var end = { x : 1, y : 0, z : 0 };
             var center = { x : 0, y : 0, z : 0 };
-            // center = that.findCenter(start, end, radius, clockwise, crossAxe);
-            that.scaleAndRotation(start, end, center, Math.PI/2, 2, "x", "y");
+            center = that.findCenter(start, end, radius, clockwise, crossAxe);
+            // that.scaleAndRotation(start, end, center, Math.PI/3, 1, "x", "y");
+            // console.log(that.findAngleVectors2({x:1, y:0}, {
             console.log(center);
 
             that.addStraightTo(center);
             that.addStraightTo(end);
             that.showLines();
+
+            var circle = that.createCircle(Math.abs(radius), 32);
+            circle.position.x = center.x;
+            circle.position.y = center.y;
+            that.scene.add(circle);
         };
 
         that.test = function() {
