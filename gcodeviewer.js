@@ -42,7 +42,43 @@ var GCodeViewer = (function () {
             }
         };
 
-        //Careful, we use Z as up, THREE3D use Y as up
+        that.dotProduct2 = function(v1, v2) {
+            return v1.x * v2.x + v1.y * v2.y;
+        };
+
+        that.crossProduct2 = function(v1, v2) {
+            return v1.x * v2.y - v2.x * v1.y;
+        };
+
+        //Do a rotation and scale of point according to center and store
+        // the result in newPoint. re and im for axes Real and Imaginary
+        // angle is in radian
+        that.scaleAndRotation = function(center, point, newPoint, angle, length, re, im) {
+            var c = center, p = point, nP = newPoint;
+            var l = length, cA = Math.cos(angle), sA = Math.sin(angle);
+
+            nP[re] = l * ((p[re] - c[re]) * cA - (p[im] - c[im]) * sA) + c[re];
+            nP[im] = l * ((p[im] - c[im]) * cA + (p[re] - c[re]) * sA) + c[im];
+        };
+
+        //Returns the signed angle in radian in 2D
+        that.findAngleVectors2 = function(v1, v2) {
+            var cross = that.crossProduct2(v1, v2);
+            var dot = that.dotProduct2(v1, v2);
+            var lV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+            var lV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+            if(cross === 0) {
+                return 0;
+            }
+            if(cross < 0) {
+                return -Math.acos(dot / (lV1 * lV2));  //For the sign
+            }
+            return Math.acos(dot / (lV1 * lV2));  //For the sign
+        };
+
+        //Careful, we use Z as up, THREE3D use Y as up //NOTE: comment useless?
+        //TODO: add start
+        //all in absolute
         that.addStraightTo = function(point) {
             // var p = that.zUpToyUp(point);
             var p = point;
@@ -50,6 +86,70 @@ var GCodeViewer = (function () {
                 "type": that.STRAIGHT,
                 "point": { x : p.x, y : p.y, z : p.z }
             });
+        };
+
+        that.addCurveLine = function(start, end, center, clockwise, crossAxe) {
+            that.lines.push({
+                "type": that.CURVE,
+                "start": { x : start.x, y : start.y, z : start.z },
+                "end": { x : end.x, y : end.y, z : end.z },
+                "center": { x : center.x, y : center.y, z : center.z },
+                "clockwise" : clockwise,
+                "crossAxe" : crossAxe
+            });
+        };
+
+        //TODO test it!
+        that.findCenter = function(start, end, radius, clockwise, crossAxe) {
+            var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
+            var re = "x", im = "y";  //Real and Imaginary axes
+            var se = { x : end.x - start.x, y : end.y - start.y,
+                z : end.z - start.z
+            };
+            var center = { x : 0, y : 0, z : 0 };
+
+            if(crossAxe.toLowerCase() === "x") {
+                re = "y";
+                im = "z";
+            } else if(crossAxe.toLowerCase() === "y") {
+                re = "z";
+                im = "x";
+            }
+
+            lSE = Math.sqrt(se[re] * se[re] + se[im] * se[im]);
+            angle = Math.acos(lSE / (2 * r));
+            l = r / lSE;
+
+            that.scaleAndRotation(start, end, center, angle, l, re, im);
+
+            console.log("l = " + l);
+            console.log("start[re] = " + start[re]);
+            console.log("start[im] = " + start[im]);
+            console.log("end[re] = " + end[re]);
+            console.log("end[im] = " + end[im]);
+            console.log("angle = " + angle);
+            console.log(center[re] +" ; " + center[im]);
+
+            aCSCE = that.findAngleVectors2(
+                { x : start[re] - center[re], y : start[im] - center[im] },
+                { x : end[re] - center[re], y : end[im] - center[im] }
+            );
+
+            if(clockwise === true) {
+                if(radius > 0 && -180 <= aCSCE && aCSCE < 0) {
+                    console.log("radius > 0 && -180 <= aCSCE && aCSCE < 0");
+                    return center;
+                }
+            } else {
+                if(radius > 0 && 0 < aCSCE && aCSCE >= 180) {
+                    console.log("radius > 0 && 0 < aCSCE && aCSCE >= 180");
+                    return center;
+                }
+            }
+
+            center[re] = 2 * start[re] - center[re];
+            center[im] = 2 * start[im] - center[im];
+            return center;
         };
 
         //Simple cubic Bézier curve interpolation clockwise on XY plane
@@ -83,10 +183,12 @@ var GCodeViewer = (function () {
 
         //Transform a simple cubic Bézier's curve clockwise on XY plane
         // to a Bézier's curve in 3D with the right crossAxe and clock direction
-        that.simCubBezTo3D = function(curve, start, end, angleFromStart, crossAxe) {
+        // clockwise is bool
+        // pitch can be positive or negative
+        that.simCubBezTo3D = function(curve, clockwise, pitch, crossAxe) {
             var height = 0;  //height position for p1, p2 and p3
 
-            if(angleFromStart < 0) {
+            if(clockwise === false) {
                 that.swapObjects(curve.p0, curve.p3);
                 that.swapObjects(curve.p1, curve.p2);
             }
@@ -94,14 +196,13 @@ var GCodeViewer = (function () {
             //NOTE: not sure for the height, maybe this is better:
             // b = p*alpha*(r - ax)*(3*r -ax)/(ay*(4*r - ax)*Math.tan(alpha))
             //Set the good cross axe and transform into a helical Bézier curve
+            height = pitch / 3;
             if(crossAxe.toLowerCase() === "z") {
-                height = (end.z - start.z) / 3;
                 curve.p0.z = 0;
                 curve.p1.z = height;
                 curve.p2.z = height * 2;
                 curve.p3.z = height * 3;
             } else if(crossAxe.toLowerCase() === "x") {
-                height = (end.x - start.x) / 3;
                 curve.p0.z = curve.p0.y;
                 curve.p0.y = curve.p0.x;
                 curve.p0.x = 0;
@@ -115,7 +216,6 @@ var GCodeViewer = (function () {
                 curve.p3.y = curve.p3.x;
                 curve.p3.x = height * 3;
             } else if(crossAxe.toLowerCase() === "y") {
-                height = (end.y - start.y) / 3;
                 curve.p0.z = curve.p0.x;
                 curve.p0.x = curve.p0.y;
                 curve.p0.y = 0;
@@ -137,21 +237,52 @@ var GCodeViewer = (function () {
         that.arcToBezier = function(start, end, angle, radius, crossAxe) {
             // var arc90 = {}, arcLittle = {};  //Arc = pi/2 and arc < pi/2
             var arcs = [];
-            var num90 = 0, numLittle = 1;  //Number arc = pi/2 and arc < pi/2
+            var num90 = 0, numLittle = 0;  //Number arc = pi/2 and arc < pi/2
             var bezier90 = {}, bezierLittle = {};
+            var i = 0;
+            var pitch = 0, p90 = 0, pLittle = 0, pAngle = 0; //Pitch of the arcs
 
+            //Find number of diferent sections
             if(Math.abs(angle) > Math.PI / 2) {
                 num90 = Math.abs(angle) / (Math.PI/2);
-                numLittle = Math.abs(angle) % (Math.PI / 2);
+                numLittle = (Math.abs(angle) % (Math.PI / 2) !== 0) ? 1 : 0;
             }
 
+            //Find pitches
+            if(crossAxe.toLowerCase() === "x") {
+                pitch = (end.x - start.x);
+            } else if(crossAxe.toLowerCase() === "y") {
+                pitch = (end.y - start.y);
+            } else {
+                pitch = (end.z - start.z);
+            }
+            pAngle = pitch / angle;
+            p90 = 90 * pAngle;
+            pLittle = (angle - num90 * Math.PI / 2) * pAngle;
+
+            //Find helical Bézier's curves
             if(num90 > 0) {
                 bezier90 = that.simCubBezInt(Math.PI, radius);
+                that.simCubBezTo3D(bezier90, (angle < 0), p90, crossAxe);
             }
             if(numLittle > 0) {
                 bezierLittle = that.simCubBezInt(angle, radius);
+                that.simCubBezTo3D(bezierLittle, (angle < 0), pLittle, crossAxe);
+            }
+
+            //Rotate and place the arcs
+            if(crossAxe.toLowerCase() === "x") {
+                for(i = 0; i < num90; i++) {
+                    //1 rotate, 2 place the points
+
+                }
+            } else if(crossAxe.toLowerCase() === "y") {
+            } else {
             }
             //TODO continue to return an array of good Bezier's curves
+            //Bézier's curves are not perfect to we place by hand the last point
+
+            //return
         };
 
         //TODO: rename
@@ -273,60 +404,73 @@ var GCodeViewer = (function () {
             return new THREE.Line(circleGeometry , material);
         };
 
+        that.testCenter = function() {
+            var radius = -20;
+            var clockwise = true;
+            var crossAxe = "z";
+            var start = { x : 0, y : 0, z : 0 };
+            // var end = { x : 10, y : 15, z : 0 };
+            var end = { x : 1, y : 1, z : 0 };
+            var center = { x : 0, y : 0, z : 0 };
+            // center = that.findCenter(start, end, radius, clockwise, crossAxe);
+            that.scaleAndRotation(start, end, center, Math.PI/2, 2, "x", "y");
+            console.log(center);
+
+            that.addStraightTo(center);
+            that.addStraightTo(end);
+            that.showLines();
+        };
+
         that.test = function() {
-            var radius = 10;
-            var pts1 = that.simCubBezInt(Math.PI / 2, radius);
-            var pts2 = that.simCubBezInt(Math.PI / 3, radius);
-            var pts3 = that.simCubBezInt(Math.PI / 4, radius);
-            pts1 = that.simCubBezTo3D(pts1, {x: 0, y: 0, z: 0},
-                    {x: 0, y: 0, z: 5}, -1, "z");
-            pts2 = that.simCubBezTo3D(pts2, {x: 0, y: 0, z: 0},
-                    {x: 0, y: 0, z: 5}, -1, "z");
-            pts3 = that.simCubBezTo3D(pts3, {x: 0, y: 0, z: 0},
-                    {x: 0, y: 0, z: 5}, -1, "z");
-            console.log(pts1);
+            that.testCenter();
 
-            var c1 = new THREE.CubicBezierCurve3(
-                    new THREE.Vector3(pts1.p0.x, pts1.p0.y, pts1.p0.z),
-                    new THREE.Vector3(pts1.p1.x, pts1.p1.y, pts1.p1.z),
-                    new THREE.Vector3(pts1.p2.x, pts1.p2.y, pts1.p2.z),
-                    new THREE.Vector3(pts1.p3.x, pts1.p3.y, pts1.p3.z)
-                    );
-            var c2 = new THREE.CubicBezierCurve3(
-                    new THREE.Vector3(pts2.p0.x, pts2.p0.y, pts2.p0.z),
-                    new THREE.Vector3(pts2.p1.x, pts2.p1.y, pts2.p1.z),
-                    new THREE.Vector3(pts2.p2.x, pts2.p2.y, pts2.p2.z),
-                    new THREE.Vector3(pts2.p3.x, pts2.p3.y, pts2.p3.z)
-                    );
-            var c3 = new THREE.CubicBezierCurve3(
-                    new THREE.Vector3(pts3.p0.x, pts3.p0.y, pts3.p0.z),
-                    new THREE.Vector3(pts3.p1.x, pts3.p1.y, pts3.p1.z),
-                    new THREE.Vector3(pts3.p2.x, pts3.p2.y, pts3.p2.z),
-                    new THREE.Vector3(pts3.p3.x, pts3.p3.y, pts3.p3.z)
-                    );
-
-            var g1 = new THREE.Geometry();
-            g1.vertices = c1.getPoints( 50 );
-            var g2 = new THREE.Geometry();
-            g2.vertices = c2.getPoints( 50 );
-            var g3 = new THREE.Geometry();
-            g3.vertices = c3.getPoints( 50 );
-
-            var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-
-
-            var circle = that.createCircle(radius, 32);
-            circle.position.z = 5;
-            that.scene.add(circle);
-            that.scene.add(new THREE.Line(g1, material));
-            that.scene.add(new THREE.Line(g2, material));
-            that.scene.add(new THREE.Line(g3, material));
+            // var radius = 10;
+            // var pts1 = that.simCubBezInt(Math.PI / 2, radius);
+            // var pts2 = that.simCubBezInt(Math.PI / 3, radius);
+            // var pts3 = that.simCubBezInt(Math.PI / 4, radius);
+            // pts1 = that.simCubBezTo3D(pts1, false, 5, "z");
+            // // pts2 = that.simCubBezTo3D(pts2, true, 5, "z");
+            // // pts3 = that.simCubBezTo3D(pts3, true, 10, "z");
+            // console.log(pts1);
+            //
+            // var c1 = new THREE.CubicBezierCurve3(
+            //         new THREE.Vector3(pts1.p0.x, pts1.p0.y, pts1.p0.z),
+            //         new THREE.Vector3(pts1.p1.x, pts1.p1.y, pts1.p1.z),
+            //         new THREE.Vector3(pts1.p2.x, pts1.p2.y, pts1.p2.z),
+            //         new THREE.Vector3(pts1.p3.x, pts1.p3.y, pts1.p3.z)
+            //         );
+            // var c2 = new THREE.CubicBezierCurve3(
+            //         new THREE.Vector3(pts2.p0.x, pts2.p0.y, pts2.p0.z),
+            //         new THREE.Vector3(pts2.p1.x, pts2.p1.y, pts2.p1.z),
+            //         new THREE.Vector3(pts2.p2.x, pts2.p2.y, pts2.p2.z),
+            //         new THREE.Vector3(pts2.p3.x, pts2.p3.y, pts2.p3.z)
+            //         );
+            // var c3 = new THREE.CubicBezierCurve3(
+            //         new THREE.Vector3(pts3.p0.x, pts3.p0.y, pts3.p0.z),
+            //         new THREE.Vector3(pts3.p1.x, pts3.p1.y, pts3.p1.z),
+            //         new THREE.Vector3(pts3.p2.x, pts3.p2.y, pts3.p2.z),
+            //         new THREE.Vector3(pts3.p3.x, pts3.p3.y, pts3.p3.z)
+            //         );
+            //
+            // var g1 = new THREE.Geometry();
+            // g1.vertices = c1.getPoints( 50 );
+            // var g2 = new THREE.Geometry();
+            // g2.vertices = c2.getPoints( 50 );
+            // var g3 = new THREE.Geometry();
+            // g3.vertices = c3.getPoints( 50 );
+            //
+            // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+            //
+            //
+            // var circle = that.createCircle(radius, 32);
+            // circle.position.z = 5;
+            // that.scene.add(circle);
+            // that.scene.add(new THREE.Line(g1, material));
             // that.scene.add(new THREE.Line(g2, material));
-
-            that.circle = circle;
-
-            that.addStraightTo({x:pts1.p0.x, y:pts1.p0.y, z:0});
-            that.addStraightTo({x:pts1.p3.x, y:pts1.p3.y, z:0});
+            // that.scene.add(new THREE.Line(g3, material));
+            // // that.scene.add(new THREE.Line(g2, material));
+            //
+            // that.circle = circle;
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
