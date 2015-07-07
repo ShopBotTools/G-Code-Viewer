@@ -4,6 +4,7 @@ This app generates a 3D representation of GCode.
 ##Done:
 * Parsing GCode
 * Display path for straight lines
+* Ability to set initial position of the tool (by using the configuration helper)
 
 ##TODO:
 ###Functionalities
@@ -20,5 +21,4 @@ This app generates a 3D representation of GCode.
 * Ability to highlight based on line number to "step through" files
 * Marker showing origin?
 * Indicator of current tool location?
-* Ability to set initial position of the tool?
 * Showing difference between inches/mm

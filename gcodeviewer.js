@@ -77,14 +77,12 @@ var GCodeViewer = (function () {
         };
 
         //Careful, we use Z as up, THREE3D use Y as up //NOTE: comment useless?
-        //TODO: add start
         //all in absolute
-        that.addStraightTo = function(point) {
-            // var p = that.zUpToyUp(point);
-            var p = point;
+        that.addStraightTo = function(start, end) {
             that.lines.push({
                 "type": that.STRAIGHT,
-                "point": { x : p.x, y : p.y, z : p.z }
+                "start" : { x : start.x, y : start.y, z : start.z },
+                "end" : { x : end.x, y : end.y, z : end.z }
             });
         };
 
@@ -99,7 +97,6 @@ var GCodeViewer = (function () {
             });
         };
 
-        //TODO test it!
         that.findCenter = function(start, end, radius, clockwise, crossAxe) {
             var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
             var re = "x", im = "y";  //Real and Imaginary axes
@@ -127,20 +124,16 @@ var GCodeViewer = (function () {
 
             if(clockwise === true) {
                 if(radius > 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
-                    console.log("radius > 0 && -180 <= aCSCE && aCSCE < 0");
                     return center;
                 }
                 if(radius < 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
-                    console.log("radius < 0 && -Math.PI * 2 <= aCSCE && aCSCE < -Math.PI");
                     return center;
                 }
             } else {
                 if(radius > 0 && 0 <= aCSCE && aCSCE <= Math.PI) {
-                    console.log("radius > 0 && 0 < aCSCE && aCSCE >= 180");
                     return center;
                 }
                 if(radius < 0 && -Math.PI <= aCSCE && aCSCE <= 0) {
-                    console.log("radius < 0 && Math.PI / 2 <= aCSCE && aCSCE <= Math.PI");
                     return center;
                 }
             }
@@ -291,13 +284,14 @@ var GCodeViewer = (function () {
             }
             geometry.vertices.push(new THREE.Vector3(0, 0, 0));
             for(i=0; i < that.lines.length; i++) {
-                if(that.lines[i].type === that.STRAIGHT) {
-                    geometry.vertices.push(new THREE.Vector3(
-                                that.lines[i].point.x,
-                                that.lines[i].point.y,
-                                that.lines[i].point.z)
-                            );
-                }
+                //TODO: redo
+                // if(that.lines[i].type === that.STRAIGHT) {
+                //     geometry.vertices.push(new THREE.Vector3(
+                //                 that.lines[i].point.x,
+                //                 that.lines[i].point.y,
+                //                 that.lines[i].point.z)
+                //             );
+                // }
                 //TODO: do for the curves
             }
             return geometry;
@@ -342,7 +336,7 @@ var GCodeViewer = (function () {
             for(i=0; i < parsed.words.length; i++) {
                 w1 = parsed.words[i][0];
                 w2 = parsed.words[i][1];
-                if(w1 === "G" || w2 === "M") {
+                if(w1 === "G" || w1 === "M") {
                     obj.type = w1 + w2;
                 } else  {
                     obj[w1.toLowerCase()] = parseFloat(w2, 10);
@@ -352,10 +346,40 @@ var GCodeViewer = (function () {
             return obj;
         };
 
+        that.manageG2G3 = function(result, start) {
+            var end = { x:0, y:0, z:0 }, center = { x:0, y:0, z:0 };
+            var i = 0, j = 0, k = 0;
+
+            end.x = (typeof result.x === "undefined") ? start.x : result.x;
+            end.y = (typeof result.y === "undefined") ? start.y : result.y;
+            end.z = (typeof result.z === "undefined") ? start.z : result.z;
+
+            if(typeof result.r !== "undefined") {
+                center = that.findCenter(start, end, result.r,
+                        result.type === "G2", that.crossAxe);
+            } else {
+                i = (typeof result.i === "undefined") ? 0 : result.i;
+                j = (typeof result.j === "undefined") ? 0 : result.j;
+                k = (typeof result.k === "undefined") ? 0 : result.k;
+                center.x = start.x + i;
+                center.y = start.y + j;
+                center.z = start.z + k;
+            }
+
+            that.addCurveLine(start, end, center, result.type === "G2",
+                    that.crossAxe);
+            return end;
+        };
+
         //Have to set the gcode before
         that.viewPaths = function() {
             var i = 0;
             var end = { x:0, y:0, z:0 };
+            var start = {
+                x : that.cncConfiguration.initialPosition.x,
+                y : that.cncConfiguration.initialPosition.y,
+                z : that.cncConfiguration.initialPosition.z
+            };
             var result = {};
 
             for(i=0; i < that.gcode.length; i++) {
@@ -367,14 +391,24 @@ var GCodeViewer = (function () {
                 );
 
                 if(result.type === "G0" || result.type === "G1") {
-                    end.x = (typeof result.x === "undefined") ? end.x : result.x;
-                    end.y = (typeof result.y === "undefined") ? end.y : result.y;
-                    end.z = (typeof result.z === "undefined") ? end.z : result.z;
+                    end.x= (typeof result.x === "undefined")? start.x : result.x;
+                    end.y= (typeof result.y === "undefined")? start.y : result.y;
+                    end.z= (typeof result.z === "undefined")? start.z : result.z;
 
-                    that.addStraightTo(end);
+                    that.addStraightTo(start, end);
+                    start.x = end.x;
+                    start.y = end.y;
+                    start.z = end.z;
                 } else if(result.type === "G2" || result.type === "G3") {
-                    //TODO: look the type and do stuff
+                    start = that.manageG2G3(result, start);
                 } else if(result.type === "G4") {
+                    //TODO: look the type and do stuff
+                } else if(result.type === "G17") {
+                    that.crossAxe = "z";
+                } else if(result.type === "G18") {
+                    that.crossAxe = "y";
+                } else if(result.type === "G19") {
+                    that.crossAxe = "z";
                 } else if(result.type === "G20") {
                 } else if(result.type === "G21") {
                 } else if(result.type === "G90") {
@@ -404,9 +438,9 @@ var GCodeViewer = (function () {
         that.testCenter = function() {
             var radius = -20;
             var clockwise = false;
-            var crossAxe = "z";
+            var crossAxe = "y";
             var start = { x : 0, y : 0, z : 0 };
-            var end = { x : 10, y : 15, z : 0 };
+            var end = { z : 10, x : 15, y : 0 };
             // var end = { x : 1, y : 0, z : 0 };
             var center = { x : 0, y : 0, z : 0 };
             center = that.findCenter(start, end, radius, clockwise, crossAxe);
@@ -414,13 +448,14 @@ var GCodeViewer = (function () {
             // console.log(that.findAngleVectors2({x:1, y:0}, {
             console.log(center);
 
-            that.addStraightTo(center);
-            that.addStraightTo(end);
-            that.showLines();
+            // that.addStraightTo(center);
+            // that.addStraightTo(end);
+            // that.showLines();
 
             var circle = that.createCircle(Math.abs(radius), 32);
             circle.position.x = center.x;
-            circle.position.y = center.y;
+            circle.position.z = center.z;
+            circle.rotateX(Math.PI/2);
             that.scene.add(circle);
         };
 
@@ -493,6 +528,7 @@ var GCodeViewer = (function () {
 
         that.STRAIGHT = 0;
         that.CURVE = 1;
+        that.crossAxe = "z";
 
         var width = window.innerWidth, height = window.innerHeight;
 
