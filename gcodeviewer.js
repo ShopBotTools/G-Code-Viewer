@@ -42,6 +42,22 @@ var GCodeViewer = (function () {
             }
         };
 
+        that.copyObject = function(destination, source) {
+            var keys = Object.keys(obj1);
+            var i = 0;
+            for(i = 0; i < keys.length; i++) {
+                destination[keys[i]] = source[keys[i]];
+            }
+        };
+
+        that.movePoint = function(point, vector) {
+            var keys = Object.keys(obj1);
+            var i = 0;
+            for(i = 0; i < keys.length; i++) {
+                point[keys[i]] += vector[keys[i]];
+            }
+        };
+
         that.dotProduct2 = function(v1, v2) {
             return v1.x * v2.x + v1.y * v2.y;
         };
@@ -223,11 +239,32 @@ var GCodeViewer = (function () {
             return curve;
         };
 
+        that.rotAndPlaBez = function(curve, center, angle, re, im) {
+            var newPoint = { x : 0, y : 0, z : 0 };
+            that.scaleAndRotation({x:0,y:0,z:0}, curve.p0, newPoint, angle,
+                    1, re, im);
+            that.copyObject(curve.p0, newPoint);
+            that.scaleAndRotation({x:0,y:0,z:0}, curve.p1, newPoint, angle,
+                    1, re, im);
+            that.copyObject(curve.p1, newPoint);
+            that.scaleAndRotation({x:0,y:0,z:0}, curve.p2, newPoint, angle,
+                    1, re, im);
+            that.copyObject(curve.p2, newPoint);
+            that.scaleAndRotation({x:0,y:0,z:0}, curve.p3, newPoint, angle,
+                    1, re, im);
+            that.copyObject(curve.p3, newPoint);
+
+            that.movePoint(curve.p0, center);
+            that.movePoint(curve.p1, center);
+            that.movePoint(curve.p2, center);
+            that.movePoint(curve.p3, center);
+        };
+
         //angle in radian
         that.arcToBezier = function(start, end, angle, radius, crossAxe) {
             // var arc90 = {}, arcLittle = {};  //Arc = pi/2 and arc < pi/2
             var arcs = [];
-            var num90 = 0, numLittle = 0;  //Number arc = pi/2 and arc < pi/2
+            var num90 = 0, numLittle = 1;  //Number arc = pi/2 and arc < pi/2
             var bezier90 = {}, bezierLittle = {};
             var i = 0;
             var pitch = 0, p90 = 0, pLittle = 0, pAngle = 0; //Pitch of the arcs
@@ -264,7 +301,6 @@ var GCodeViewer = (function () {
             if(crossAxe.toLowerCase() === "x") {
                 for(i = 0; i < num90; i++) {
                     //1 rotate, 2 place the points
-
                 }
             } else if(crossAxe.toLowerCase() === "y") {
             } else {
