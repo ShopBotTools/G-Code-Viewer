@@ -43,15 +43,26 @@ var GCodeViewer = (function () {
         };
 
         that.copyObject = function(destination, source) {
-            var keys = Object.keys(obj1);
+            var keys = Object.keys(source);
             var i = 0;
             for(i = 0; i < keys.length; i++) {
                 destination[keys[i]] = source[keys[i]];
             }
         };
 
+        //Returns a clone of the object
+        that.cloneObject = function(object) {
+            var newObject = {};
+            var keys = Object.keys(object);
+            var i = 0;
+            for(i = 0; i < keys.length; i++) {
+                newObject[keys[i]] = object[keys[i]];
+            }
+            return newObject;
+        };
+
         that.movePoint = function(point, vector) {
-            var keys = Object.keys(obj1);
+            var keys = Object.keys(vector);
             var i = 0;
             for(i = 0; i < keys.length; i++) {
                 point[keys[i]] += vector[keys[i]];
@@ -66,25 +77,53 @@ var GCodeViewer = (function () {
             return v1.x * v2.y - v2.x * v1.y;
         };
 
+        that.lengthVector = function(v) {
+            return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        };
+
+        //I hate typing { and :
+        that.createPoint = function(x, y, z) {
+            return { x : x, y : y, z : z };
+        };
+
+        //Returns object of 3 axes:
+        // re is the axes for REal numbers
+        // im for the IMaginary numbers
+        // cr for the CRoss axe
+        that.findAxes = function(crossAxe) {
+            if(crossAxe.toLowerCase() === "x") {
+                return { re : "y", im : "z", cr : "x"};
+            } else if(crossAxe.toLowerCase() === "y") {
+                return { re : "z", im : "x", cr : "y"};
+            }
+            return { re : "x", im : "y", cr : "z"};
+        };
+
         //Do a rotation and scale of point according to center and store
         // the result in newPoint. re and im for axes Real and Imaginary
         // angle is in radian
+        // Copy the value of point before doing calculus so point and newPoint
+        // can be the same object
         that.scaleAndRotation = function(center, point, newPoint, angle, length, re, im) {
             var c = center, p = point, nP = newPoint;
             var l = length, cA = Math.cos(angle), sA = Math.sin(angle);
+            var pRe = p[re], pIm = p[im], cRe = c[re], cIm = c[im];
 
-            nP[re] = l * ((p[re] - c[re]) * cA - (p[im] - c[im]) * sA) + c[re];
-            nP[im] = l * ((p[im] - c[im]) * cA + (p[re] - c[re]) * sA) + c[im];
+            nP[re] = l * ((pRe - cRe) * cA - (pIm - cIm) * sA) + cRe;
+            nP[im] = l * ((pIm - cIm) * cA + (pRe - cRe) * sA) + cIm;
         };
 
-        //Returns the signed angle in radian in 2D
+        //Returns the signed angle in radian in 2D (between -PI and PI)
         that.findAngleVectors2 = function(v1, v2) {
             var cross = that.crossProduct2(v1, v2);
             var dot = that.dotProduct2(v1, v2);
             var lV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
             var lV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
-            if(cross === 0) {
+            if(lV1 === 0 || lV2 === 0) {
                 return 0;
+            }
+            if(cross === 0) {
+                cross = 1;
             }
             if(cross < 0) {
                 return -Math.acos(dot / (lV1 * lV2));  //For the sign
@@ -92,11 +131,39 @@ var GCodeViewer = (function () {
             return Math.acos(dot / (lV1 * lV2));  //For the sign
         };
 
+        // line of type STRAIGHT
+        that.getBezierAngle = function(line) {
+            var angle = 0;
+            var axes = that.findAxes(line.crossAxe);
+            var cs = that.createPoint(line.start[axes.re] - line.center[axes.re],
+                    line.start[axes.im] - line.center[axes.im], 0);
+            var ce = that.createPoint(line.end[axes.re] - line.center[axes.re],
+                    line.end[axes.im] - line.center[axes.im], 0);
+            angle =  that.findAngleVectors2(cs, ce);
+
+            if(line.clockwise === true && angle > 0) {
+                return -(Math.PI * 2 - angle);
+            }
+            if(line.clockwise === false && angle < 0) {
+                return Math.PI * 2 + angle;
+            }
+
+            return angle;
+        };
+
+        that.getBezierRadius = function(line) {
+            var axes = that.findAxes(line.crossAxe);
+            var cs = that.createPoint(line.start[axes.re] - line.center[axes.re],
+                    line.start[axes.im] - line.center[axes.im], 0);
+            return that.lengthVector(cs);
+        };
+
         //Careful, we use Z as up, THREE3D use Y as up //NOTE: comment useless?
         //all in absolute
-        that.addStraightTo = function(start, end) {
+        that.addStraightTo = function(start, end, word) {
             that.lines.push({
                 "type": that.STRAIGHT,
+                "word" : word,
                 "start" : { x : start.x, y : start.y, z : start.z },
                 "end" : { x : end.x, y : end.y, z : end.z }
             });
@@ -240,19 +307,11 @@ var GCodeViewer = (function () {
         };
 
         that.rotAndPlaBez = function(curve, center, angle, re, im) {
-            var newPoint = { x : 0, y : 0, z : 0 };
-            that.scaleAndRotation({x:0,y:0,z:0}, curve.p0, newPoint, angle,
-                    1, re, im);
-            that.copyObject(curve.p0, newPoint);
-            that.scaleAndRotation({x:0,y:0,z:0}, curve.p1, newPoint, angle,
-                    1, re, im);
-            that.copyObject(curve.p1, newPoint);
-            that.scaleAndRotation({x:0,y:0,z:0}, curve.p2, newPoint, angle,
-                    1, re, im);
-            that.copyObject(curve.p2, newPoint);
-            that.scaleAndRotation({x:0,y:0,z:0}, curve.p3, newPoint, angle,
-                    1, re, im);
-            that.copyObject(curve.p3, newPoint);
+            var c = { x : 0, y : 0, z : 0 };
+            that.scaleAndRotation(c, curve.p0, curve.p0, angle, 1, re, im);
+            that.scaleAndRotation(c, curve.p1, curve.p1, angle, 1, re, im);
+            that.scaleAndRotation(c, curve.p2, curve.p2, angle, 1, re, im);
+            that.scaleAndRotation(c, curve.p3, curve.p3, angle, 1, re, im);
 
             that.movePoint(curve.p0, center);
             that.movePoint(curve.p1, center);
@@ -260,19 +319,73 @@ var GCodeViewer = (function () {
             that.movePoint(curve.p3, center);
         };
 
-        //angle in radian
-        that.arcToBezier = function(start, end, angle, radius, crossAxe) {
-            // var arc90 = {}, arcLittle = {};  //Arc = pi/2 and arc < pi/2
+        // The Bézier's curve must be on the good plane
+        // that.getFullBezier = function(start, center, num90, bez90, numSmall, bezSmall, re, im) {
+        that.getFullBezier = function(line, num90, bez90, numSmall, bezSmall) {
             var arcs = [];
-            var num90 = 0, numLittle = 1;  //Number arc = pi/2 and arc < pi/2
-            var bezier90 = {}, bezierLittle = {};
-            var i = 0;
+            var axes = that.findAxes(line.crossAxe);
+            var start = line.start, center = line.center;
+            var re = axes.re, im = axes.im;
+            var cs = { x : start[re] - center[re], y : start[im] - center[im] };
+            //TODO: clean stuff
+            var i = 0, angle = 0, sign = 1;
+            var aStart = 0;
+            var aSmall;
+
+            if(num90 === 0 && numSmall === 0) {
+                return arcs;
+            }
+
+            if(line.clockwise === true) {
+                sign = -1;
+            }
+
+            if(num90 > 0) {
+                aStart = that.findAngleVectors2(
+                    { x : bez90.p0[re], y : bez90.p0[im] }, cs
+                );
+
+                for(i = 0; i < num90; i++) {
+                    // angle = i * Math.PI / 2 + Math.PI / 4;
+                    // angle = i * 1.570796326794897 + 0.785398163397448;
+                    angle += 1.570796326794897 * sign;
+                    arcs.push(that.cloneObject(bez90));
+                    that.rotAndPlaBez(arcs[i], center, angle, re, im);
+                }
+            }
+
+            if(numSmall > 0) {
+                if(num90 === 0) {
+                    angle = sign * that.findAngleVectors2(
+                            { x : bezSmall.p0[re], y : bezSmall.p0[im] }, cs
+                    );
+                } else {
+                    angle += 1.570796326794897 * sign;
+                }
+                arcs.push(that.cloneObject(bezSmall));
+                that.rotAndPlaBez(arcs[i], center, angle, re, im);
+            }
+
+            return arcs;
+        };
+
+        //angle in radian
+        // that.arcToBezier = function(start, end, angle, radius, crossAxe) {
+        that.arcToBezier = function(line) {
+            var start = line.start, end = line.end;
+            var crossAxe = line.crossAxe;
+            var arcs = [];
+            var num90 = 0, numSmall = 1;  //Number arc = pi/2 and arc < pi/2
+            var bez90 = {}, bezSmall = {};
             var pitch = 0, p90 = 0, pLittle = 0, pAngle = 0; //Pitch of the arcs
+
+            var angle = that.getBezierAngle(line);
+            var radius = that.getBezierRadius(line);
 
             //Find number of diferent sections
             if(Math.abs(angle) > Math.PI / 2) {
                 num90 = Math.abs(angle) / (Math.PI/2);
-                numLittle = (Math.abs(angle) % (Math.PI / 2) !== 0) ? 1 : 0;
+                numSmall = (Math.abs(angle) % (Math.PI / 2) !== 0) ? 1 : 0;
             }
 
             //Find pitches
@@ -289,26 +402,15 @@ var GCodeViewer = (function () {
 
             //Find helical Bézier's curves
             if(num90 > 0) {
-                bezier90 = that.simCubBezInt(Math.PI, radius);
-                that.simCubBezTo3D(bezier90, (angle < 0), p90, crossAxe);
+                bez90 = that.simCubBezInt(Math.PI, radius);
+                that.simCubBezTo3D(bez90, (angle < 0), p90, crossAxe);
             }
-            if(numLittle > 0) {
-                bezierLittle = that.simCubBezInt(angle, radius);
-                that.simCubBezTo3D(bezierLittle, (angle < 0), pLittle, crossAxe);
+            if(numSmall > 0) {
+                bezSmall = that.simCubBezInt(angle, radius);
+                that.simCubBezTo3D(bezSmall, (angle < 0), pLittle, crossAxe);
             }
 
-            //Rotate and place the arcs
-            if(crossAxe.toLowerCase() === "x") {
-                for(i = 0; i < num90; i++) {
-                    //1 rotate, 2 place the points
-                }
-            } else if(crossAxe.toLowerCase() === "y") {
-            } else {
-            }
-            //TODO continue to return an array of good Bezier's curves
-            //Bézier's curves are not perfect to we place by hand the last point
-
-            //return
+            return that.getFullBezier(line, num90, bez90, numSmall, bezSmall);
         };
 
         //TODO: rename
@@ -497,6 +599,52 @@ var GCodeViewer = (function () {
 
         that.test = function() {
             that.testCenter();
+
+            var b1 = {
+                "type": that.CURVE,
+                "start" : { x : 1, y : 0, z : 0 },
+                "end" :  { x : 0, y : 0, z : 0 },
+                "center" : { x : 0, y : 0, z : 0 },
+                "clockwise" : true,
+                "crossAxe" : "z"
+            };
+            console.log(that.getBezierAngle(b1) * 180 / Math.PI);
+            var b2 = {
+                "type": that.CURVE,
+                "start" : { x : 1, y : 0, z : 0 },
+                "end" :  { x : 0, y : 1, z : 0 },
+                "center" : { x : 0, y : 0, z : 0 },
+                "clockwise" : true,
+                "crossAxe" : "z"
+            };
+            console.log(that.getBezierAngle(b2) * 180 / Math.PI);
+            var b3 = {
+                "type": that.CURVE,
+                "start" : { x : 1, y : 0, z : 0 },
+                "end" :  { x : 0, y : 1, z : 0 },
+                "center" : { x : 0, y : 0, z : 0 },
+                "clockwise" : false,
+                "crossAxe" : "z"
+            };
+            console.log(that.getBezierAngle(b3) * 180 / Math.PI);
+            var b4 = {
+                "type": that.CURVE,
+                "start" : { x : 2, y : 1, z : 0 },
+                "end" :  { x : 1, y : -1, z : 0 },
+                "center" : { x : 1, y : 1, z : 0 },
+                "clockwise" : true,
+                "crossAxe" : "z"
+            };
+            console.log(that.getBezierAngle(b4) * 180 / Math.PI);
+            var b5 = {
+                "type": that.CURVE,
+                "start" : { x : 2, y : 1, z : 0 },
+                "end" :  { x : 1, y : -1, z : 0 },
+                "center" : { x : 1, y : 1, z : 0 },
+                "clockwise" : false,
+                "crossAxe" : "z"
+            };
+            console.log(that.getBezierAngle(b5) * 180 / Math.PI);
 
             // var radius = 10;
             // var pts1 = that.simCubBezInt(Math.PI / 2, radius);
