@@ -513,12 +513,15 @@ var GCodeViewer = (function () {
         that.viewPaths = function() {
             var i = 0;
             var end = { x:0, y:0, z:0 };
-            var start = {
-                x : that.cncConfiguration.initialPosition.x,
-                y : that.cncConfiguration.initialPosition.y,
-                z : that.cncConfiguration.initialPosition.z
-            };
             var result = {};
+            var start = { x: 0, y : 0, z : 0 };
+            if(typeof that.cncConfiguration.initialPosition !== "undefined") {
+                start = {
+                    x : that.cncConfiguration.initialPosition.x,
+                    y : that.cncConfiguration.initialPosition.y,
+                    z : that.cncConfiguration.initialPosition.z
+                };
+            }
 
             for(i=0; i < that.gcode.length; i++) {
                 //Sorry for not being really readable :'(
