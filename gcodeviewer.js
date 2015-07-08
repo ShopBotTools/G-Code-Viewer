@@ -130,26 +130,29 @@ var GCodeViewer = (function () {
             return Math.acos(dot / (lV1 * lV2));  //For the sign
         };
 
+        that.findAngleOrientedVectors2 = function(v1, v2, positive) {
+            var angle =  that.findAngleVectors2(v1, v2);
+
+            if(positive === false && angle > 0) {
+                return -(Math.PI * 2 - angle);
+            }
+            if(positive === true && angle < 0) {
+                return Math.PI * 2 + angle;
+            }
+
+            return angle;
+        };
+
         // line of type STRAIGHT
         that.getBezierAngle = function(line) {
-            var angle = 0;
             var axes = that.findAxes(line.crossAxe);
             var cs = that.createPoint(line.start[axes.re] - line.center[axes.re],
                     line.start[axes.im] - line.center[axes.im], 0);
             var ce = that.createPoint(line.end[axes.re] - line.center[axes.re],
                     line.end[axes.im] - line.center[axes.im], 0);
-            angle =  that.findAngleVectors2(cs, ce);
 
-            console.log(angle * 180 / Math.PI);
-
-            if(line.clockwise === true && angle > 0) {
-                return -(Math.PI * 2 - angle);
-            }
-            if(line.clockwise === false && angle < 0) {
-                return Math.PI * 2 + angle;
-            }
-
-            return angle;
+            return that.findAngleOrientedVectors2(cs, ce,
+                    line.clockwise === false);
         };
 
         that.getBezierRadius = function(line) {
@@ -329,27 +332,21 @@ var GCodeViewer = (function () {
             var re = axes.re, im = axes.im;
             var cs = { x : start[re] - center[re], y : start[im] - center[im] };
             //TODO: clean stuff
-            var i = 0, angle = 0, sign = 1;
+            var i = 0, angle = 0, sign = (line.clockwise === true) ? -1 : 1;
 
             if(num90 === 0 && numSmall === 0) {
                 return arcs;
             }
 
-            if(line.clockwise === true) {
-                sign = -1;
-            }
-
             if(num90 > 0) {
-                angle = that.findAngleVectors2(
-                    { x : bez90.p0[re], y : bez90.p0[im] }, cs
+                angle = that.findAngleOrientedVectors2(
+                    { x : bez90.p0[re], y : bez90.p0[im] }, cs,
+                    line.clockwise === false
                 );
 
                 for(i = 0; i < num90; i++) {
-                    // console.log(angle * 180 / Math.PI);
                     arcs.push(that.cloneBezier(bez90));
                     that.rotAndPlaBez(arcs[i], center, angle, re, im);
-                    console.log("?????");
-                    console.log(arcs[0].p0.x);
                     // angle = i * Math.PI / 2 + Math.PI / 4;
                     // angle = i * 1.570796326794897 + 0.785398163397448;
                     angle += 1.570796326794897 * sign;
@@ -357,9 +354,11 @@ var GCodeViewer = (function () {
             }
 
             if(numSmall > 0) {
-                angle = that.findAngleVectors2(
-                        { x : bezSmall.p0[re], y : bezSmall.p0[im] }, cs
+                angle = that.findAngleOrientedVectors2(
+                    { x : bezSmall.p0[re], y : bezSmall.p0[im] }, cs,
+                    line.clockwise === false
                 );
+
                 if(num90 !== 0) {
                     angle += num90 * 1.570796326794897 * sign;
                 }
@@ -387,7 +386,8 @@ var GCodeViewer = (function () {
 
             //Find number of diferent sections
             if(Math.abs(angle) > Math.PI / 2) {
-                num90 = Math.abs(angle) / (Math.PI/2);
+                //Untrustful (as this language) function, should be tested
+                num90 = parseInt(Math.abs(angle) / (Math.PI/2), 10);
                 numSmall = (Math.abs(angle) % (Math.PI / 2) !== 0) ? 1 : 0;
             }
 
@@ -402,13 +402,13 @@ var GCodeViewer = (function () {
                 that.simCubBezTo3D(bez90, (angle < 0), p90, crossAxe);
             }
             if(numSmall > 0) {
-                console.log(angle + "  " + radius);
+                angle = Math.abs(angle) - num90 * Math.PI / 2;
+                if(line.clockwise === true) {
+                    angle = -angle;
+                }
                 bezSmall = that.simCubBezInt(angle, radius);
-            console.log("bezSmall");
-            console.log(bezSmall);
                 that.simCubBezTo3D(bezSmall, (angle < 0), pLittle, crossAxe);
             }
-
 
             return that.getFullBezier(line, num90, bez90, numSmall, bezSmall);
         };
@@ -583,7 +583,6 @@ var GCodeViewer = (function () {
             var center = { x : 0, y : 0, z : 0 };
             center = that.findCenter(start, end, radius, clockwise, crossAxe);
             // that.scaleAndRotation(start, end, center, Math.PI/3, 1, "x", "y");
-            // console.log(that.findAngleVectors2({x:1, y:0}, {
 
             // that.addStraightTo(center);
             // that.addStraightTo(end);
@@ -602,9 +601,9 @@ var GCodeViewer = (function () {
             var b1 = {
                 "type": that.CURVE,
                 "start" : { x : 1, y : 0, z : 0 },
-                "end" :  { x : 0, y : 1, z : 0 },
+                "end" :  { x : Math.sqrt(2), y : -Math.sqrt(2), z : 0 },
                 "center" : { x : 0, y : 0, z : 0 },
-                "clockwise" : true,
+                "clockwise" : false,
                 "crossAxe" : "z"
             };
             var b= that.arcToBezier(b1);
@@ -612,7 +611,6 @@ var GCodeViewer = (function () {
             var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
             var i = 0;
             for (i = 0; i < b.length; i++) {
-                console.log(b[i].p0.y + "  " + b[i].p3.y);
                 c = new THREE.CubicBezierCurve3(
                             new THREE.Vector3(b[i].p0.x, b[i].p0.y, b[i].p0.z),
                             new THREE.Vector3(b[i].p1.x, b[i].p1.y, b[i].p1.z),
@@ -621,7 +619,7 @@ var GCodeViewer = (function () {
                         );
                 g = new THREE.Geometry();
                 g.vertices = c.getPoints( 50 );
-                console.log(g);
+                // console.log(b[i].p0.x + "; " + b[i].p0.y+") ("+b[i].p3.x + "; " + b[i].p3.y);
                 that.scene.add(new THREE.Line(g, material));
             }
 
