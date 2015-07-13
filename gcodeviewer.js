@@ -372,8 +372,7 @@ var GCodeViewer = (function () {
         };
 
         // The Bézier's curve must be on the good plane
-        // that.getFullBezier = function(start, center, num90, bez90, numSmall, bezSmall, re, im) {
-        that.getFullBezier = function(line, num90, bez90, numSmall, bezSmall) {
+        that.getFullBezier = function(line, num90, bez90, numSmall, bezSmall, pitch90) {
             var arcs = [];
             var axes = that.findAxes(line.crossAxe);
             var start = line.start, center = line.center;
@@ -393,11 +392,13 @@ var GCodeViewer = (function () {
                 );
 
                 for(i = 0; i < num90; i++) {
+                    console.log("Angle rot: " + angle * 180 / Math.PI);
                     arcs.push(that.cloneBezier(bez90));
                     that.rotAndPlaBez(arcs[i], center, angle, re, im);
                     // angle = i * Math.PI / 2 + Math.PI / 4;
                     // angle = i * 1.570796326794897 + 0.785398163397448;
                     angle += 1.570796326794897 * sign;
+                    center[line.crossAxe] += pitch90;
                 }
             }
 
@@ -409,6 +410,7 @@ var GCodeViewer = (function () {
 
                 if(num90 !== 0) {
                     angle += num90 * 1.570796326794897 * sign;
+                    console.log("Angle rot: " + angle * 180 / Math.PI);
                 }
                 arcs.push(that.cloneBezier(bezSmall));
                 that.rotAndPlaBez(arcs[i], center, angle, re, im);
@@ -450,7 +452,6 @@ var GCodeViewer = (function () {
             if(num90 > 0) {
                 bez90 = that.simCubBezInt(Math.PI / 2, radius);
                 that.simCubBezTo3D(bez90, (angle < 0), p90, crossAxe);
-            // return [bez90]; //TODO: delete that
             }
             if(numSmall > 0) {
                 angle = Math.abs(angle) - num90 * Math.PI / 2;
@@ -461,7 +462,7 @@ var GCodeViewer = (function () {
                 that.simCubBezTo3D(bezSmall, (angle < 0), pLittle, crossAxe);
             }
 
-            return that.getFullBezier(line, num90, bez90, numSmall, bezSmall);
+            return that.getFullBezier(line, num90, bez90, numSmall, bezSmall, p90);
         };
 
         //TODO: rename
