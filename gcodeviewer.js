@@ -175,11 +175,11 @@ var GCodeViewer = (function () {
                         line.end.z)
             );
 
-            if(line.word === "G0") {
-            var g = geometry;
-            console.log("("+g.vertices[0].x+"; "+g.vertices[0].y+"; "+g.vertices[0].z+") => ("+g.vertices[1].x+"; "+g.vertices[1].y+"; "+g.vertices[1].z+")");
-            console.log("======");
-            }
+            // if(line.word === "G0") {
+            // var g = geometry;
+            // console.log("("+g.vertices[0].x+"; "+g.vertices[0].y+"; "+g.vertices[0].z+") => ("+g.vertices[1].x+"; "+g.vertices[1].y+"; "+g.vertices[1].z+")");
+            // console.log("======");
+            // }
 
             return geometry;
         };
@@ -191,7 +191,7 @@ var GCodeViewer = (function () {
             var v = [];
             var geometry = new THREE.Geometry();
 
-            console.log("Bez length: " + bez.length);
+            // console.log("Bez length: " + bez.length);
             for(i=0; i < bez.length; i++) {
                 p0 = new THREE.Vector3(bez[i].p0.x, bez[i].p0.y, bez[i].p0.z);
                 p1 = new THREE.Vector3(bez[i].p1.x, bez[i].p1.y, bez[i].p1.z);
@@ -555,7 +555,7 @@ var GCodeViewer = (function () {
         that.manageG2G3 = function(result, start) {
             var end = { x:0, y:0, z:0 }, center = { x:0, y:0, z:0 };
             var i = 0, j = 0, k = 0;
-            console.log(result);
+            // console.log(result);
 
             end.x = (typeof result.x === "undefined") ? start.x : result.x;
             end.y = (typeof result.y === "undefined") ? start.y : result.y;
@@ -598,7 +598,7 @@ var GCodeViewer = (function () {
                 //Sorry for not being really readable :'(
                 result = that.parseParsedGCode(
                     GParser.parse(
-                        that.removeCommentsAndSpaces(that.gcode[i])
+                        that.removeCommentsAndSpaces(that.gcode[i]).toUpperCase()
                     )
                 );
 
@@ -641,7 +641,7 @@ var GCodeViewer = (function () {
 
             that.showLines();
             that.scene.add(new THREE.AxisHelper( 100 ));
-            that.printLines();
+            // that.printLines();
 
             that.render();
             that.animate();
@@ -677,7 +677,7 @@ var GCodeViewer = (function () {
             var r = -20;
             var center = that.findCenter(start, end, r, clockwise, crossAxe);
 
-            console.log(center);
+            // console.log(center);
             that.lines.push({
                 "type": that.CURVE,
                 "start": { x : start.x, y : start.y, z : start.z },
