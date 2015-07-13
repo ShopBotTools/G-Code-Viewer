@@ -392,8 +392,7 @@ var GCodeViewer = (function () {
                 for(i = 0; i < num90; i++) {
                     arcs.push(that.cloneBezier(bez90));
                     that.rotAndPlaBez(arcs[i], center, angle, re, im);
-                    // angle = i * Math.PI / 2 + Math.PI / 4;
-                    // angle = i * 1.570796326794897 + 0.785398163397448;
+                    // angle += Math.PI + sign;
                     angle += 1.570796326794897 * sign;
                     center[line.crossAxe] += pitch90;
                 }
@@ -535,21 +534,31 @@ var GCodeViewer = (function () {
 
         //Parsing the result of GParser.parse
         that.parseParsedGCode = function(parsed) {
+            console.log(parsed);
             var obj = {};
             var i = 0;
             var w1 = "", w2 = "";
+            var tab = [];
+            var emptyObj = true;
 
             for(i=0; i < parsed.words.length; i++) {
                 w1 = parsed.words[i][0];
                 w2 = parsed.words[i][1];
                 if(w1 === "G" || w1 === "M") {
+                    if(emptyObj === false) {
+                        tab.push(obj);
+                        obj = {};
+                    }
                     obj.type = w1 + w2;
+                    emptyObj = false;
                 } else  {
                     obj[w1.toLowerCase()] = parseFloat(w2, 10);
                 }
             }
+            tab.push(obj);
 
-            return obj;
+            return tab;
+            // return obj;
         };
 
         that.manageG2G3 = function(result, start) {
@@ -582,10 +591,11 @@ var GCodeViewer = (function () {
         //  And manage the commands correctly
         //Have to set the gcode before
         that.viewPaths = function() {
-            var i = 0;
+            var i = 0, j = 0;
             var end = { x:0, y:0, z:0 };
-            var result = {};
+            var res = {};  //RESult
             var start = { x: 0, y : 0, z : 0 };
+            var tabRes = [];
             if(typeof that.cncConfiguration.initialPosition !== "undefined") {
                 start = {
                     x : that.cncConfiguration.initialPosition.x,
@@ -596,46 +606,49 @@ var GCodeViewer = (function () {
 
             for(i=0; i < that.gcode.length; i++) {
                 //Sorry for not being really readable :'(
-                result = that.parseParsedGCode(
+                tabRes = that.parseParsedGCode(
                     GParser.parse(
                         that.removeCommentsAndSpaces(that.gcode[i]).toUpperCase()
                     )
                 );
 
-                if(result.type === "G0" || result.type === "G1") {
-                    end.x= (typeof result.x === "undefined")? start.x : result.x;
-                    end.y= (typeof result.y === "undefined")? start.y : result.y;
-                    end.z= (typeof result.z === "undefined")? start.z : result.z;
+                for(j = 0; j < tabRes.length; j++) {
+                    res = tabRes[j];
+                    if(res.type === "G0" || res.type === "G1") {
+                        end.x= (typeof res.x === "undefined")? start.x : res.x;
+                        end.y= (typeof res.y === "undefined")? start.y : res.y;
+                        end.z= (typeof res.z === "undefined")? start.z : res.z;
 
-                    that.addStraightLine(start, end, result.type);
-                    start.x = end.x;
-                    start.y = end.y;
-                    start.z = end.z;
-                } else if(result.type === "G2" || result.type === "G3") {
-                    start = that.manageG2G3(result, start);
-                } else if(result.type === "G4") {
-                    console.log("Set pause so continue");
-                    // continue;  //Add the pause time somewhere?
-                } else if(result.type === "G17") {
-                    that.crossAxe = "z";
-                } else if(result.type === "G18") {
-                    that.crossAxe = "y";
-                } else if(result.type === "G19") {
-                    that.crossAxe = "z";
-                } else if(result.type === "G20") {
-                    console.log("set inches");
-                } else if(result.type === "G21") {
-                    console.log("set mm");
-                } else if(result.type === "G90") {
-                    console.log("set absolute");
-                } else if(result.type === "G91") {
-                    console.log("set relative");
-                } else if(result.type === "M4") {
-                    console.log("set spin on");
-                } else if(result.type === "M8") {
-                    console.log("set spin off");
-                } else if(result.type === "M30") {
-                    break;
+                        that.addStraightLine(start, end, res.type);
+                        start.x = end.x;
+                        start.y = end.y;
+                        start.z = end.z;
+                    } else if(res.type === "G2" || res.type === "G3") {
+                        start = that.manageG2G3(res, start);
+                    } else if(res.type === "G4") {
+                        console.log("Set pause so continue");
+                        // continue;  //Add the pause time somewhere?
+                    } else if(res.type === "G17") {
+                        that.crossAxe = "z";
+                    } else if(res.type === "G18") {
+                        that.crossAxe = "y";
+                    } else if(res.type === "G19") {
+                        that.crossAxe = "z";
+                    } else if(res.type === "G20") {
+                        console.log("set inches");
+                    } else if(res.type === "G21") {
+                        console.log("set mm");
+                    } else if(res.type === "G90") {
+                        console.log("set absolute");
+                    } else if(res.type === "G91") {
+                        console.log("set relative");
+                    } else if(res.type === "M4") {
+                        console.log("set spin on");
+                    } else if(res.type === "M8") {
+                        console.log("set spin off");
+                    } else if(res.type === "M30") {
+                        break;
+                    }
                 }
             }
 
