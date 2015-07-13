@@ -184,6 +184,7 @@ var GCodeViewer = (function () {
             });
         };
 
+        //radius is positive or negative
         that.findCenter = function(start, end, radius, clockwise, crossAxe) {
             var angle = 0, l = 1, lSE = 0, r = Math.abs(radius), aCSCE = 0;
             var re = "x", im = "y";  //Real and Imaginary axes
@@ -431,6 +432,20 @@ var GCodeViewer = (function () {
                 //             );
                 // }
                 //TODO: do for the curves
+            // var b= that.arcToBezier(that.lines[i]);
+            // var g = {}, c = {};
+            // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+            // var i = 0;
+            // for (i = 0; i < b.length; i++) {
+            //     c = new THREE.CubicBezierCurve3(
+            //                 new THREE.Vector3(b[i].p0.x, b[i].p0.y, b[i].p0.z),
+            //                 new THREE.Vector3(b[i].p1.x, b[i].p1.y, b[i].p1.z),
+            //                 new THREE.Vector3(b[i].p2.x, b[i].p2.y, b[i].p2.z),
+            //                 new THREE.Vector3(b[i].p3.x, b[i].p3.y, b[i].p3.z)
+            //             );
+            //     g = new THREE.Geometry();
+            //     g.vertices = c.getPoints( 50 );
+            //     that.scene.add(new THREE.Line(g, material));
             }
             return geometry;
         };
@@ -487,6 +502,7 @@ var GCodeViewer = (function () {
         that.manageG2G3 = function(result, start) {
             var end = { x:0, y:0, z:0 }, center = { x:0, y:0, z:0 };
             var i = 0, j = 0, k = 0;
+            console.log(result);
 
             end.x = (typeof result.x === "undefined") ? start.x : result.x;
             end.y = (typeof result.y === "undefined") ? start.y : result.y;
@@ -509,6 +525,8 @@ var GCodeViewer = (function () {
             return end;
         };
 
+        //TODO: rename this function and put away the show of the paths.
+        //  And manage the commands correctly
         //Have to set the gcode before
         that.viewPaths = function() {
             var i = 0;
@@ -543,7 +561,8 @@ var GCodeViewer = (function () {
                 } else if(result.type === "G2" || result.type === "G3") {
                     start = that.manageG2G3(result, start);
                 } else if(result.type === "G4") {
-                    //TODO: look the type and do stuff
+                    console.log("Set pause so continue");
+                    // continue;  //Add the pause time somewhere?
                 } else if(result.type === "G17") {
                     that.crossAxe = "z";
                 } else if(result.type === "G18") {
@@ -551,12 +570,19 @@ var GCodeViewer = (function () {
                 } else if(result.type === "G19") {
                     that.crossAxe = "z";
                 } else if(result.type === "G20") {
+                    console.log("set inches");
                 } else if(result.type === "G21") {
+                    console.log("set mm");
                 } else if(result.type === "G90") {
+                    console.log("set absolute");
                 } else if(result.type === "G91") {
+                    console.log("set relative");
                 } else if(result.type === "M4") {
+                    console.log("set spin on");
                 } else if(result.type === "M8") {
+                    console.log("set spin off");
                 } else if(result.type === "M30") {
+                    break;
                 }
             }
 
@@ -576,55 +602,108 @@ var GCodeViewer = (function () {
             return new THREE.Line(circleGeometry , material);
         };
 
-        that.testCenter = function() {
-            var radius = -20;
+        that.testBezier = function() {
+            var i = 0, j = 0;
+            var b= {}, g = {}, c = {};
+            var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+
+            // var result = that.parseParsedGCode(GParser.parse("G3Z10X15R-20"));
+            // that.manageG2G3(result, that.createPoint(0, 0, 0));
+            // result = that.parseParsedGCode(GParser.parse("G2X0Y0R-20"));
+            // that.manageG2G3(result, that.lines[i].end);
+
+            var start = that.createPoint(0, 0, 0);
+            var end = that.createPoint(15, 0, 10);
             var clockwise = false;
-            var crossAxe = "y";
-            var start = { x : 0, y : 0, z : 0 };
-            var end = { z : 10, x : 15, y : 0 };
-            // var end = { x : 1, y : 0, z : 0 };
-            var center = { x : 0, y : 0, z : 0 };
-            center = that.findCenter(start, end, radius, clockwise, crossAxe);
-            // that.scaleAndRotation(start, end, center, Math.PI/3, 1, "x", "y");
+            var center = that.findCenter(start, end, -20, clockwise, "y");
+            that.lines.push({
+                "type": that.CURVE,
+                "start": { x : start.x, y : start.y, z : start.z },
+                "end": { x : end.x, y : end.y, z : end.z },
+                "center": { x : center.x, y : center.y, z : center.z },
+                "clockwise" : false,
+                "crossAxe" : "y"
+            });
 
-            // that.addStraightTo(center);
-            // that.addStraightTo(end);
-            // that.showLines();
+            start = that.createPoint(15, 0, 10);
+            end = that.createPoint(0, 0, 0);
+            clockwise = true;
+            center = that.findCenter(start, end, -20, clockwise, "y");
+            that.lines.push({
+                "type": that.CURVE,
+                "start": { x : start.x, y : start.y, z : start.z },
+                "end": { x : end.x, y : end.y, z : end.z },
+                "center": { x : center.x, y : center.y, z : center.z },
+                "clockwise" : true,
+                "crossAxe" : "y"
+            });
 
-            var circle = that.createCircle(Math.abs(radius), 32);
-            circle.position.x = center.x;
-            circle.position.z = center.z;
-            circle.rotateX(Math.PI/2);
-            that.scene.add(circle);
+            for(i = 0; i < that.lines.length; i++) {
+                console.log(that.lines[i]);
+                b = that.arcToBezier(that.lines[i]);
+
+                for (j = 0; j < b.length; j++) {
+                    c = new THREE.CubicBezierCurve3(
+                        new THREE.Vector3(b[j].p0.x, b[j].p0.y, b[j].p0.z),
+                        new THREE.Vector3(b[j].p1.x, b[j].p1.y, b[j].p1.z),
+                        new THREE.Vector3(b[j].p2.x, b[j].p2.y, b[j].p2.z),
+                        new THREE.Vector3(b[j].p3.x, b[j].p3.y, b[j].p3.z)
+                    );
+                    g = new THREE.Geometry();
+                    g.vertices = c.getPoints( 50 );
+                    that.scene.add(new THREE.Line(g, material));
+                }
+            }
+        };
+
+        that.testMerge = function() {
+
+            // var r1 = 10, r2 = 5, segments = 32;
+            // var group1 = new THREE.Geometry(), group2 = new THREE.Geometry();
+            // var mat1 = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+            // var mat2 = new THREE.LineBasicMaterial( { color : 0x00ff00 } );
+            // var g1 = new THREE.CircleGeometry(r1, segments);
+            // var g2 = new THREE.CircleGeometry(r2, segments);
+            // var g3 = new THREE.CircleGeometry(r1 * 2, segments);
+            // var mesh1 = new THREE.Line(g1, mat1);
+            // var mesh2 = new THREE.Line(g2, mat2);
+            // var mesh3 = new THREE.Line(g3, mat1);
+            // group1.merge(g1);
+            // group2.merge(g2);
+            // group2.merge(g3);
+            // // g2.merge(g1);
+            // mesh1.position.x -= r1;
+            // mesh2.position.x += r2;
+            // that.scene.add(mesh1);
+            // that.scene.add(mesh2);
+            // that.scene.add(mesh3);
+            // // that.scene.remove(mesh3);
+
+            var meshs = [];
+            var mat1 = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+            var mat2 = new THREE.LineBasicMaterial( { color : 0x00ff00 } );
+            var group = new THREE.Geometry();
+            var group2 = new THREE.Geometry();
+            var geo = {};
+            var i = 0;
+            for(i=0; i < 1000; i++) {
+                geo = new THREE.CircleGeometry(i, 32);
+                // group.merge(geo);
+                if(i % 2 === 0) {
+                    group.merge(geo);
+                    meshs.push(new THREE.Line(geo, mat1));
+                } else {
+                    group2.merge(geo);
+                    meshs.push(new THREE.Line(geo, mat2));
+                }
+                // that.scene.add(meshs[i]);
+            }
+            that.scene.add(new THREE.Line(group, mat1));
+            that.scene.add(new THREE.Line(group2, mat2));
         };
 
         that.test = function() {
-            // that.testCenter();
-
-            var b1 = {
-                "type": that.CURVE,
-                "start" : { x : 1, y : 0, z : 0 },
-                "end" :  { x : Math.sqrt(2), y : -Math.sqrt(2), z : 0 },
-                "center" : { x : 0, y : 0, z : 0 },
-                "clockwise" : false,
-                "crossAxe" : "z"
-            };
-            var b= that.arcToBezier(b1);
-            var g = {}, c = {};
-            var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-            var i = 0;
-            for (i = 0; i < b.length; i++) {
-                c = new THREE.CubicBezierCurve3(
-                            new THREE.Vector3(b[i].p0.x, b[i].p0.y, b[i].p0.z),
-                            new THREE.Vector3(b[i].p1.x, b[i].p1.y, b[i].p1.z),
-                            new THREE.Vector3(b[i].p2.x, b[i].p2.y, b[i].p2.z),
-                            new THREE.Vector3(b[i].p3.x, b[i].p3.y, b[i].p3.z)
-                        );
-                g = new THREE.Geometry();
-                g.vertices = c.getPoints( 50 );
-                // console.log(b[i].p0.x + "; " + b[i].p0.y+") ("+b[i].p3.x + "; " + b[i].p3.y);
-                that.scene.add(new THREE.Line(g, material));
-            }
+            that.testMerge();
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
@@ -645,6 +724,20 @@ var GCodeViewer = (function () {
         that.STRAIGHT = 0;
         that.CURVE = 1;
         that.crossAxe = "z";
+
+        that.geoG0Undone = new THREE.Geometry();
+        that.geoG1Undone = new THREE.Geometry();
+        that.geoG2G3Undone = new THREE.Geometry();
+        that.geoG0Done = new THREE.Geometry();
+        that.geoG1Done = new THREE.Geometry();
+        that.geoG2G3Done = new THREE.Geometry();
+
+        that.matG0Undone = new THREE.LineDashedMaterial( { color : 0x8877dd } );
+        that.matG1Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
+        that.matG2G3Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
+        that.matG0Done = new THREE.LineDashedMaterial( { color : 0x8877dd, dashSize : 2 } );
+        that.matG1Done = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+        that.matG2G3Done = new THREE.LineBasicMaterial( { color : 0xee6699 } );
 
         var width = window.innerWidth, height = window.innerHeight;
 

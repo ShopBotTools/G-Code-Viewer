@@ -10,6 +10,7 @@ This app generates a 3D representation of GCode.
 ###Functionalities
 * Displaying arcs
 * Interpreting relative position mode
+* Manage correctly each command used
 * Add a "step-by-step" functionality
 * Displaying 3D representation of the result
 * Animation?
