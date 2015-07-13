@@ -174,6 +174,7 @@ var GCodeViewer = (function () {
                         line.end.y,
                         line.end.z)
             );
+            geometry.faces.push(new THREE.Face3(0, 1, 0));
 
             // if(line.word === "G0") {
             // var g = geometry;
@@ -464,7 +465,7 @@ var GCodeViewer = (function () {
 
         //TODO: rename
         that.setGeometriesFromLines = function() {
-            var i = 0;
+            var i = 0, j = 0;
             var geometry = new THREE.Geometry();
 
             if(that.lines.length === 0) {
@@ -473,30 +474,60 @@ var GCodeViewer = (function () {
 
             // var j = that.lines.length - 1;
             for(i=0; i < that.lines.length; i++) {
-            // for(i=j; i < j+1; i++) {
+                // for(i=j; i < j+1; i++) {
                 if(that.lines[i].type === that.STRAIGHT) {
                     geometry = that.getGeometryStraightLine(that.lines[i]);
+                    // if(that.lines[i].word === "G0") {
+                    //     that.geoG0Undone.merge(geometry);
+                    // } else {
+                    //     that.geoG1Undone.merge(geometry);
+                    // }
                     if(that.lines[i].word === "G0") {
-                        that.geoG0Undone.merge(geometry);
+                        for(j=0; j < geometry.vertices.length; j+=2) {
+                            if(typeof geometry.vertices[j+1] === "undefined") {
+                                break;
+                            }
+                            that.geoG0Undone.vertices.push(geometry.vertices[j]);
+                            that.geoG0Undone.vertices.push(geometry.vertices[j+1]);
+                            that.geoG0Undone.vertices.push(geometry.vertices[j]);
+                            that.geoG0Undone.vertices.push(geometry.vertices[j+1]);
+                        }
                     } else {
-                        that.geoG1Undone.merge(geometry);
+                        for(j=0; j < geometry.vertices.length; j+=2) {
+                            if(typeof geometry.vertices[j+1] === "undefined") {
+                                break;
+                            }
+                            that.geoG1Undone.vertices.push(geometry.vertices[j]);
+                            that.geoG1Undone.vertices.push(geometry.vertices[j+1]);
+                            that.geoG1Undone.vertices.push(geometry.vertices[j]);
+                            that.geoG1Undone.vertices.push(geometry.vertices[j+1]);
+                        }
                     }
                 } else if(that.lines[i].type === that.CURVE) {
                     geometry = that.getGeometryCurveLine(that.lines[i]);
-                    that.geoG2G3Undone.merge(geometry);
+                    // that.geoG2G3Undone.merge(geometry);
+                    for(j=0; j < geometry.vertices.length; j+=2) {
+                        if(typeof geometry.vertices[j+1] === "undefined") {
+                            break;
+                        }
+                        that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
+                        that.geoG2G3Undone.vertices.push(geometry.vertices[j+1]);
+                        that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
+                        that.geoG2G3Undone.vertices.push(geometry.vertices[j+1]);
+                    }
                 }
             }
-        };
+            };
 
         that.showLines = function() {
             that.setGeometriesFromLines();
 
-            that.meshG0Undone = new THREE.Line(that.geoG0Undone, that.matG0Undone);
-            that.meshG1Undone = new THREE.Line(that.geoG1Undone, that.matG1Undone);
-            that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone, that.matG2G3Undone);
-            that.meshG0Done = new THREE.Line(that.geoG0Done, that.matG0Done);
-            that.meshG1Done = new THREE.Line(that.geoG1Done, that.matG1Done);
-            that.meshG2G3Done = new THREE.Line(that.geoG2G3Done, that.matG2G3Done);
+            that.meshG0Undone = new THREE.Line(that.geoG0Undone, that.matG0Undone, THREE.LinePieces);
+            that.meshG1Undone = new THREE.Line(that.geoG1Undone, that.matG1Undone, THREE.LinePieces);
+            that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone, that.matG2G3Undon, THREE.LinePiecese);
+            that.meshG0Done = new THREE.Line(that.geoG0Done, that.matG0Done, THREE.LinePieces);
+            that.meshG1Done = new THREE.Line(that.geoG1Done, that.matG1Done, THREE.LinePieces);
+            that.meshG2G3Done = new THREE.Line(that.geoG2G3Done, that.matG2G3Done, THREE.LinePieces);
             that.scene.add(that.meshG0Undone);
             that.scene.add(that.meshG1Undone);
             that.scene.add(that.meshG2G3Undone);
@@ -534,7 +565,6 @@ var GCodeViewer = (function () {
 
         //Parsing the result of GParser.parse
         that.parseParsedGCode = function(parsed) {
-            console.log(parsed);
             var obj = {};
             var i = 0;
             var w1 = "", w2 = "";
@@ -742,14 +772,15 @@ var GCodeViewer = (function () {
             var geo = {};
             var i = 0;
             for(i=0; i < 1000; i++) {
-                geo = new THREE.CircleGeometry(i, 32);
+                geo = new THREE.BoxGeometry(i, i, i);
+                // geo = new THREE.CircleGeometry(i, 32);
                 // group.merge(geo);
                 if(i % 2 === 0) {
                     group.merge(geo);
-                    meshs.push(new THREE.Line(geo, mat1));
+                    // meshs.push(new THREE.Line(geo, mat1));
                 } else {
                     group2.merge(geo);
-                    meshs.push(new THREE.Line(geo, mat2));
+                    // meshs.push(new THREE.Line(geo, mat2));
                 }
                 // that.scene.add(meshs[i]);
             }
@@ -758,7 +789,7 @@ var GCodeViewer = (function () {
         };
 
         that.test = function() {
-            that.testBezier();
+            that.testMerge();
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
