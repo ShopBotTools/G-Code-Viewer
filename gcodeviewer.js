@@ -19,25 +19,40 @@ var GCodeViewer = (function () {
             that.renderer.render(that.scene, that.camera);
         };
 
+        that.setCameraControl = function() {
+            that.controls = new THREE.OrbitControls(that.camera,
+                    that.renderer.domElement);
+            if(that.cameraSet === false) {
+                that.cameraSet = true;
+                that.controls.damping = 0.2;
+                that.controls.addEventListener('change', that.render);
+            }
+        };
+
         that.setPerspectiveCamera = function() {
             var width = that.renderer.domElement.width;
             var height = that.renderer.domElement.height;
             that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
+            that.camera.up = new THREE.Vector3( 0, 0, 1 );
+            that.setCameraControl();
         };
 
         that.setOrthographicCamera = function() {
             var width = that.renderer.domElement.width;
             var height = that.renderer.domElement.height;
-            var viewSize = 900;
+            var viewSize = 50;
             var aspectRatio = width / height;
             that.camera = new THREE.OrthographicCamera(
                 -aspectRatio * viewSize / 2, aspectRatio * viewSize / 2,
-                viewSize / 2, - viewSize / 2, -1000, 1000
+                viewSize / 2, - viewSize / 2, -100, 100
             );
+            that.camera.up = new THREE.Vector3( 0, 0, 1 );
+            that.setCameraControl();
         };
 
+        //TODO: fit with the board size
         that.showX = function() {
-            that.camera.position.x = 10;
+            that.camera.position.x = 5;
             that.camera.position.y = 0;
             that.camera.position.z = 0;
             that.camera.lookAt(that.scene.position);
@@ -45,7 +60,7 @@ var GCodeViewer = (function () {
 
         that.showY = function() {
             that.camera.position.x = 0;
-            that.camera.position.y = 10;
+            that.camera.position.y = 5;
             that.camera.position.z = 0;
             that.camera.lookAt(that.scene.position);
         };
@@ -53,7 +68,7 @@ var GCodeViewer = (function () {
         that.showZ = function() {
             that.camera.position.x = 0;
             that.camera.position.y = 0;
-            that.camera.position.z = 10;
+            that.camera.position.z = 5;
             that.camera.lookAt(that.scene.position);
         };
 
@@ -555,6 +570,33 @@ var GCodeViewer = (function () {
             that.scene.remove(that.meshG2G3Undone);
         };
 
+        that.showArrowsHelp = function() {
+            //For X
+            var length = 1;
+            var dir = new THREE.Vector3(1, 0, 0);
+            var origin = new THREE.Vector3(0, -1, 0);
+            var hex = 0xff0000;
+            var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            that.scene.add(arrowHelper);
+
+            //For Y
+            dir = new THREE.Vector3(0, 1, 0);
+            origin = new THREE.Vector3(-1, 0, 0);
+            hex = 0x00ff00;
+            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            that.scene.add(arrowHelper);
+
+            //For Z
+            dir = new THREE.Vector3(0, 0, 1);
+            origin = new THREE.Vector3(-1, -1, 0);
+            hex = 0x0000ff;
+            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            that.scene.add(arrowHelper);
+        };
+
+        that.hideArrowHelp = function() {
+        };
+
         that.showBoard = function() {
             if(typeof that.cncConfiguration.board === "undefined") {
                 return;
@@ -859,7 +901,8 @@ var GCodeViewer = (function () {
         };
 
         that.test = function() {
-            that.testGeometry();
+            // that.testGeometry();
+            that.showArrowsHelp();
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
@@ -903,6 +946,8 @@ var GCodeViewer = (function () {
         that.meshG1Done = {};
         that.meshG2G3Done = {};
 
+        that.cameraSet= false;
+
         var width = window.innerWidth, height = window.innerHeight;
 
         that.cncConfiguration = configuration;
@@ -925,21 +970,13 @@ var GCodeViewer = (function () {
         that.scene = new THREE.Scene();
         // that.setPerspectiveCamera();
         that.setOrthographicCamera();
-
-        that.camera.up = new THREE.Vector3( 0, 0, 1 );
-        that.camera.lookAt(that.scene.position);
-        // that.camera.position.x = -10;
-        // that.camera.position.y = -10;
-        that.camera.position.z = 10;
+        that.showZ();
 
         var light = new THREE.PointLight( 0xffffff, 0.8 );
         light.position.set(0, 1, 1);
         that.scene.add( light );
 
-        that.controls = new THREE.OrbitControls(that.camera,
-                that.renderer.domElement);
-        that.controls.damping = 0.2;
-        that.controls.addEventListener('change', that.render);
+        // that.setCameraControl();
     }
 
     return GCodeViewer;
