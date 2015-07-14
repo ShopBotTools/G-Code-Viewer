@@ -19,6 +19,23 @@ var GCodeViewer = (function () {
             that.renderer.render(that.scene, that.camera);
         };
 
+        that.setPerspectiveCamera = function() {
+            var width = that.renderer.domElement.width;
+            var height = that.renderer.domElement.height;
+            that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
+        };
+
+        that.setOrthographicCamera = function() {
+            var width = that.renderer.domElement.width;
+            var height = that.renderer.domElement.height;
+            var viewSize = 900;
+            var aspectRatio = width / height;
+            that.camera = new THREE.OrthographicCamera(
+                -aspectRatio * viewSize / 2, aspectRatio * viewSize / 2,
+                viewSize / 2, - viewSize / 2, -1000, 1000
+            );
+        };
+
         //Convert a coordinate where z is the up direction to a coordinate where
         // y is the up direction
         that.zUpToyUp = function(point) {
@@ -853,12 +870,11 @@ var GCodeViewer = (function () {
         that.renderer.setPixelRatio( window.devicePixelRatio );
 
         that.scene = new THREE.Scene();
-        that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
-
-        // that.camera = new THREE.OrthographicCamera( 0.5 * width / - 2, 0.5 * height / 2, height / 2, height / - 2, 150, 1000 );
-        // that.scene.add(new THREE.CameraHelper(that.camera));
+        // that.setPerspectiveCamera();
+        that.setOrthographicCamera();
 
         that.camera.up = new THREE.Vector3( 0, 0, 1 );
+        that.camera.lookAt(that.scene.position);
         // that.camera.position.x = -10;
         // that.camera.position.y = -10;
         that.camera.position.z = 10;

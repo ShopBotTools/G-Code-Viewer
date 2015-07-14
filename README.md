@@ -11,6 +11,7 @@ This app generates a 3D representation of GCode.
 
 ##TODO:
 ###Functionalities
+* Add the possibility to load an other GCode file
 * Verify that the G2 and G3 commands are possible (i.e. radius big enough)
 * Manage correctly each command used
 * Add a "step-by-step" functionality
