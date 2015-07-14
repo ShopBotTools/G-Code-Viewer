@@ -176,12 +176,6 @@ var GCodeViewer = (function () {
             );
             geometry.faces.push(new THREE.Face3(0, 1, 0));
 
-            // if(line.word === "G0") {
-            // var g = geometry;
-            // console.log("("+g.vertices[0].x+"; "+g.vertices[0].y+"; "+g.vertices[0].z+") => ("+g.vertices[1].x+"; "+g.vertices[1].y+"; "+g.vertices[1].z+")");
-            // console.log("======");
-            // }
-
             return geometry;
         };
 
@@ -192,7 +186,6 @@ var GCodeViewer = (function () {
             var v = [];
             var geometry = new THREE.Geometry();
 
-            // console.log("Bez length: " + bez.length);
             for(i=0; i < bez.length; i++) {
                 p0 = new THREE.Vector3(bez[i].p0.x, bez[i].p0.y, bez[i].p0.z);
                 p1 = new THREE.Vector3(bez[i].p1.x, bez[i].p1.y, bez[i].p1.z);
@@ -472,62 +465,41 @@ var GCodeViewer = (function () {
                 return;
             }
 
-            // var j = that.lines.length - 1;
             for(i=0; i < that.lines.length; i++) {
-                // for(i=j; i < j+1; i++) {
                 if(that.lines[i].type === that.STRAIGHT) {
                     geometry = that.getGeometryStraightLine(that.lines[i]);
-                    // if(that.lines[i].word === "G0") {
-                    //     that.geoG0Undone.merge(geometry);
-                    // } else {
-                    //     that.geoG1Undone.merge(geometry);
-                    // }
                     if(that.lines[i].word === "G0") {
-                        for(j=0; j < geometry.vertices.length; j+=2) {
-                            if(typeof geometry.vertices[j+1] === "undefined") {
-                                break;
-                            }
-                            that.geoG0Undone.vertices.push(geometry.vertices[j]);
-                            that.geoG0Undone.vertices.push(geometry.vertices[j+1]);
-                            that.geoG0Undone.vertices.push(geometry.vertices[j]);
-                            that.geoG0Undone.vertices.push(geometry.vertices[j+1]);
-                        }
+                        that.geoG0Undone.merge(geometry);
                     } else {
-                        for(j=0; j < geometry.vertices.length; j+=2) {
-                            if(typeof geometry.vertices[j+1] === "undefined") {
-                                break;
-                            }
-                            that.geoG1Undone.vertices.push(geometry.vertices[j]);
-                            that.geoG1Undone.vertices.push(geometry.vertices[j+1]);
-                            that.geoG1Undone.vertices.push(geometry.vertices[j]);
-                            that.geoG1Undone.vertices.push(geometry.vertices[j+1]);
-                        }
+                        that.geoG1Undone.merge(geometry);
                     }
                 } else if(that.lines[i].type === that.CURVE) {
                     geometry = that.getGeometryCurveLine(that.lines[i]);
-                    // that.geoG2G3Undone.merge(geometry);
-                    for(j=0; j < geometry.vertices.length; j+=2) {
-                        if(typeof geometry.vertices[j+1] === "undefined") {
-                            break;
-                        }
+                    that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
+                    for(j=1; j < geometry.vertices.length-1; j++) {
                         that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
-                        that.geoG2G3Undone.vertices.push(geometry.vertices[j+1]);
                         that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
-                        that.geoG2G3Undone.vertices.push(geometry.vertices[j+1]);
                     }
+                    if(geometry.vertices.length > 1) {
+                        that.geoG2G3Undone.vertices.push(
+                            geometry.vertices[geometry.vertices.length - 1]
+                        );
+                    }
+
                 }
             }
-            };
+        };
 
         that.showLines = function() {
             that.setGeometriesFromLines();
 
             that.meshG0Undone = new THREE.Line(that.geoG0Undone, that.matG0Undone, THREE.LinePieces);
             that.meshG1Undone = new THREE.Line(that.geoG1Undone, that.matG1Undone, THREE.LinePieces);
-            that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone, that.matG2G3Undon, THREE.LinePiecese);
+            that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone, that.matG2G3Undone, THREE.LinePieces);
             that.meshG0Done = new THREE.Line(that.geoG0Done, that.matG0Done, THREE.LinePieces);
             that.meshG1Done = new THREE.Line(that.geoG1Done, that.matG1Done, THREE.LinePieces);
             that.meshG2G3Done = new THREE.Line(that.geoG2G3Done, that.matG2G3Done, THREE.LinePieces);
+
             that.scene.add(that.meshG0Undone);
             that.scene.add(that.meshG1Undone);
             that.scene.add(that.meshG2G3Undone);
@@ -788,8 +760,23 @@ var GCodeViewer = (function () {
             that.scene.add(new THREE.Line(group2, mat2));
         };
 
+        that.testGeometry = function() {
+            var material = new THREE.LineBasicMaterial( {color: 0x00ff00} );
+            var geometry = new THREE.Geometry();
+            geometry.vertices.push(new THREE.Vector3(1, 0, 0));
+            geometry.vertices.push(new THREE.Vector3(1, 1, 0));
+            // geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+            geometry.vertices.push(new THREE.Vector3(2, 0, 0));
+            geometry.vertices.push(new THREE.Vector3(2, 1, 0));
+
+            var mesh = new THREE.Line(geometry, material , THREE.LinePieces);
+            that.scene.add(mesh);
+            console.log(geometry.vertices);
+        };
+
         that.test = function() {
-            that.testMerge();
+            that.testGeometry();
+
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
@@ -818,7 +805,7 @@ var GCodeViewer = (function () {
         that.geoG1Done = new THREE.Geometry();
         that.geoG2G3Done = new THREE.Geometry();
 
-        that.matG0Undone = new THREE.LineDashedMaterial( { color : 0x8877dd } );
+        that.matG0Undone = new THREE.LineDashedMaterial( { color : 0x8877dd, dashSize : 7 } );
         that.matG1Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
         that.matG2G3Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
         that.matG0Done = new THREE.LineDashedMaterial( { color : 0x8877dd, dashSize : 2 } );
