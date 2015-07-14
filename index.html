@@ -14,7 +14,10 @@
     <script src="parser.js"></script>
     <script src="gcodeviewer.js"></script>
     <script type="text/javascript">
-        var g = new GCodeViewer({}, document.getElementById("canvas"));
+        var config = {
+            board: { width: 10, length: 50, height: 5 }
+        };
+        var g = new GCodeViewer(config, document.getElementById("canvas"));
         document.getElementById("view").onclick = function() {
             g.setGCode(document.getElementById("gcode").value);
             g.viewPaths();

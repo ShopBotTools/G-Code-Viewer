@@ -36,6 +36,27 @@ var GCodeViewer = (function () {
             );
         };
 
+        that.showX = function() {
+            that.camera.position.x = 10;
+            that.camera.position.y = 0;
+            that.camera.position.z = 0;
+            that.camera.lookAt(that.scene.position);
+        };
+
+        that.showY = function() {
+            that.camera.position.x = 0;
+            that.camera.position.y = 10;
+            that.camera.position.z = 0;
+            that.camera.lookAt(that.scene.position);
+        };
+
+        that.showZ = function() {
+            that.camera.position.x = 0;
+            that.camera.position.y = 0;
+            that.camera.position.z = 10;
+            that.camera.lookAt(that.scene.position);
+        };
+
         //Convert a coordinate where z is the up direction to a coordinate where
         // y is the up direction
         that.zUpToyUp = function(point) {
@@ -534,6 +555,35 @@ var GCodeViewer = (function () {
             that.scene.remove(that.meshG2G3Undone);
         };
 
+        that.showBoard = function() {
+            if(typeof that.cncConfiguration.board === "undefined") {
+                return;
+            }
+            var geometry = new THREE.BoxGeometry(
+                that.cncConfiguration.board.width,
+                that.cncConfiguration.board.length,
+                that.cncConfiguration.board.height
+            );
+
+            var material = new THREE.MeshBasicMaterial(0xff0000);
+            material.transparent = true;
+            material.opacity = 0;
+            var object = new THREE.Mesh(geometry, material);
+            object.position.x = that.cncConfiguration.board.width / 2;
+            object.position.y = that.cncConfiguration.board.length / 2;
+            object.position.z = that.cncConfiguration.board.height / 2;
+            var box = new THREE.BoxHelper(object);
+            that.scene.add(object);
+            that.scene.add(box);
+            that.boardObject = object;
+            that.boardHelper = box;
+        };
+
+        that.hideBoard = function() {
+            that.scene.remove(that.boardObject);
+            that.scene.remove(that.boardBox);
+        };
+
         that.setGCode = function(string) {
             that.gcode = string.split('\n');
         };
@@ -687,6 +737,7 @@ var GCodeViewer = (function () {
 
             that.showLines();
             that.scene.add(new THREE.AxisHelper( 100 ));
+            that.showBoard();
             // that.printLines();
 
             that.render();
@@ -791,22 +842,24 @@ var GCodeViewer = (function () {
         };
 
         that.testGeometry = function() {
-            var material = new THREE.LineBasicMaterial( {color: 0x00ff00} );
-            var geometry = new THREE.Geometry();
-            geometry.vertices.push(new THREE.Vector3(1, 0, 0));
-            geometry.vertices.push(new THREE.Vector3(1, 1, 0));
-            // geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-            geometry.vertices.push(new THREE.Vector3(2, 0, 0));
-            geometry.vertices.push(new THREE.Vector3(2, 1, 0));
-
-            var mesh = new THREE.Line(geometry, material , THREE.LinePieces);
-            that.scene.add(mesh);
-            console.log(geometry.vertices);
+            var w = 1, l = 3, h = 2;
+            var sphere = new THREE.BoxGeometry(w, l, h);
+            var material = new THREE.MeshBasicMaterial(0xff0000);
+            material.transparent = true;
+            material.opacity = 0;
+            var object = new THREE.Mesh( sphere, material);
+            object.position.x = w / 2;
+            object.position.y = l / 2;
+            object.position.z = h / 2;
+            var box = new THREE.BoxHelper( object );
+            that.scene.add(object);
+            that.scene.add( box );
+            that.box = box;
+            that.object = object;
         };
 
         that.test = function() {
             that.testGeometry();
-
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
