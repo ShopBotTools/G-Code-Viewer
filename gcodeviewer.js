@@ -563,14 +563,12 @@ var GCodeViewer = (function () {
             // return obj;
         };
 
-        that.manageG2G3 = function(result, start) {
+        that.manageG2G3 = function(start, result) {
             var end = { x:0, y:0, z:0 }, center = { x:0, y:0, z:0 };
             var i = 0, j = 0, k = 0;
             // console.log(result);
 
-            end.x = (typeof result.x === "undefined") ? start.x : result.x;
-            end.y = (typeof result.y === "undefined") ? start.y : result.y;
-            end.z = (typeof result.z === "undefined") ? start.z : result.z;
+            end = that.findPosition(start, result);
 
             if(typeof result.r !== "undefined") {
                 center = that.findCenter(start, end, result.r,
@@ -587,6 +585,22 @@ var GCodeViewer = (function () {
             that.addCurveLine(start, end, center, result.type === "G2",
                     that.crossAxe);
             return end;
+        };
+
+        that.findPosition = function(start, result) {
+            var pos = that.createPoint(0, 0, 0);
+            if(that.relative === true) {
+                pos = that.createPoint(start.x, start.y, start.z);
+                pos.x += (typeof result.x === "undefined") ? 0 : result.x;
+                pos.y += (typeof result.y === "undefined") ? 0 : result.y;
+                pos.z += (typeof result.z === "undefined") ? 0 : result.z;
+            } else {
+                pos.x = (typeof result.x === "undefined") ? start.x : result.x;
+                pos.y = (typeof result.y === "undefined") ? start.y : result.y;
+                pos.z = (typeof result.z === "undefined") ? start.z : result.z;
+            }
+
+            return pos;
         };
 
         //TODO: rename this function and put away the show of the paths.
@@ -617,16 +631,14 @@ var GCodeViewer = (function () {
                 for(j = 0; j < tabRes.length; j++) {
                     res = tabRes[j];
                     if(res.type === "G0" || res.type === "G1") {
-                        end.x= (typeof res.x === "undefined")? start.x : res.x;
-                        end.y= (typeof res.y === "undefined")? start.y : res.y;
-                        end.z= (typeof res.z === "undefined")? start.z : res.z;
+                        end = that.findPosition(start, res);
 
                         that.addStraightLine(start, end, res.type);
                         start.x = end.x;
                         start.y = end.y;
                         start.z = end.z;
                     } else if(res.type === "G2" || res.type === "G3") {
-                        start = that.manageG2G3(res, start);
+                        start = that.manageG2G3(start, res);
                     } else if(res.type === "G4") {
                         console.log("Set pause so continue");
                         // continue;  //Add the pause time somewhere?
@@ -641,8 +653,10 @@ var GCodeViewer = (function () {
                     } else if(res.type === "G21") {
                         console.log("set mm");
                     } else if(res.type === "G90") {
+                        that.relative = false;
                         console.log("set absolute");
                     } else if(res.type === "G91") {
+                        that.relative = true;
                         console.log("set relative");
                     } else if(res.type === "M4") {
                         console.log("set spin on");
@@ -735,7 +749,6 @@ var GCodeViewer = (function () {
         };
 
         that.testMerge = function() {
-
             var meshs = [];
             var mat1 = new THREE.LineBasicMaterial( { color : 0xff0000 } );
             var mat2 = new THREE.LineBasicMaterial( { color : 0x00ff00 } );
@@ -793,6 +806,7 @@ var GCodeViewer = (function () {
         that.pathMesh = {};  // The mesh of the total path
         that.cncConfiguration= {};
         that.gcode = [];
+        that.relative = false;  //Relative or absolute position
 
         that.STRAIGHT = 0;
         that.CURVE = 1;

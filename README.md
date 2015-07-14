@@ -7,10 +7,11 @@ This app generates a 3D representation of GCode.
 * Ability to set initial position of the tool (by using the configuration helper)
 * Displaying arcs
 * Different coloration for G0 vs G1/G2/G3 (maybe red for G0 and blue for G1)
+* Interpreting relative position mode
 
 ##TODO:
 ###Functionalities
-* Interpreting relative position mode
+* Verify that the G2 and G3 commands are possible (i.e. radius big enough)
 * Manage correctly each command used
 * Add a "step-by-step" functionality
 * Displaying 3D representation of the result
