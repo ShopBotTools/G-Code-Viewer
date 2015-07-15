@@ -571,17 +571,19 @@ var GCodeViewer = (function () {
         };
 
         that.showArrowsHelp = function() {
-            var options = {'font' : 'helvetiker','weight' : 'normal', 'style' : 'normal','size' : 1,'curveSegments' : 300};
+            var length = 3, headLength = 1, headWidth = 1;
+            var options = {'font' : 'helvetiker','weight' : 'normal',
+                'style' : 'normal','size' : 2,'curveSegments' : 300};
 
             //For X
-            var hex = 0xff0000;
-            var material = new THREE.MeshBasicMaterial({ color: hex });
-            var length = 1;
             var dir = new THREE.Vector3(1, 0, 0);
-            var origin = new THREE.Vector3(0, -1, 0);
-            var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            var origin = new THREE.Vector3(0, -1.5, 0);
+            var hex = 0xff0000;
+            var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
+                    headLength, headWidth);
             that.scene.add(arrowHelper);
 
+            var material = new THREE.MeshBasicMaterial({ color: hex });
             var textShapes = THREE.FontUtils.generateShapes("X", options);
             var geo = new THREE.ShapeGeometry(textShapes);
             var obj = new THREE.Mesh(geo, material);
@@ -592,12 +594,13 @@ var GCodeViewer = (function () {
 
             //For Y
             dir = new THREE.Vector3(0, 1, 0);
-            origin = new THREE.Vector3(-1, 0, 0);
+            origin = new THREE.Vector3(-1.5, 0, 0);
             hex = 0x00ff00;
-            material = new THREE.MeshBasicMaterial({ color: hex });
-            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
+                    headLength, headWidth);
             that.scene.add(arrowHelper);
 
+            material = new THREE.MeshBasicMaterial({ color: hex });
             textShapes = THREE.FontUtils.generateShapes("Y", options);
             geo = new THREE.ShapeGeometry(textShapes);
             obj = new THREE.Mesh(geo, material);
@@ -608,12 +611,13 @@ var GCodeViewer = (function () {
 
             //For Z
             dir = new THREE.Vector3(0, 0, 1);
-            origin = new THREE.Vector3(-1, -1, 0);
+            origin = new THREE.Vector3(-1.5, -1.5, 0);
             hex = 0x0000ff;
-            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
+            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
+                    headLength, headWidth);
             that.scene.add(arrowHelper);
-            material = new THREE.MeshBasicMaterial({ color: hex });
 
+            material = new THREE.MeshBasicMaterial({ color: hex });
             textShapes = THREE.FontUtils.generateShapes("Z", options);
             geo = new THREE.ShapeGeometry(textShapes);
             obj = new THREE.Mesh(geo, material);
@@ -809,6 +813,7 @@ var GCodeViewer = (function () {
 
             that.showLines();
             that.scene.add(new THREE.AxisHelper( 100 ));
+            that.showArrowsHelp();
             that.showBoard();
             // that.printLines();
 
