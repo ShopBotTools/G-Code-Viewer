@@ -49,6 +49,55 @@ var GCodeViewer = (function () {
             that.setCamera();
         };
 
+        //Total size on XY plane
+        that.resetTotalSize = function() {
+            that.totalSize = { min : {x:0, y:0, z:0}, max : {x:0, y:0, z:0} };
+        };
+
+        that.checkTotalSize = function(boundingBox) {
+            var keys = ["x", "y", "z"];
+            var i = 0;
+            if(boundingBox === null) {
+                return;
+            }
+            for(i = keys.length - 1; i >= 0; i--) {
+                if(that.totalSize.min[keys[i]] > boundingBox.min[keys[i]]) {
+                    that.totalSize.min[keys[i]] = boundingBox.min[keys[i]];
+                }
+                if(that.totalSize.max[keys[i]] < boundingBox.max[keys[i]]) {
+                    that.totalSize.max[keys[i]] = boundingBox.max[keys[i]];
+                }
+            }
+        };
+
+        that.updateTotalSize = function() {
+            that.resetTotalSize();
+            if(that.meshG0Undone.geometry.vertices.length > 0) {
+                that.meshG0Undone.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG0Undone.geometry.boundingBox);
+            }
+            if(that.meshG1Undone.geometry.vertices.length > 0) {
+                that.meshG1Undone.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG1Undone.geometry.boundingBox);
+            }
+            if(that.meshG2G3Undone.geometry.vertices.length > 0) {
+                that.meshG2G3Undone.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG2G3Undone.geometry.boundingBox);
+            }
+            if(that.meshG0Done.geometry.vertices.length > 0) {
+                that.meshG0Done.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG0Done.geometry.boundingBox);
+            }
+            if(that.meshG1Done.geometry.vertices.length > 0) {
+                that.meshG1Done.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG1Done.geometry.boundingBox);
+            }
+            if(that.meshG2G3Done.geometry.vertices.length > 0) {
+                that.meshG2G3Done.geometry.computeBoundingBox();
+                that.checkTotalSize(that.meshG2G3Done.geometry.boundingBox);
+            }
+        };
+
         //TODO: fit with the board size
         that.showX = function() {
             that.camera.position.x = 5;
@@ -820,6 +869,7 @@ var GCodeViewer = (function () {
 
             that.showLines();
             that.showBoard();
+            that.updateTotalSize();
 
             that.render();
             that.animate();
@@ -864,27 +914,6 @@ var GCodeViewer = (function () {
                 "clockwise" : clockwise,
                 "crossAxe" : crossAxe
             });
-
-            // for(i = 0; i < that.lines.length; i++) {
-            //     g = that.getGeometryCurveLine(that.lines[i]);
-            //     that.scene.add(new THREE.Line(g, material));
-            //
-            //     // console.log(that.lines[i]);
-            //
-            //     // b = that.arcToBezier(that.lines[i]);
-            //     // for (j = 0; j < b.length; j++) {
-            //     //     c = new THREE.CubicBezierCurve3(
-            //     //         new THREE.Vector3(b[j].p0.x, b[j].p0.y, b[j].p0.z),
-            //     //         new THREE.Vector3(b[j].p1.x, b[j].p1.y, b[j].p1.z),
-            //     //         new THREE.Vector3(b[j].p2.x, b[j].p2.y, b[j].p2.z),
-            //     //         new THREE.Vector3(b[j].p3.x, b[j].p3.y, b[j].p3.z)
-            //     //     );
-            //     //     g = new THREE.Geometry();
-            //     //     g.vertices = c.getPoints( 50 );
-            //     //     that.scene.add(new THREE.Line(g, material));
-            //     // }
-            //
-            // }
 
             that.showLines();
 
@@ -932,25 +961,17 @@ var GCodeViewer = (function () {
             object.position.x = w / 2;
             object.position.y = l / 2;
             object.position.z = h / 2;
-            var box = new THREE.BoxHelper( object );
+
+            var box = new THREE.BoundingBoxHelper( object );
             that.scene.add(object);
             that.scene.add( box );
             that.box = box;
             that.object = object;
+            console.log("ji");
         };
 
         that.test = function() {
-            // that.testGeometry();
-            that.showArrowsHelp();
-
-            // var text = "Hello World!";
-            // var options = {'font' : 'helvetiker','weight' : 'normal', 'style' : 'normal','size' : 1,'curveSegments' : 300};
-            // var textShapes = THREE.FontUtils.generateShapes( text, options );
-            // var geo = new THREE.ShapeGeometry( textShapes );
-            // var textMesh = new THREE.Mesh( geo, new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ) ;
-            // that.scene.add(textMesh);
-
-            that.scene.add(new THREE.AxisHelper( 100 ));
+            that.testGeometry();
 
             that.render();
             that.animate();
@@ -970,6 +991,7 @@ var GCodeViewer = (function () {
         that.STRAIGHT = 0;
         that.CURVE = 1;
         that.crossAxe = "z";
+        that.totalSize = { min : {x:0, y:0, z:0}, max : {x:0, y:0, z:0} };
 
         that.geoG0Undone = new THREE.Geometry();
         that.geoG1Undone = new THREE.Geometry();
@@ -1024,6 +1046,7 @@ var GCodeViewer = (function () {
 
         that.setHelpers();
         that.render();
+        that.animate();
 
         // that.setCameraControl();
     }
