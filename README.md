@@ -8,6 +8,7 @@ This app generates a 3D representation of GCode.
 * Displaying arcs
 * Different coloration for G0 vs G1/G2/G3 (maybe red for G0 and blue for G1)
 * Interpreting relative position mode
+* Orthogonal view
 
 ##TODO:
 ###Functionalities
@@ -18,7 +19,6 @@ This app generates a 3D representation of GCode.
 * Displaying 3D representation of the result
 * Animation?
 ### UI
-* Orthogonal view
 * Resize base grid to match extents of cut in XY
 * Auto zoom to extent of the part when loaded
 * Ability to highlight based on line number to "step through" files

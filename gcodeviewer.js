@@ -19,7 +19,8 @@ var GCodeViewer = (function () {
             that.renderer.render(that.scene, that.camera);
         };
 
-        that.setCameraControl = function() {
+        that.setCamera = function() {
+            that.camera.up = new THREE.Vector3(0, 0, 1);
             that.controls = new THREE.OrbitControls(that.camera,
                     that.renderer.domElement);
             if(that.cameraSet === false) {
@@ -33,8 +34,7 @@ var GCodeViewer = (function () {
             var width = that.renderer.domElement.width;
             var height = that.renderer.domElement.height;
             that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
-            that.camera.up = new THREE.Vector3( 0, 0, 1 );
-            that.setCameraControl();
+            that.setCamera();
         };
 
         that.setOrthographicCamera = function() {
@@ -46,8 +46,7 @@ var GCodeViewer = (function () {
                 -aspectRatio * viewSize / 2, aspectRatio * viewSize / 2,
                 viewSize / 2, - viewSize / 2, -100, 100
             );
-            that.camera.up = new THREE.Vector3( 0, 0, 1 );
-            that.setCameraControl();
+            that.setCamera();
         };
 
         //TODO: fit with the board size
@@ -556,18 +555,18 @@ var GCodeViewer = (function () {
             that.scene.add(that.meshG0Undone);
             that.scene.add(that.meshG1Undone);
             that.scene.add(that.meshG2G3Undone);
-            that.scene.add(that.meshG0Undone);
-            that.scene.add(that.meshG1Undone);
-            that.scene.add(that.meshG2G3Undone);
+            that.scene.add(that.meshG0Done);
+            that.scene.add(that.meshG1Done);
+            that.scene.add(that.meshG2G3Done);
         };
 
         that.hideLines = function() {
             that.scene.remove(that.meshG0Undone);
             that.scene.remove(that.meshG1Undone);
             that.scene.remove(that.meshG2G3Undone);
-            that.scene.remove(that.meshG0Undone);
-            that.scene.remove(that.meshG1Undone);
-            that.scene.remove(that.meshG2G3Undone);
+            that.scene.remove(that.meshG0Done);
+            that.scene.remove(that.meshG1Done);
+            that.scene.remove(that.meshG2G3Done);
         };
 
         that.showArrowsHelp = function() {
@@ -628,7 +627,12 @@ var GCodeViewer = (function () {
             that.scene.add(obj);
         };
 
-        that.hideArrowHelp = function() {
+        // that.hideArrowHelp = function() {
+        // };
+
+        that.setHelpers = function() {
+            that.showArrowsHelp();
+            that.scene.add(new THREE.AxisHelper(100));
         };
 
         that.showBoard = function() {
@@ -755,6 +759,9 @@ var GCodeViewer = (function () {
             var res = {};  //RESult
             var start = { x: 0, y : 0, z : 0 };
             var tabRes = [];
+
+            that.hideLines();
+
             if(typeof that.cncConfiguration.initialPosition !== "undefined") {
                 start = {
                     x : that.cncConfiguration.initialPosition.x,
@@ -812,10 +819,7 @@ var GCodeViewer = (function () {
             }
 
             that.showLines();
-            that.scene.add(new THREE.AxisHelper( 100 ));
-            that.showArrowsHelp();
             that.showBoard();
-            // that.printLines();
 
             that.render();
             that.animate();
@@ -1017,6 +1021,9 @@ var GCodeViewer = (function () {
         var light = new THREE.PointLight( 0xffffff, 0.8 );
         light.position.set(0, 1, 1);
         that.scene.add( light );
+
+        that.setHelpers();
+        that.render();
 
         // that.setCameraControl();
     }
