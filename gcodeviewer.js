@@ -304,21 +304,23 @@ var GCodeViewer = (function () {
 
         //Careful, we use Z as up, THREE3D use Y as up //NOTE: comment useless?
         //all in absolute
-        that.addStraightLine = function(start, end, word) {
+        that.addStraightLine = function(number, start, end, word) {
             that.lines.push({
-                "type": that.STRAIGHT,
+                "commandNumber" : number,
+                "type" : that.STRAIGHT,
                 "word" : word,
                 "start" : { x : start.x, y : start.y, z : start.z },
                 "end" : { x : end.x, y : end.y, z : end.z }
             });
         };
 
-        that.addCurveLine = function(start, end, center, clockwise, crossAxe) {
+        that.addCurveLine = function(number, start, end, center, clockwise, crossAxe) {
             that.lines.push({
-                "type": that.CURVE,
+                "commandNumber" : number,
+                "type" : that.CURVE,
                 "start": { x : start.x, y : start.y, z : start.z },
-                "end": { x : end.x, y : end.y, z : end.z },
-                "center": { x : center.x, y : center.y, z : center.z },
+                "end" : { x : end.x, y : end.y, z : end.z },
+                "center" : { x : center.x, y : center.y, z : center.z },
                 "clockwise" : clockwise,
                 "crossAxe" : crossAxe
             });
@@ -616,6 +618,7 @@ var GCodeViewer = (function () {
             that.scene.remove(that.meshG0Done);
             that.scene.remove(that.meshG1Done);
             that.scene.remove(that.meshG2G3Done);
+            console.log("everything goes");
         };
 
         that.showArrowsHelp = function() {
@@ -759,7 +762,7 @@ var GCodeViewer = (function () {
             // return obj;
         };
 
-        that.manageG2G3 = function(start, result) {
+        that.manageG2G3 = function(number, start, result) {
             var end = { x:0, y:0, z:0 }, center = { x:0, y:0, z:0 };
             var i = 0, j = 0, k = 0;
             // console.log(result);
@@ -778,7 +781,7 @@ var GCodeViewer = (function () {
                 center.z = start.z + k;
             }
 
-            that.addCurveLine(start, end, center, result.type === "G2",
+            that.addCurveLine(number, start, end, center, result.type === "G2",
                     that.crossAxe);
             return end;
         };
@@ -803,7 +806,7 @@ var GCodeViewer = (function () {
         //  And manage the commands correctly
         //Have to set the gcode before
         that.viewPaths = function() {
-            var i = 0, j = 0;
+            var i = 0, j = 0, commandNumber = 0;
             var end = { x:0, y:0, z:0 };
             var res = {};  //RESult
             var start = { x: 0, y : 0, z : 0 };
@@ -832,12 +835,12 @@ var GCodeViewer = (function () {
                     if(res.type === "G0" || res.type === "G1") {
                         end = that.findPosition(start, res);
 
-                        that.addStraightLine(start, end, res.type);
+                        that.addStraightLine(commandNumber, start, end, res.type);
                         start.x = end.x;
                         start.y = end.y;
                         start.z = end.z;
                     } else if(res.type === "G2" || res.type === "G3") {
-                        start = that.manageG2G3(start, res);
+                        start = that.manageG2G3(commandNumber, start, res);
                     } else if(res.type === "G4") {
                         console.log("Set pause so continue");
                         // continue;  //Add the pause time somewhere?
@@ -864,6 +867,8 @@ var GCodeViewer = (function () {
                     } else if(res.type === "M30") {
                         break;
                     }
+
+                    commandNumber++;
                 }
             }
 
