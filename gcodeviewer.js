@@ -571,20 +571,40 @@ var GCodeViewer = (function () {
         };
 
         that.showArrowsHelp = function() {
+            var options = {'font' : 'helvetiker','weight' : 'normal', 'style' : 'normal','size' : 1,'curveSegments' : 300};
+
             //For X
+            var hex = 0xff0000;
+            var material = new THREE.MeshBasicMaterial({ color: hex });
             var length = 1;
             var dir = new THREE.Vector3(1, 0, 0);
             var origin = new THREE.Vector3(0, -1, 0);
-            var hex = 0xff0000;
             var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
             that.scene.add(arrowHelper);
+
+            var textShapes = THREE.FontUtils.generateShapes("X", options);
+            var geo = new THREE.ShapeGeometry(textShapes);
+            var obj = new THREE.Mesh(geo, material);
+            obj.position.x = origin.x + length + 1;
+            obj.position.y = origin.y - options.size/2;
+            obj.position.z = origin.z;
+            that.scene.add(obj);
 
             //For Y
             dir = new THREE.Vector3(0, 1, 0);
             origin = new THREE.Vector3(-1, 0, 0);
             hex = 0x00ff00;
+            material = new THREE.MeshBasicMaterial({ color: hex });
             arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
             that.scene.add(arrowHelper);
+
+            textShapes = THREE.FontUtils.generateShapes("Y", options);
+            geo = new THREE.ShapeGeometry(textShapes);
+            obj = new THREE.Mesh(geo, material);
+            obj.position.x = origin.x - options.size/2;
+            obj.position.y = origin.y + length + 1;
+            obj.position.z = origin.z;
+            that.scene.add(obj);
 
             //For Z
             dir = new THREE.Vector3(0, 0, 1);
@@ -592,6 +612,16 @@ var GCodeViewer = (function () {
             hex = 0x0000ff;
             arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex);
             that.scene.add(arrowHelper);
+            material = new THREE.MeshBasicMaterial({ color: hex });
+
+            textShapes = THREE.FontUtils.generateShapes("Z", options);
+            geo = new THREE.ShapeGeometry(textShapes);
+            obj = new THREE.Mesh(geo, material);
+            obj.position.x = origin.x - options.size/2;
+            obj.position.y = origin.y;
+            obj.position.z = origin.z + length + 1;
+            obj.rotateX(Math.PI / 2);
+            that.scene.add(obj);
         };
 
         that.hideArrowHelp = function() {
@@ -903,6 +933,13 @@ var GCodeViewer = (function () {
         that.test = function() {
             // that.testGeometry();
             that.showArrowsHelp();
+
+            // var text = "Hello World!";
+            // var options = {'font' : 'helvetiker','weight' : 'normal', 'style' : 'normal','size' : 1,'curveSegments' : 300};
+            // var textShapes = THREE.FontUtils.generateShapes( text, options );
+            // var geo = new THREE.ShapeGeometry( textShapes );
+            // var textMesh = new THREE.Mesh( geo, new THREE.MeshBasicMaterial( { color: 0xff0000 } ) ) ;
+            // that.scene.add(textMesh);
 
             that.scene.add(new THREE.AxisHelper( 100 ));
 
