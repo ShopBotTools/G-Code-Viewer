@@ -19,6 +19,17 @@ var GCodeViewer = (function () {
             that.renderer.render(that.scene, that.camera);
         };
 
+        that.resetPathsGeo = function() {
+            console.log(that.geoG0Undone);
+            that.geoG0Undone = new THREE.Geometry();
+            console.log(that.geoG0Undone);
+            that.geoG1Undone = new THREE.Geometry();
+            that.geoG2G3Undone = new THREE.Geometry();
+            that.geoG0Done = new THREE.Geometry();
+            that.geoG1Done = new THREE.Geometry();
+            that.geoG2G3Done = new THREE.Geometry();
+        };
+
         that.setCamera = function() {
             that.camera.up = new THREE.Vector3(0, 0, 1);
             that.controls = new THREE.OrbitControls(that.camera,
@@ -594,6 +605,7 @@ var GCodeViewer = (function () {
         };
 
         that.showLines = function() {
+            that.resetPathsGeo();
             that.setGeometriesFromLines();
 
             that.meshG0Undone = new THREE.Line(that.geoG0Undone, that.matG0Undone, THREE.LinePieces);
@@ -618,7 +630,6 @@ var GCodeViewer = (function () {
             that.scene.remove(that.meshG0Done);
             that.scene.remove(that.meshG1Done);
             that.scene.remove(that.meshG2G3Done);
-            console.log("everything goes");
         };
 
         that.showArrowsHelp = function() {
@@ -813,6 +824,7 @@ var GCodeViewer = (function () {
             var tabRes = [];
 
             that.hideLines();
+            that.lines= [];
 
             if(typeof that.cncConfiguration.initialPosition !== "undefined") {
                 start = {
@@ -1057,4 +1069,4 @@ var GCodeViewer = (function () {
     }
 
     return GCodeViewer;
-})();
+}());
