@@ -143,6 +143,7 @@ var GCodeViewer = (function () {
             return { x : point.z, y : point.x, z : point.y };
         };
 
+        //TODO: make it recursive
         that.swapObjects = function(obj1, obj2) {
             var keys = Object.keys(obj1);
             var temp;
@@ -154,6 +155,7 @@ var GCodeViewer = (function () {
             }
         };
 
+        //TODO: make it recursive
         that.copyObject = function(destination, source) {
             var keys = Object.keys(source);
             var i = 0;
@@ -163,6 +165,7 @@ var GCodeViewer = (function () {
         };
 
         //Returns a clone of the object
+        //TODO: delete and do a good cloneObject
         that.cloneBezier = function(bez) {
             var newBez = { p0 : {}, p1 : {}, p2 : {}, p3 : {} };
             newBez.p0 = { x : bez.p0.x, y : bez.p0.y, z : bez.p0.z };
@@ -192,6 +195,7 @@ var GCodeViewer = (function () {
             return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         };
 
+        //TODO: delete that, stop being lazy
         //I hate typing { and :
         that.createPoint = function(x, y, z) {
             return { x : x, y : y, z : z };
