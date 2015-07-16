@@ -33,13 +33,13 @@ GCodeViewer.yUpTozUp = function(point) {
 GCodeViewer.findPosition = function(start, commandParameters, relative) {
     var pos = { x : start.x, y : start.y, z : start.z };
     if(relative === true) {
-        if(commandParameters.x === undefined) { pos.x += commandParameters.x; }
-        if(commandParameters.y === undefined) { pos.y += commandParameters.y; }
-        if(commandParameters.z === undefined) { pos.z += commandParameters.z; }
+        if(commandParameters.x !== undefined) { pos.x += commandParameters.x; }
+        if(commandParameters.y !== undefined) { pos.y += commandParameters.y; }
+        if(commandParameters.z !== undefined) { pos.z += commandParameters.z; }
     } else {
-        if(commandParameters.x === undefined) { pos.x = commandParameters.x; }
-        if(commandParameters.y === undefined) { pos.y = commandParameters.y; }
-        if(commandParameters.z === undefined) { pos.z = commandParameters.z; }
+        if(commandParameters.x !== undefined) { pos.x = commandParameters.x; }
+        if(commandParameters.y !== undefined) { pos.y = commandParameters.y; }
+        if(commandParameters.z !== undefined) { pos.z = commandParameters.z; }
     }
 
     return pos;
