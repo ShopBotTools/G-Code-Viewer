@@ -14,7 +14,7 @@ GCodeViewer.StraightLine = (function() {
     "use strict";
 
     //TODO: should "throw" an error if bad parameters
-    function StraightLine(index, start, commandParsed, relative) {
+    function StraightLine(index, start, commandParsed, relative, inMm) {
         var that = this;
 
         that.getGeometry = function() {
@@ -34,16 +34,17 @@ GCodeViewer.StraightLine = (function() {
             return geometry;
         };
 
-        function initialize(index, start, commandParsed, relative) {
+        function initialize(index, start, commandParsed, relative, inMm) {
             that.index = index;
             that.type = GCodeViewer.STRAIGHT;
             that.word = commandParsed.type;
             that.start = { x : start.x, y : start.y, z : start.z };
-            that.end = GCodeViewer.findPosition(start, commandParsed, relative);
+            that.end = GCodeViewer.findPosition(start, commandParsed, relative,
+                    inMm);
         }
 
 
-        initialize(index, start, commandParsed, relative);
+        initialize(index, start, commandParsed, relative, inMm);
     }
 
     return StraightLine;
@@ -52,7 +53,7 @@ GCodeViewer.StraightLine = (function() {
 GCodeViewer.CurvedLine = (function() {
     "use strict";
 
-    function CurvedLine(index, start, commandParsed, relative, crossAxe) {
+    function CurvedLine(index, start, commandParsed, relative, inMm, crossAxe) {
         var that = this;
 
         function getBezierAngle() {
@@ -280,37 +281,39 @@ GCodeViewer.CurvedLine = (function() {
         };
 
         //radius is positive or negative
-        function findCenter(start, end, commandParsed, clockwise, crossAxe) {
+        function findCenter(start, end, commandParsed, clockwise, crossAxe, inMm) {
+            var delta = (inMm === false) ? 1 : GCodeViewer.mmToInch;
             if(commandParsed.r === undefined) {
                 var center = { x : start.x, y : start.y, z : start.z };
                 if(commandParsed.i !== undefined) {
-                    center.x += commandParsed.i;
+                    center.x += commandParsed.i * delta;
                 }
                 if(commandParsed.j !== undefined) {
-                    center.y += commandParsed.j;
+                    center.y += commandParsed.j * delta;
                 }
                 if(commandParsed.k !== undefined) {
-                    center.z += commandParsed.k;
+                    center.z += commandParsed.k * delta;
                 }
                 return center;
             }
-            return GCodeViewer.findCenter(start, end, commandParsed.r,
+            return GCodeViewer.findCenter(start, end, commandParsed.r * delta,
                     clockwise,crossAxe);
         }
 
-        function initialize(index, start, commandParsed, relative, crossAxe) {
+        function initialize(index, start, commandParsed, relative, inMm, crossAxe) {
             that.index = index;
             that.type = GCodeViewer.CURVED;
             that.word = commandParsed.type;
             that.start = { x : start.x, y : start.y, z : start.z };
-            that.end = GCodeViewer.findPosition(start, commandParsed, relative);
+            that.end = GCodeViewer.findPosition(start, commandParsed, relative,
+                    inMm);
             that.clockwise = (commandParsed.type === "G2");
             that.center = findCenter(start, that.end, commandParsed,
-                    that.clockwise, crossAxe);
+                    that.clockwise, crossAxe, inMm);
             that.crossAxe = crossAxe;
         }
 
-        initialize(index, start, commandParsed, relative, crossAxe);
+        initialize(index, start, commandParsed, relative, inMm, crossAxe);
     }
 
     return CurvedLine;

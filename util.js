@@ -15,11 +15,13 @@ var GCodeViewer = {};
 //Global variables
 GCodeViewer.STRAIGHT = 0;
 GCodeViewer.CURVED = 1;
+GCodeViewer.mmToInch = 0.03937008;  //Convert a millimeter to an inch
+GCodeViewer.inchToVector = 1;  //Convert an inch to the value to put in vectors
 
 //Convert a coordinate where z is the up direction to a coordinate where
 // y is the up direction
 GCodeViewer.zUpToyUp = function(point) {
-    return { x : point.y, y : point.z, z : point.x};
+    return { x : point.y, y : point.z, z : point.x };
 };
 
 //Convert a coordinate where y is the up direction to a coordinate where
@@ -30,16 +32,17 @@ GCodeViewer.yUpTozUp = function(point) {
 
 //Find the next position according to the x, y and z contained or not by in the
 //command parameters
-GCodeViewer.findPosition = function(start, commandParameters, relative) {
+GCodeViewer.findPosition = function(start, parameters, relative, inMm) {
     var pos = { x : start.x, y : start.y, z : start.z };
+    var d = (inMm === false) ? 1 : GCodeViewer.mmToInch;
     if(relative === true) {
-        if(commandParameters.x !== undefined) { pos.x += commandParameters.x; }
-        if(commandParameters.y !== undefined) { pos.y += commandParameters.y; }
-        if(commandParameters.z !== undefined) { pos.z += commandParameters.z; }
+        if(parameters.x !== undefined) { pos.x += parameters.x * d; }
+        if(parameters.y !== undefined) { pos.y += parameters.y * d; }
+        if(parameters.z !== undefined) { pos.z += parameters.z * d; }
     } else {
-        if(commandParameters.x !== undefined) { pos.x = commandParameters.x; }
-        if(commandParameters.y !== undefined) { pos.y = commandParameters.y; }
-        if(commandParameters.z !== undefined) { pos.z = commandParameters.z; }
+        if(parameters.x !== undefined) { pos.x = parameters.x * d; }
+        if(parameters.y !== undefined) { pos.y = parameters.y * d; }
+        if(parameters.z !== undefined) { pos.z = parameters.z * d; }
     }
 
     return pos;

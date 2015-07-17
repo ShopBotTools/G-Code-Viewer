@@ -185,7 +185,7 @@ GCodeViewer.Viewer = (function() {
             var start = { x: 0, y : 0, z : 0 };
             var tabRes = [];
             var crossAxe = "z";
-            var relative = false;
+            var relative = false, inMm = false;
 
             that.lines= [];
 
@@ -208,13 +208,13 @@ GCodeViewer.Viewer = (function() {
                 for(j = 0; j < tabRes.length; j++) {
                     res = tabRes[j];
                     if(res.type === "G0" || res.type === "G1") {
-                        line = new GCodeViewer.StraightLine(
-                                    commandNumber, start, res, relative);
+                        line = new GCodeViewer.StraightLine(commandNumber,
+                                start, res, relative, inMm);
                         that.lines.push(line);
                         start = GCodeViewer.copyObject(line.end);
                     } else if(res.type === "G2" || res.type === "G3") {
-                        line = new GCodeViewer.CurvedLine(
-                                commandNumber, start, res, relative, crossAxe);
+                        line = new GCodeViewer.CurvedLine(commandNumber, start,
+                                res, relative, inMm, crossAxe);
                         if(line.center === false) {
                             displayError("Radius too short "+
                                     "for command " + that.gcode[i] + " (line " +
@@ -234,8 +234,12 @@ GCodeViewer.Viewer = (function() {
                     } else if(res.type === "G19") {
                         crossAxe = "z";
                     } else if(res.type === "G20") {
+                        //No need to convert start: always in inches
+                        inMm = false;
                         console.log("set inches");
                     } else if(res.type === "G21") {
+                        //No need to convert start: always in inches
+                        inMm = true;
                         console.log("set mm");
                     } else if(res.type === "G90") {
                         relative = false;
