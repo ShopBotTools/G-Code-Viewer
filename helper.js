@@ -107,9 +107,7 @@ GCodeViewer.Helpers = (function() {
         }
 
         function initialize(scene) {
-            console.log(scene);
             that.scene = scene;
-            console.log(that.scene);
             createHelpers();
             that.addHelpers();
         }

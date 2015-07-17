@@ -31,9 +31,7 @@ GCodeViewer.Viewer = (function() {
         }
 
         function resetPathsGeo() {
-            console.log(that.geoG0Undone);
             that.geoG0Undone = new THREE.Geometry();
-            console.log(that.geoG0Undone);
             that.geoG1Undone = new THREE.Geometry();
             that.geoG2G3Undone = new THREE.Geometry();
             that.geoG0Done = new THREE.Geometry();
@@ -153,14 +151,14 @@ GCodeViewer.Viewer = (function() {
 
             //TODO: test, lines will store only instances
             for(i=0; i < that.lines.length; i++) {
-                if(that.lines[i].type === that.STRAIGHT) {
+                if(that.lines[i].type === GCodeViewer.STRAIGHT) {
                     geometry = that.lines[i].getGeometry();
                     if(that.lines[i].word === "G0") {
                         that.geoG0Undone.merge(geometry);
                     } else {
                         that.geoG1Undone.merge(geometry);
                     }
-                } else if(that.lines[i].type === that.CURVE) {
+                } else if(that.lines[i].type === GCodeViewer.CURVE) {
                     geometry = that.lines[i].getGeometry();
                     that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
                     for(j=1; j < geometry.vertices.length-1; j++) {
@@ -480,7 +478,6 @@ GCodeViewer.Viewer = (function() {
             that.scene.add( box );
             that.box = box;
             that.object = object;
-            console.log("ji");
         };
 
         that.test = function() {
