@@ -174,7 +174,7 @@ GCodeViewer.findCenter = function(start, end, radius, clockwise, crossAxe) {
     var axes = GCodeViewer.findAxes(crossAxe);
     lSE = Math.sqrt(se[axes.re] * se[axes.re] + se[axes.im] * se[axes.im]);
 
-    if(lSE > radius * 2) {
+    if(lSE > Math.abs(radius * 2)) {
         return false;
     }
 

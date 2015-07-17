@@ -149,7 +149,6 @@ GCodeViewer.Viewer = (function() {
                 return;
             }
 
-            //TODO: test, lines will store only instances
             for(i=0; i < that.lines.length; i++) {
                 if(that.lines[i].type === GCodeViewer.STRAIGHT) {
                     geometry = that.lines[i].getGeometry();
@@ -158,7 +157,7 @@ GCodeViewer.Viewer = (function() {
                     } else {
                         that.geoG1Undone.merge(geometry);
                     }
-                } else if(that.lines[i].type === GCodeViewer.CURVE) {
+                } else if(that.lines[i].type === GCodeViewer.CURVED) {
                     geometry = that.lines[i].getGeometry();
                     that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
                     for(j=1; j < geometry.vertices.length-1; j++) {
@@ -344,7 +343,7 @@ GCodeViewer.Viewer = (function() {
                         that.lines.push(line);
                         start = GCodeViewer.copyObject(line.end);
                     } else if(res.type === "G2" || res.type === "G3") {
-                        line = new GCodeViewer.StraightLine(
+                        line = new GCodeViewer.CurvedLine(
                                 commandNumber, start, res, relative, crossAxe);
                         that.lines.push(line);
                         start = GCodeViewer.copyObject(line.end);
@@ -400,31 +399,18 @@ GCodeViewer.Viewer = (function() {
             var material = new THREE.LineBasicMaterial({ color: 0xffffff });
             var circleGeometry = new THREE.CircleGeometry(radius, segments);
             that.circleGeometry = circleGeometry;
-            // console.log(that.circleGeometry);
             return new THREE.Line(circleGeometry , material);
         };
 
         that.testBezier = function() {
-            // var i = 0, j = 0;
-            // var b= {}, g = {}, c = {};
-            // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-
-            var start = that.createPoint(0, 0, 0);
-            var end = that.createPoint(10, 15, 5);
-            var clockwise = true;
+            var start = {x : 0, y : 0, z : 0};
+            var end = {x : 10, y : 15, z : 5};
             var crossAxe = "z";
-            var r = -20;
-            var center = that.findCenter(start, end, r, clockwise, crossAxe);
-
-            // console.log(center);
-            that.lines.push({
-                "type": that.CURVE,
-                "start": { x : start.x, y : start.y, z : start.z },
-                "end": { x : end.x, y : end.y, z : end.z },
-                "center": { x : center.x, y : center.y, z : center.z },
-                "clockwise" : clockwise,
-                "crossAxe" : crossAxe
-            });
+            var radius = -20;
+            var result = { r : radius, x : end.x, y : end.y, z : end.z,
+                type : "G2"};
+            that.lines.push(new GCodeViewer.CurvedLine(0, start, result, false,
+                        crossAxe));
 
             that.showLines();
 
@@ -481,7 +467,7 @@ GCodeViewer.Viewer = (function() {
         };
 
         that.test = function() {
-            that.testGeometry();
+            that.testBezier();
 
             refreshDisplay();
         };

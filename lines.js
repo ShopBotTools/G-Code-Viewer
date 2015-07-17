@@ -170,8 +170,8 @@ GCodeViewer.CurvedLine = (function() {
         // The Bézier's curve must be on the good plane
         function getFullBezier(num90, bez90, numSmall, bezSmall, pitch90) {
             var arcs = [];
-            var axes = GCodeViewer.findAxes(that.crossAxe);
             var center = GCodeViewer.copyObject(that.center);
+            var axes = GCodeViewer.findAxes(that.crossAxe);
             var re = axes.re, im = axes.im;
             var cs = { x : that.start[re] - center[re],
                 y : that.start[im] - center[im] };
@@ -256,7 +256,7 @@ GCodeViewer.CurvedLine = (function() {
                 simCubBezTo3D(bezSmall, (angle < 0), pLittle, that.crossAxe);
             }
 
-            return getFullBezier(that, num90, bez90, numSmall, bezSmall, p90);
+            return getFullBezier(num90, bez90, numSmall, bezSmall, p90);
         }
 
         that.getGeometry = function() {
