@@ -13,16 +13,21 @@
 GCodeViewer.Viewer = (function() {
     "use strict";
     function Viewer(configuration, domElement) {
-        //TODO: Mettre tout le reste ici
         var that = this;
 
         function animate() {
-            window.requestAnimationFrame(that.animate);
+            // window.requestAnimationFrame(that.animate);
+            window.requestAnimationFrame(animate);
             that.controls.update();
         }
 
         function render() {
             that.renderer.render(that.scene, that.camera);
+        }
+
+        function refreshDisplay() {
+            render();
+            animate();
         }
 
         function resetPathsGeo() {
@@ -68,7 +73,7 @@ GCodeViewer.Viewer = (function() {
 
         //Total size on XY plane
         function resetTotalSize() {
-            that.totalSize = { min : {x:0, y:0, z:0}, max : {x:0, y:0, z:0} };
+            that.totalSize = { min : {x:0, y:0, z:0}, max : { x:0, y:0, z:0} };
         }
 
         function checkTotalSize(boundingBox) {
@@ -150,7 +155,6 @@ GCodeViewer.Viewer = (function() {
             for(i=0; i < that.lines.length; i++) {
                 if(that.lines[i].type === that.STRAIGHT) {
                     geometry = that.lines[i].getGeometry();
-                    // geometry = that.getGeometryStraightLine(that.lines[i]);
                     if(that.lines[i].word === "G0") {
                         that.geoG0Undone.merge(geometry);
                     } else {
@@ -158,7 +162,6 @@ GCodeViewer.Viewer = (function() {
                     }
                 } else if(that.lines[i].type === that.CURVE) {
                     geometry = that.lines[i].getGeometry();
-                    // geometry = that.getGeometryCurveLine(that.lines[i]);
                     that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
                     for(j=1; j < geometry.vertices.length-1; j++) {
                         that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
@@ -209,75 +212,35 @@ GCodeViewer.Viewer = (function() {
             that.scene.remove(that.meshG2G3Done);
         };
 
-        that.showArrowsHelp = function() {
-            var length = 3, headLength = 1, headWidth = 1;
-            var options = {'font' : 'helvetiker','weight' : 'normal',
-                'style' : 'normal','size' : 2,'curveSegments' : 300};
-
-            //For X
-            var dir = new THREE.Vector3(1, 0, 0);
-            var origin = new THREE.Vector3(0, -1.5, 0);
-            var hex = 0xff0000;
-            var arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
-                    headLength, headWidth);
-            that.scene.add(arrowHelper);
-
-            var material = new THREE.MeshBasicMaterial({ color: hex });
-            var textShapes = THREE.FontUtils.generateShapes("X", options);
-            var geo = new THREE.ShapeGeometry(textShapes);
-            var obj = new THREE.Mesh(geo, material);
-            obj.position.x = origin.x + length + 1;
-            obj.position.y = origin.y - options.size/2;
-            obj.position.z = origin.z;
-            that.scene.add(obj);
-
-            //For Y
-            dir = new THREE.Vector3(0, 1, 0);
-            origin = new THREE.Vector3(-1.5, 0, 0);
-            hex = 0x00ff00;
-            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
-                    headLength, headWidth);
-            that.scene.add(arrowHelper);
-
-            material = new THREE.MeshBasicMaterial({ color: hex });
-            textShapes = THREE.FontUtils.generateShapes("Y", options);
-            geo = new THREE.ShapeGeometry(textShapes);
-            obj = new THREE.Mesh(geo, material);
-            obj.position.x = origin.x - options.size/2;
-            obj.position.y = origin.y + length + 1;
-            obj.position.z = origin.z;
-            that.scene.add(obj);
-
-            //For Z
-            dir = new THREE.Vector3(0, 0, 1);
-            origin = new THREE.Vector3(-1.5, -1.5, 0);
-            hex = 0x0000ff;
-            arrowHelper = new THREE.ArrowHelper(dir, origin, length, hex,
-                    headLength, headWidth);
-            that.scene.add(arrowHelper);
-
-            material = new THREE.MeshBasicMaterial({ color: hex });
-            textShapes = THREE.FontUtils.generateShapes("Z", options);
-            geo = new THREE.ShapeGeometry(textShapes);
-            obj = new THREE.Mesh(geo, material);
-            obj.position.x = origin.x - options.size/2;
-            obj.position.y = origin.y;
-            obj.position.z = origin.z + length + 1;
-            obj.rotateX(Math.PI / 2);
-            that.scene.add(obj);
+        //Helpers management:
+        that.showAxisHelper = function() {
+            that.helpers.addAxisHelper();
+            refreshDisplay();
         };
 
-        that.hideArrowHelp = function() {
-            console.log("Hide arrows");
+        that.hideAxisHelper = function() {
+            that.helpers.removeAxisHelper();
+            refreshDisplay();
         };
 
-        //TODO: rename showHelpers?
-        that.setHelpers = function() {
-            that.showArrowsHelp();
-            that.scene.add(new THREE.AxisHelper(100));
+        that.showArrows = function() {
+            that.helper.addArrows();
+            refreshDisplay();
         };
+
+        that.hideArrows = function() {
+            that.helper.removeArrows();
+            refreshDisplay();
+        };
+
+        that.showHelpers = function() {
+            that.helper.addHelpers();
+            refreshDisplay();
+        };
+
         that.hideHelpers = function() {
-            console.log("Hide helpers");
+            that.helper.removeHelpers();
+            refreshDisplay();
         };
 
         that.showBoard = function() {
@@ -312,13 +275,6 @@ GCodeViewer.Viewer = (function() {
         that.setGCode = function(string) {
             that.gcode = string.split('\n');
         };
-
-        // function createGrid() {
-        //     var size = 10;
-        //     var step = 1;
-        //     var gridHelper = new THREE.GridHelper(size, step);
-        //     return gridHelper;
-        // }
 
         //Returns a string if no command
         function removeCommentsAndSpaces(command) {
@@ -429,8 +385,7 @@ GCodeViewer.Viewer = (function() {
             that.showBoard();
             updateTotalSize();
 
-            render();
-            animate();
+            refreshDisplay();
         };  //viewPaths
 
         //TODO: delete that
@@ -531,8 +486,7 @@ GCodeViewer.Viewer = (function() {
         that.test = function() {
             that.testGeometry();
 
-            render();
-            animate();
+            refreshDisplay();
         };
 
         function initialize() {
@@ -545,11 +499,12 @@ GCodeViewer.Viewer = (function() {
             that.pathMesh = {};  // The mesh of the total path
             that.cncConfiguration= {};
             that.gcode = [];
-            // that.relative = false;  //Relative or absolute position
 
+            // that.relative = false;  //Relative or absolute position
             // that.STRAIGHT = 0;
             // that.CURVE = 1;
             // that.crossAxe = "z";
+
             that.totalSize = { min : {x:0, y:0, z:0}, max : {x:0, y:0, z:0} };
 
             that.geoG0Undone = new THREE.Geometry();
@@ -603,9 +558,8 @@ GCodeViewer.Viewer = (function() {
             light.position.set(0, 1, 1);
             that.scene.add( light );
 
-            that.setHelpers();
-            render();
-            animate();
+            that.helpers = new GCodeViewer.Helpers(that.scene);
+            refreshDisplay();
 
             // that.setCameraControl();
         }
