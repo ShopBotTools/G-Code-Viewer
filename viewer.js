@@ -280,7 +280,7 @@ GCodeViewer.Viewer = (function() {
         //Have to set the gcode before
         that.viewPaths = function() {
             that.path.remove();  //Don't know how to check if already in scene
-            that.path.add();
+            that.path.add(true);
             that.refreshDisplay();
         };
 
