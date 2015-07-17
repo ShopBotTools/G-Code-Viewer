@@ -172,10 +172,8 @@ GCodeViewer.CurvedLine = (function() {
             var arcs = [];
             var center = GCodeViewer.copyObject(that.center);
             var axes = GCodeViewer.findAxes(that.crossAxe);
-            var re = axes.re, im = axes.im;
-            var cs = { x : that.start[re] - center[re],
-                y : that.start[im] - center[im] };
-            //TODO: clean stuff
+            var cs = { x : that.start[axes.re] - center[axes.re],
+                y : that.start[axes.im] - center[axes.im] };
             var i = 0, angle = 0, sign = (that.clockwise === true) ? -1 : 1;
 
             if(num90 === 0 && numSmall === 0) {
@@ -184,13 +182,13 @@ GCodeViewer.CurvedLine = (function() {
 
             if(num90 > 0) {
                 angle = GCodeViewer.findAngleOrientedVectors2(
-                    { x : bez90.p0[re], y : bez90.p0[im] }, cs,
+                    { x : bez90.p0[axes.re], y : bez90.p0[axes.im] }, cs,
                     that.clockwise === false
                 );
 
                 for(i = 0; i < num90; i++) {
                     arcs.push(GCodeViewer.copyObject(bez90));
-                    rotAndPlaBez(arcs[i], center, angle, re, im);
+                    rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
                     // angle += Math.PI / 2 * sign;
                     angle += 1.570796326794897 * sign;
                     center[that.crossAxe] += pitch90;
@@ -199,7 +197,7 @@ GCodeViewer.CurvedLine = (function() {
 
             if(numSmall > 0) {
                 angle = GCodeViewer.findAngleOrientedVectors2(
-                    { x : bezSmall.p0[re], y : bezSmall.p0[im] }, cs,
+                    { x : bezSmall.p0[axes.re], y : bezSmall.p0[axes.im] }, cs,
                     that.clockwise === false
                 );
 
@@ -207,7 +205,7 @@ GCodeViewer.CurvedLine = (function() {
                     angle += num90 * 1.570796326794897 * sign;
                 }
                 arcs.push(GCodeViewer.copyObject(bezSmall));
-                rotAndPlaBez(arcs[i], center, angle, re, im);
+                rotAndPlaBez(arcs[i], center, angle, axes.re, axes.im);
             }
 
             //To be sure the last point is at the end

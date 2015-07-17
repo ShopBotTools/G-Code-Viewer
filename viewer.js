@@ -12,7 +12,7 @@
 
 GCodeViewer.Viewer = (function() {
     "use strict";
-    function Viewer(configuration, domElement) {
+    function Viewer(configuration, domElement, callbackError) {
         var that = this;
 
         function animate() {
@@ -345,6 +345,13 @@ GCodeViewer.Viewer = (function() {
                     } else if(res.type === "G2" || res.type === "G3") {
                         line = new GCodeViewer.CurvedLine(
                                 commandNumber, start, res, relative, crossAxe);
+                        if(line.center === false) {
+                            that.callbackError("Radius too short "+
+                                    "for command " + that.gcode[i] + " (line " +
+                                    i +")"
+                                    );
+                            break;
+                        }
                         that.lines.push(line);
                         start = GCodeViewer.copyObject(line.end);
                     } else if(res.type === "G4") {
@@ -421,49 +428,6 @@ GCodeViewer.Viewer = (function() {
             var circle2 = that.createCircle(20, 32);
             circle2.position.z = 0;
             that.scene.add(circle2);
-        };
-
-        that.testMerge = function() {
-            // var meshs = [];
-            var mat1 = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-            var mat2 = new THREE.LineBasicMaterial( { color : 0x00ff00 } );
-            var group = new THREE.Geometry();
-            var group2 = new THREE.Geometry();
-            var geo = {};
-            var i = 0;
-            for(i=0; i < 1000; i++) {
-                geo = new THREE.BoxGeometry(i, i, i);
-                // geo = new THREE.CircleGeometry(i, 32);
-                // group.merge(geo);
-                if(i % 2 === 0) {
-                    group.merge(geo);
-                    // meshs.push(new THREE.Line(geo, mat1));
-                } else {
-                    group2.merge(geo);
-                    // meshs.push(new THREE.Line(geo, mat2));
-                }
-                // that.scene.add(meshs[i]);
-            }
-            that.scene.add(new THREE.Line(group, mat1));
-            that.scene.add(new THREE.Line(group2, mat2));
-        };
-
-        that.testGeometry = function() {
-            var w = 1, l = 3, h = 2;
-            var sphere = new THREE.BoxGeometry(w, l, h);
-            var material = new THREE.MeshBasicMaterial(0xff0000);
-            material.transparent = true;
-            material.opacity = 0;
-            var object = new THREE.Mesh( sphere, material);
-            object.position.x = w / 2;
-            object.position.y = l / 2;
-            object.position.z = h / 2;
-
-            var box = new THREE.BoundingBoxHelper( object );
-            that.scene.add(object);
-            that.scene.add( box );
-            that.box = box;
-            that.object = object;
         };
 
         that.test = function() {
@@ -544,6 +508,7 @@ GCodeViewer.Viewer = (function() {
             that.helpers = new GCodeViewer.Helpers(that.scene);
             refreshDisplay();
 
+            that.callbackError = callbackError;
             // that.setCameraControl();
         }
 

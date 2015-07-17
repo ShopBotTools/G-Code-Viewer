@@ -9,12 +9,12 @@ This app generates a 3D representation of GCode.
 * Different coloration for G0 vs G1/G2/G3 (maybe red for G0 and blue for G1)
 * Interpreting relative position mode
 * Orthogonal view
+* Add the possibility to load an other GCode file
+* Verify that the G2 and G3 commands are possible (i.e. radius big enough)
 
 ##TODO:
 ###Functionalities
 * Show size of the total operation
-* Add the possibility to load an other GCode file
-* Verify that the G2 and G3 commands are possible (i.e. radius big enough)
 * Manage correctly each command used
 * Add a "step-by-step" functionality
 * Displaying 3D representation of the result

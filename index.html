@@ -24,7 +24,8 @@
         var config = {
             board: { width: 10, length: 50, height: 5 }
         };
-        var g = new GCodeViewer.Viewer(config, document.getElementById("canvas"));
+        var g = new GCodeViewer.Viewer(config, document.getElementById("canvas"),
+                function(msg) { alert(msg); });
         document.getElementById("view").onclick = function() {
             g.setGCode(document.getElementById("gcode").value);
             g.viewPaths();
