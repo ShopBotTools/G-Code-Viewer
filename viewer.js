@@ -7,7 +7,7 @@
 
 /**
  * This file contains the class managing the viewer. This the class that the
- * user will instantiate.
+ * user will instantiate. This is the main class.
  */
 
 GCodeViewer.Viewer = (function() {
@@ -16,7 +16,6 @@ GCodeViewer.Viewer = (function() {
         var that = this;
 
         function animate() {
-            // window.requestAnimationFrame(that.animate);
             window.requestAnimationFrame(animate);
             that.controls.update();
         }
@@ -25,18 +24,15 @@ GCodeViewer.Viewer = (function() {
             that.renderer.render(that.scene, that.camera);
         }
 
-        function refreshDisplay() {
+        that.refreshDisplay = function() {
             render();
             animate();
-        }
+        };
 
-        function resetPathsGeo() {
-            that.geoG0Undone = new THREE.Geometry();
-            that.geoG1Undone = new THREE.Geometry();
-            that.geoG2G3Undone = new THREE.Geometry();
-            that.geoG0Done = new THREE.Geometry();
-            that.geoG1Done = new THREE.Geometry();
-            that.geoG2G3Done = new THREE.Geometry();
+        function displayError(message) {
+            if(that.callbackError !== undefined) {
+                that.callbackError(message);
+            }
         }
 
         function setCamera() {
@@ -69,55 +65,6 @@ GCodeViewer.Viewer = (function() {
             setCamera();
         };
 
-        //Total size on XY plane
-        function resetTotalSize() {
-            that.totalSize = { min : {x:0, y:0, z:0}, max : { x:0, y:0, z:0} };
-        }
-
-        function checkTotalSize(boundingBox) {
-            var keys = ["x", "y", "z"];
-            var i = 0;
-            if(boundingBox === null) {
-                return;
-            }
-            for(i = keys.length - 1; i >= 0; i--) {
-                if(that.totalSize.min[keys[i]] > boundingBox.min[keys[i]]) {
-                    that.totalSize.min[keys[i]] = boundingBox.min[keys[i]];
-                }
-                if(that.totalSize.max[keys[i]] < boundingBox.max[keys[i]]) {
-                    that.totalSize.max[keys[i]] = boundingBox.max[keys[i]];
-                }
-            }
-        }
-
-        function updateTotalSize() {
-            resetTotalSize();
-            if(that.meshG0Undone.geometry.vertices.length > 0) {
-                that.meshG0Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG0Undone.geometry.boundingBox);
-            }
-            if(that.meshG1Undone.geometry.vertices.length > 0) {
-                that.meshG1Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG1Undone.geometry.boundingBox);
-            }
-            if(that.meshG2G3Undone.geometry.vertices.length > 0) {
-                that.meshG2G3Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG2G3Undone.geometry.boundingBox);
-            }
-            if(that.meshG0Done.geometry.vertices.length > 0) {
-                that.meshG0Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG0Done.geometry.boundingBox);
-            }
-            if(that.meshG1Done.geometry.vertices.length > 0) {
-                that.meshG1Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG1Done.geometry.boundingBox);
-            }
-            if(that.meshG2G3Done.geometry.vertices.length > 0) {
-                that.meshG2G3Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG2G3Done.geometry.boundingBox);
-            }
-        }
-
         //TODO: fit with the board size
         that.showX = function() {
             that.camera.position.x = 5;
@@ -140,104 +87,35 @@ GCodeViewer.Viewer = (function() {
             that.camera.lookAt(that.scene.position);
         };
 
-        //TODO: rename
-        function setGeometriesFromLines() {
-            var i = 0, j = 0;
-            var geometry = new THREE.Geometry();
-
-            if(that.lines.length === 0) {
-                return;
-            }
-
-            for(i=0; i < that.lines.length; i++) {
-                if(that.lines[i].type === GCodeViewer.STRAIGHT) {
-                    geometry = that.lines[i].getGeometry();
-                    if(that.lines[i].word === "G0") {
-                        that.geoG0Undone.merge(geometry);
-                    } else {
-                        that.geoG1Undone.merge(geometry);
-                    }
-                } else if(that.lines[i].type === GCodeViewer.CURVED) {
-                    geometry = that.lines[i].getGeometry();
-                    that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
-                    for(j=1; j < geometry.vertices.length-1; j++) {
-                        that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
-                        that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
-                    }
-                    if(geometry.vertices.length > 1) {
-                        that.geoG2G3Undone.vertices.push(
-                            geometry.vertices[geometry.vertices.length - 1]
-                        );
-                    }
-
-                }
-            }
-        }
-
-        //TODO: part of the refactor and thinking part
-        that.showLines = function() {
-            resetPathsGeo();
-            setGeometriesFromLines();
-
-            that.meshG0Undone = new THREE.Line(that.geoG0Undone,
-                    that.matG0Undone, THREE.LinePieces);
-            that.meshG1Undone = new THREE.Line(that.geoG1Undone,
-                    that.matG1Undone, THREE.LinePieces);
-            that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone,
-                    that.matG2G3Undone, THREE.LinePieces);
-            that.meshG0Done = new THREE.Line(that.geoG0Done,
-                    that.matG0Done, THREE.LinePieces);
-            that.meshG1Done = new THREE.Line(that.geoG1Done,
-                    that.matG1Done, THREE.LinePieces);
-            that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
-                    that.matG2G3Done, THREE.LinePieces);
-
-            that.scene.add(that.meshG0Undone);
-            that.scene.add(that.meshG1Undone);
-            that.scene.add(that.meshG2G3Undone);
-            that.scene.add(that.meshG0Done);
-            that.scene.add(that.meshG1Done);
-            that.scene.add(that.meshG2G3Done);
-        };
-
-        that.hideLines = function() {
-            that.scene.remove(that.meshG0Undone);
-            that.scene.remove(that.meshG1Undone);
-            that.scene.remove(that.meshG2G3Undone);
-            that.scene.remove(that.meshG0Done);
-            that.scene.remove(that.meshG1Done);
-            that.scene.remove(that.meshG2G3Done);
-        };
-
         //Helpers management:
         that.showAxisHelper = function() {
             that.helpers.addAxisHelper();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.hideAxisHelper = function() {
             that.helpers.removeAxisHelper();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.showArrows = function() {
             that.helper.addArrows();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.hideArrows = function() {
             that.helper.removeArrows();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.showHelpers = function() {
             that.helper.addHelpers();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.hideHelpers = function() {
             that.helper.removeHelpers();
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         that.showBoard = function() {
@@ -267,10 +145,6 @@ GCodeViewer.Viewer = (function() {
         that.hideBoard = function() {
             that.scene.remove(that.boardObject);
             that.scene.remove(that.boardBox);
-        };
-
-        that.setGCode = function(string) {
-            that.gcode = string.split('\n');
         };
 
         //Returns a string if no command
@@ -305,10 +179,7 @@ GCodeViewer.Viewer = (function() {
             return tab;
         }
 
-        //TODO: rename this function and put away the show of the paths.
-        //  And manage the commands correctly
-        //Have to set the gcode before
-        that.viewPaths = function() {
+        function setLines() {
             var i = 0, j = 0, commandNumber = 0;
             var line = {}, res = {};  //RESult
             var start = { x: 0, y : 0, z : 0 };
@@ -316,7 +187,6 @@ GCodeViewer.Viewer = (function() {
             var crossAxe = "z";
             var relative = false;
 
-            that.hideLines();
             that.lines= [];
 
             if(that.cncConfiguration.initialPosition !== undefined) {
@@ -346,7 +216,7 @@ GCodeViewer.Viewer = (function() {
                         line = new GCodeViewer.CurvedLine(
                                 commandNumber, start, res, relative, crossAxe);
                         if(line.center === false) {
-                            that.callbackError("Radius too short "+
+                            displayError("Radius too short "+
                                     "for command " + that.gcode[i] + " (line " +
                                     i +")"
                                     );
@@ -384,13 +254,31 @@ GCodeViewer.Viewer = (function() {
                     commandNumber++;
                 }
             }
+        }
 
-            that.showLines();
-            that.showBoard();
-            updateTotalSize();
+        that.setGCode = function(string) {
+            if(string === "") {
+                displayError("There is no GCode");
+                return;
+            }
+            that.gcode = string.split('\n');
+            setLines();
+            that.path.remove();  //Removing old stuff
+            that.path.setMeshes(that.lines);
+            that.refreshDisplay();  //To avoid confusion, we remove everything
+        };
 
-            refreshDisplay();
-        };  //viewPaths
+        that.hidePaths = function() {
+            that.path.remove();
+            that.refreshDisplay();
+        };
+
+        //Have to set the gcode before
+        that.viewPaths = function() {
+            that.path.remove();  //Don't know how to check if already in scene
+            that.path.add();
+            that.refreshDisplay();
+        };
 
         //TODO: delete that
         that.printLines = function() {
@@ -419,7 +307,7 @@ GCodeViewer.Viewer = (function() {
             that.lines.push(new GCodeViewer.CurvedLine(0, start, result, false,
                         crossAxe));
 
-            that.showLines();
+            that.path.setMeshes(that.lines);
 
             var circle = that.createCircle(20, 32);
             circle.position.z = 10;
@@ -433,7 +321,7 @@ GCodeViewer.Viewer = (function() {
         that.test = function() {
             that.testBezier();
 
-            refreshDisplay();
+            that.refreshDisplay();
         };
 
         function initialize() {
@@ -443,37 +331,8 @@ GCodeViewer.Viewer = (function() {
             that.scene = {};
             that.controls = {};
             that.lines = [];  //Represents the paths of the bit (lines are straight or curve).
-            that.pathMesh = {};  // The mesh of the total path
             that.cncConfiguration= {};
             that.gcode = [];
-
-            // that.relative = false;  //Relative or absolute position
-            // that.STRAIGHT = 0;
-            // that.CURVE = 1;
-            // that.crossAxe = "z";
-
-            that.totalSize = { min : {x:0, y:0, z:0}, max : {x:0, y:0, z:0} };
-
-            that.geoG0Undone = new THREE.Geometry();
-            that.geoG1Undone = new THREE.Geometry();
-            that.geoG2G3Undone = new THREE.Geometry();
-            that.geoG0Done = new THREE.Geometry();
-            that.geoG1Done = new THREE.Geometry();
-            that.geoG2G3Done = new THREE.Geometry();
-
-            that.matG0Undone = new THREE.LineDashedMaterial( { color : 0x8877dd, dashSize : 7 } );
-            that.matG1Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
-            that.matG2G3Undone = new THREE.LineBasicMaterial( { color : 0xffffff } );
-            that.matG0Done = new THREE.LineDashedMaterial( { color : 0x8877dd, dashSize : 2 } );
-            that.matG1Done = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-            that.matG2G3Done = new THREE.LineBasicMaterial( { color : 0xee6699 } );
-
-            that.meshG0Undone = {};
-            that.meshG1Undone = {};
-            that.meshG2G3Undone = {};
-            that.meshG0Done = {};
-            that.meshG1Done = {};
-            that.meshG2G3Done = {};
 
             that.cameraSet = false;
 
@@ -506,7 +365,10 @@ GCodeViewer.Viewer = (function() {
             that.scene.add( light );
 
             that.helpers = new GCodeViewer.Helpers(that.scene);
-            refreshDisplay();
+            that.showBoard();
+            that.refreshDisplay();
+
+            that.path = new GCodeViewer.Path(that.scene);
 
             that.callbackError = callbackError;
             // that.setCameraControl();
