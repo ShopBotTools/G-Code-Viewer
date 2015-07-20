@@ -47,14 +47,15 @@ GCodeViewer.TotalSize = (function() {
             return Math.abs(v[v.length - 1][axe] - v[0][axe]);
         }
 
-        that.setMeshes = function(totalSize, inMm) {
+        that.setMeshes = function(totalSize, displayInMm) {
             var material = new THREE.LineBasicMaterial( { color : 0xffffff });
             var geometry = new THREE.Geometry();
-            var type = (inMm === false) ? "in" : "mm";
-            var delta = (inMm === false) ? 1 : GCodeViewer.mmToInch;
-            var width = Math.abs(totalSize.max.x - totalSize.min.x) * delta;
-            var length = Math.abs(totalSize.max.y - totalSize.min.y) * delta;
-            var height = Math.abs(totalSize.max.z - totalSize.min.z) * delta;
+            var type = (displayInMm === false) ? "in" : "mm";
+            var d = (displayInMm === false) ? 1 : GCodeViewer.inchToMm;
+            var width = Math.abs(totalSize.max.x - totalSize.min.x);
+            var length = Math.abs(totalSize.max.y - totalSize.min.y);
+            var height = Math.abs(totalSize.max.z - totalSize.min.z);
+            var textW = width * d, textL = length * d, textH = height * d;
             var options = {'font' : 'helvetiker','weight' : 'normal',
                 'style' : 'normal','size' : 2,'curveSegments' : 300};
             var color = 0xffffff;
@@ -62,7 +63,7 @@ GCodeViewer.TotalSize = (function() {
             geometry.vertices.push(new THREE.Vector3(totalSize.min.x, -2 , 0));
             geometry.vertices.push(new THREE.Vector3(totalSize.max.x, -2 , 0));
             that.lineWidth =  new THREE.Line(geometry, material);
-            that.textWidth = createMeshText(width + " " + type, options, color);
+            that.textWidth = createMeshText(textW + " " + type, options, color);
             that.textWidth.position.x = that.lineWidth.geometry.vertices[0].x +
                 width / 2;
             that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y-3;
@@ -72,7 +73,7 @@ GCodeViewer.TotalSize = (function() {
             geometry.vertices.push(new THREE.Vector3(-2, totalSize.min.y, 0));
             geometry.vertices.push(new THREE.Vector3(-2, totalSize.max.y, 0));
             that.lineLength =  new THREE.Line(geometry, material);
-            that.textLength = createMeshText(length + " " + type, options, color);
+            that.textLength = createMeshText(textL + " " + type, options, color);
             that.textLength.rotateZ(-Math.PI/2);
             that.textLength.position.x = that.lineLength.geometry.vertices[0].x-
                 3;
@@ -84,7 +85,7 @@ GCodeViewer.TotalSize = (function() {
             geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.min.z));
             geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.max.z));
             that.lineHeight =  new THREE.Line(geometry, material);
-            that.textHeight = createMeshText(height + " " + type, options, color);
+            that.textHeight = createMeshText(textH + " " + type, options, color);
             that.textHeight.rotateX(Math.PI / 2);
             that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x-
                 sizeObject(that.textHeight, "x") - 2;
@@ -112,6 +113,11 @@ GCodeViewer.Path = (function () {
     "use strict";
     function Path(scene) {
         var that = this;
+        var totalSizeDisplayed = false;
+
+        that.totalSizeIsDisplayed = function() {
+            return totalSizeDisplayed;
+        };
 
         function resetPathsGeo() {
             that.geoG0Undone = new THREE.Geometry();
@@ -168,7 +174,7 @@ GCodeViewer.Path = (function () {
             that.scene.remove(that.meshG2G3Done);
         };
 
-        that.add = function(withTotalSize) {
+        that.add = function(withTotalSize, displayInMm) {
             that.scene.add(that.meshG0Undone);
             that.scene.add(that.meshG1Undone);
             that.scene.add(that.meshG2G3Undone);
@@ -176,9 +182,10 @@ GCodeViewer.Path = (function () {
             that.scene.add(that.meshG1Done);
             that.scene.add(that.meshG2G3Done);
             if(withTotalSize === true) {
-                that.removeTotalSize();
+                that.setTotalSize(displayInMm);
                 that.addTotalSize();
             }
+            totalSizeDisplayed = withTotalSize;
         };
 
         // that.getTotalSize = function(cncConfiguration) {
@@ -263,10 +270,18 @@ GCodeViewer.Path = (function () {
                     that.matG1Done, THREE.LinePieces);
             that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
                     that.matG2G3Done, THREE.LinePieces);
+        };
 
-            //TODO: manage inch/millimeter
+        that.setTotalSize = function(displayInMm) {
             that.objTotalSize.remove();
-            that.objTotalSize.setMeshes(that.getTotalSize(), false);
+            if(displayInMm === undefined) {
+                displayInMm = false;
+            }
+            that.objTotalSize.setMeshes(that.getTotalSize(), displayInMm);
+        };
+
+        that.hideTotalSize = function() {
+            that.objTotalSize.remove();
         };
 
         function initialize(scene) {

@@ -284,6 +284,22 @@ GCodeViewer.Viewer = (function() {
             that.refreshDisplay();
         };
 
+        function changeDisplay(inMm) {
+            if(that.path.totalSizeIsDisplayed()) {
+                that.path.setTotalSize(inMm);
+                that.path.addTotalSize();
+            }
+            that.refreshDisplay();
+        }
+
+        that.displayInMm = function() {
+            changeDisplay(true);
+        };
+
+        that.displayInInch = function() {
+            changeDisplay(false);
+        };
+
         //TODO: delete that
         that.printLines = function() {
             var i = 0;

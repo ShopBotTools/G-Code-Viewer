@@ -15,6 +15,7 @@ var GCodeViewer = {};
 //Global variables
 GCodeViewer.STRAIGHT = 0;
 GCodeViewer.CURVED = 1;
+GCodeViewer.inchToMm = 25.4;
 GCodeViewer.mmToInch = 0.03937008;  //Convert a millimeter to an inch
 GCodeViewer.inchToVector = 1;  //Convert an inch to the value to put in vectors
 
