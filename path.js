@@ -39,6 +39,14 @@ GCodeViewer.TotalSize = (function() {
             return new THREE.Mesh(geo, material);
         }
 
+        function sizeObject(obj, axe) {
+            var v = obj.geometry.vertices;
+            if(v.length <= 1) {
+                return 0;
+            }
+            return Math.abs(v[v.length - 1][axe] - v[0][axe]);
+        }
+
         that.setMeshes = function(totalSize, inMm) {
             var material = new THREE.LineBasicMaterial( { color : 0xffffff });
             var geometry = new THREE.Geometry();
@@ -51,32 +59,38 @@ GCodeViewer.TotalSize = (function() {
                 'style' : 'normal','size' : 2,'curveSegments' : 300};
             var color = 0xffffff;
 
-            //TODO: center correctly
-
             geometry.vertices.push(new THREE.Vector3(totalSize.min.x, -2 , 0));
             geometry.vertices.push(new THREE.Vector3(totalSize.max.x, -2 , 0));
             that.lineWidth =  new THREE.Line(geometry, material);
             that.textWidth = createMeshText(width + " " + type, options, color);
-            that.textWidth.position.x = that.lineWidth.position.x + width / 2;
-            that.textWidth.position.y = that.lineWidth.position.y - 2;
-            that.textWidth.position.z = that.lineWidth.position.z;
+            that.textWidth.position.x = that.lineWidth.geometry.vertices[0].x +
+                width / 2;
+            that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y-3;
+            that.textWidth.position.z = that.lineWidth.geometry.vertices[0].z;
 
+            geometry = new THREE.Geometry();
             geometry.vertices.push(new THREE.Vector3(-2, totalSize.min.y, 0));
             geometry.vertices.push(new THREE.Vector3(-2, totalSize.max.y, 0));
             that.lineLength =  new THREE.Line(geometry, material);
             that.textLength = createMeshText(length + " " + type, options, color);
-            that.textLength.position.x = that.lineLength.position.x - 2;
-            that.textLength.position.y = that.lineLength.position.y  + length / 2;
-            that.textLength.position.z = that.lineLength.position.z;
+            that.textLength.rotateZ(-Math.PI/2);
+            that.textLength.position.x = that.lineLength.geometry.vertices[0].x-
+                3;
+            that.textLength.position.y = that.lineLength.geometry.vertices[0].y+
+                length / 2;
+            that.textLength.position.z = that.lineLength.geometry.vertices[0].z;
 
+            geometry = new THREE.Geometry();
             geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.min.z));
             geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.max.z));
             that.lineHeight =  new THREE.Line(geometry, material);
             that.textHeight = createMeshText(height + " " + type, options, color);
-            that.textHeight.position.x = that.lineHeight.position.x - 2;
-            that.textHeight.position.y = that.lineHeight.position.y;
-            that.textHeight.position.z = that.lineHeight.position.z  + height / 2;
             that.textHeight.rotateX(Math.PI / 2);
+            that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x-
+                sizeObject(that.textHeight, "x") - 2;
+            that.textHeight.position.y = that.lineHeight.geometry.vertices[0].y;
+            that.textHeight.position.z = that.lineHeight.geometry.vertices[0].z+
+                height / 2;
         };
 
         function initialize(scene) {
