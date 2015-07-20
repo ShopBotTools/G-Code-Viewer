@@ -392,6 +392,19 @@ GCodeViewer.Viewer = (function() {
 
             that.callbackError = callbackError;
             // that.setCameraControl();
+
+            that.inMm = false;
+            that.gui = new dat.GUI({ autoPlace : false });
+            // that.gui = new dat.GUI();
+            that.gui.add(that, "inMm").onFinishChange(function() {
+                changeDisplay(that.inMm);
+            });
+            that.renderer.domElement.parentNode.style.position = "relative";
+            that.renderer.domElement.parentNode.appendChild(that.gui.domElement);
+            that.renderer.domElement.style.position = "absolute";
+            that.renderer.domElement.style.zIndex = 1;
+            that.gui.domElement.style.position = "absolute";
+            that.gui.domElement.style.zIndex = 2;
         }
 
         initialize();
