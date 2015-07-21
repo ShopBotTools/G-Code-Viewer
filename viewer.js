@@ -35,16 +35,20 @@ GCodeViewer.Viewer = (function() {
             }
         }
 
-        function setCamera() {
-            that.camera.up = new THREE.Vector3(0, 0, 1);
-            that.controls = new THREE.OrbitControls(that.camera,
-                    that.renderer.domElement);
-            if(that.cameraSet === false) {
-                that.cameraSet = true;
-                that.controls.damping = 0.2;
-                that.controls.addEventListener('change', render);
-            }
-        }
+        // function cameraPosition(x, y, z) {
+        //     that.controls
+        // }
+
+        // function setCamera() {
+        //     that.camera.up = new THREE.Vector3(0, 0, 1);
+        //     that.controls = new THREE.OrbitControls(that.camera,
+        //             that.renderer.domElement);
+        //     if(that.cameraSet === false) {
+        //         that.cameraSet = true;
+        //         that.controls.damping = 0.2;
+        //         that.controls.addEventListener('change', render);
+        //     }
+        // }
 
         that.setPerspectiveCamera = function() {
             that.camera.toPerspective();
@@ -86,38 +90,47 @@ GCodeViewer.Viewer = (function() {
             that.controls.addEventListener('change', render);
         }
 
+        function lookAtPoint(point, cameraPosition) {
+            that.controls.reset();
+            that.camera.position.x = cameraPosition.x;
+            that.camera.position.y = cameraPosition.y;
+            that.camera.position.z = cameraPosition.z;
+            that.camera.lookAt(point);
+            that.refreshDisplay();
+        }
+
         //TODO: fit with the board size
         that.showX = function() {
-            that.camera.rotateX(-that.camera.rotation.x);
-            that.camera.rotateY(-that.camera.rotation.y);
-            that.camera.rotateZ(-that.camera.rotation.z);
-            that.camera.position.x = 5;
-            that.camera.position.y = 0;
-            that.camera.position.z = 0;
-            that.camera.lookAt(that.scene.position);
-            that.refreshDisplay();
+            lookAtPoint(that.scene.position, { x : 5, y : 0, z : 0 });
+            // that.camera.lookAt(that.scene.position);
+            // that.controls.reset();
+            // that.refreshDisplay();
         };
 
         that.showY = function() {
-            that.camera.rotateX(-that.camera.rotation.x);
-            that.camera.rotateY(-that.camera.rotation.y);
-            that.camera.rotateZ(-that.camera.rotation.z);
-            that.camera.position.x = 0;
-            that.camera.position.y = 5;
-            that.camera.position.z = 0;
-            that.camera.lookAt(that.scene.position);
-            that.refreshDisplay();
+            lookAtPoint(that.scene.position, { x : 0, y : 5, z : 0 });
+            // that.camera.rotateX(-that.camera.rotation.x);
+            // that.camera.rotateY(-that.camera.rotation.y);
+            // that.camera.rotateZ(-that.camera.rotation.z);
+            // that.camera.position.x = 0;
+            // that.camera.position.y = 5;
+            // that.camera.position.z = 0;
+            // that.camera.lookAt(that.scene.position);
+            // that.controls.reset();
+            // that.refreshDisplay();
         };
 
         that.showZ = function() {
-            that.camera.rotateX(-that.camera.rotation.x);
-            that.camera.rotateY(-that.camera.rotation.y);
-            that.camera.rotateZ(-that.camera.rotation.z);
-            that.camera.position.x = 0;
-            that.camera.position.y = 0;
-            that.camera.position.z = 5;
-            that.camera.lookAt(that.scene.position);
-            that.refreshDisplay();
+            lookAtPoint(that.scene.position, { x : 0, y : 0, z : 5 });
+            // that.controls.reset();
+            // that.camera.rotateX(-that.camera.rotation.x);
+            // that.camera.rotateY(-that.camera.rotation.y);
+            // that.camera.rotateZ(-that.camera.rotation.z);
+            // that.camera.position.x = 0;
+            // that.camera.position.y = 0;
+            // that.camera.position.z = 5;
+            // that.camera.lookAt(that.scene.position);
+            // that.refreshDisplay();
         };
 
         //Helpers management:
@@ -427,15 +440,21 @@ GCodeViewer.Viewer = (function() {
             that.callbackError = callbackError;
             // that.setCameraControl();
 
+            //Add the UI
             that.inMm = false;
             that.gui = new dat.GUI({ autoPlace : false });
-            // that.gui = new dat.GUI();
             that.gui.add(that, "inMm").onFinishChange(function() {
                 changeDisplay(that.inMm);
             });
-            that.gui.add(that, "showX");
-            that.gui.add(that, "showY");
-            that.gui.add(that, "showZ");
+            var folderPlanes = that.gui.addFolder("Planes");
+            folderPlanes.add(that, "showX");
+            folderPlanes.add(that, "showY");
+            folderPlanes.add(that, "showZ");
+            var folderCamera = that.gui.addFolder("Camera");
+            folderCamera.add(that, "setPerspectiveCamera");
+            folderCamera.add(that, "setOrthographicCamera");
+
+            //Set the display of the UI in the HTML page
             that.renderer.domElement.parentNode.style.position = "relative";
             that.renderer.domElement.parentNode.appendChild(that.gui.domElement);
             that.renderer.domElement.style.position = "absolute";
