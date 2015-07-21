@@ -64,7 +64,8 @@ GCodeViewer.Helpers = (function() {
             that.arrowX = new THREE.ArrowHelper(dir, origin, length, hex,
                     headLength, headWidth);
 
-            var material = new THREE.MeshBasicMaterial({ color: hex });
+            var material = new THREE.MeshBasicMaterial({ color: hex,
+                side: THREE.DoubleSide });
             var textShapes = THREE.FontUtils.generateShapes("X", options);
             var geo = new THREE.ShapeGeometry(textShapes);
             that.textX = new THREE.Mesh(geo, material);
@@ -79,7 +80,8 @@ GCodeViewer.Helpers = (function() {
             that.arrowY = new THREE.ArrowHelper(dir, origin, length, hex,
                     headLength, headWidth);
 
-            material = new THREE.MeshBasicMaterial({ color: hex });
+            material = new THREE.MeshBasicMaterial({ color: hex,
+                side: THREE.DoubleSide });
             textShapes = THREE.FontUtils.generateShapes("Y", options);
             geo = new THREE.ShapeGeometry(textShapes);
             that.textY = new THREE.Mesh(geo, material);
@@ -94,7 +96,8 @@ GCodeViewer.Helpers = (function() {
             that.arrowZ = new THREE.ArrowHelper(dir, origin, length, hex,
                     headLength, headWidth);
 
-            material = new THREE.MeshBasicMaterial({ color: hex });
+            material = new THREE.MeshBasicMaterial({ color: hex,
+                side: THREE.DoubleSide });
             textShapes = THREE.FontUtils.generateShapes("Z", options);
             geo = new THREE.ShapeGeometry(textShapes);
             that.textZ = new THREE.Mesh(geo, material);

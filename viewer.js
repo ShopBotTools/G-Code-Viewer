@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GParser, GCodeViewer */
+/*global THREE, GParser, GCodeViewer, dat */
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -47,44 +47,77 @@ GCodeViewer.Viewer = (function() {
         }
 
         that.setPerspectiveCamera = function() {
-            var width = that.renderer.domElement.width;
-            var height = that.renderer.domElement.height;
-            that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
-            setCamera();
+            that.camera.toPerspective();
+            that.refreshDisplay();
+            // var width = that.renderer.domElement.width;
+            // var height = that.renderer.domElement.height;
+            // that.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
+            // setCamera();
         };
 
         that.setOrthographicCamera = function() {
-            var width = that.renderer.domElement.width;
-            var height = that.renderer.domElement.height;
-            var viewSize = 50;
-            var aspectRatio = width / height;
-            that.camera = new THREE.OrthographicCamera(
-                -aspectRatio * viewSize / 2, aspectRatio * viewSize / 2,
-                viewSize / 2, - viewSize / 2, -100, 100
-            );
-            setCamera();
+            that.camera.toOrthographic();
+            that.refreshDisplay();
+            // var width = that.renderer.domElement.width;
+            // var height = that.renderer.domElement.height;
+            // var viewSize = 50;
+            // var aspectRatio = width / height;
+            // that.camera = new THREE.OrthographicCamera(
+            //     -aspectRatio * viewSize / 2, aspectRatio * viewSize / 2,
+            //     viewSize / 2, - viewSize / 2, -100, 100
+            // );
+            // setCamera();
         };
+
+        function setCombinedCamera() {
+            var width = that.renderer.domElement.width; //-- Camera frustum width.
+            var height = that.renderer.domElement.height; //-- Camera frustum height.
+            var fov = 75; //— Camera frustum vertical field of view in perspective view.
+            var near = 0.1; //— Camera frustum near plane in perspective view.
+            var far = 1000; //— Camera frustum far plane in perspective view.
+            var orthoNear = -100; //— Camera frustum near plane in orthographic view.
+            var orthoFar = 100; //— Camera frustum far plane in orthographic view. 
+            that.camera = new THREE.CombinedCamera(width, height, fov, near,
+                    far, orthoNear, orthoFar);
+
+            that.controls = new THREE.OrbitControls(that.camera,
+                    that.renderer.domElement);
+            that.controls.damping = 0.2;
+            that.controls.addEventListener('change', render);
+        }
 
         //TODO: fit with the board size
         that.showX = function() {
+            that.camera.rotateX(-that.camera.rotation.x);
+            that.camera.rotateY(-that.camera.rotation.y);
+            that.camera.rotateZ(-that.camera.rotation.z);
             that.camera.position.x = 5;
             that.camera.position.y = 0;
             that.camera.position.z = 0;
             that.camera.lookAt(that.scene.position);
+            that.refreshDisplay();
         };
 
         that.showY = function() {
+            that.camera.rotateX(-that.camera.rotation.x);
+            that.camera.rotateY(-that.camera.rotation.y);
+            that.camera.rotateZ(-that.camera.rotation.z);
             that.camera.position.x = 0;
             that.camera.position.y = 5;
             that.camera.position.z = 0;
             that.camera.lookAt(that.scene.position);
+            that.refreshDisplay();
         };
 
         that.showZ = function() {
+            that.camera.rotateX(-that.camera.rotation.x);
+            that.camera.rotateY(-that.camera.rotation.y);
+            that.camera.rotateZ(-that.camera.rotation.z);
             that.camera.position.x = 0;
             that.camera.position.y = 0;
             that.camera.position.z = 5;
             that.camera.lookAt(that.scene.position);
+            that.refreshDisplay();
         };
 
         //Helpers management:
@@ -377,7 +410,8 @@ GCodeViewer.Viewer = (function() {
 
             that.scene = new THREE.Scene();
             // that.setPerspectiveCamera();
-            that.setOrthographicCamera();
+            // that.setOrthographicCamera();
+            setCombinedCamera();
             that.showZ();
 
             var light = new THREE.PointLight( 0xffffff, 0.8 );
@@ -399,6 +433,9 @@ GCodeViewer.Viewer = (function() {
             that.gui.add(that, "inMm").onFinishChange(function() {
                 changeDisplay(that.inMm);
             });
+            that.gui.add(that, "showX");
+            that.gui.add(that, "showY");
+            that.gui.add(that, "showZ");
             that.renderer.domElement.parentNode.style.position = "relative";
             that.renderer.domElement.parentNode.appendChild(that.gui.domElement);
             that.renderer.domElement.style.position = "absolute";

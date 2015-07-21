@@ -29,7 +29,7 @@ GCodeViewer.StraightLine = (function() {
                         that.end.y,
                         that.end.z)
             );
-            geometry.faces.push(new THREE.Face3(0, 1, 0));  //TODO: delete?
+            // geometry.faces.push(new THREE.Face3(0, 1, 0));  //TODO: delete?
 
             return geometry;
         };
