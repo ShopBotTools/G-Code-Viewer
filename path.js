@@ -191,6 +191,9 @@ GCodeViewer.Path = (function () {
         // that.getTotalSize = function(cncConfiguration) {
         that.getTotalSize = function() {
             resetTotalSize();
+            if(that.meshG0Undone.geometry === undefined) {
+                return that.totalSize;
+            }
             if(that.meshG0Undone.geometry.vertices.length > 0) {
                 that.meshG0Undone.geometry.computeBoundingBox();
                 checkTotalSize(that.meshG0Undone.geometry.boundingBox);

@@ -90,47 +90,145 @@ GCodeViewer.Viewer = (function() {
             that.controls.addEventListener('change', render);
         }
 
-        function lookAtPoint(point, cameraPosition) {
+        //Return the distance needed to fetch the view according to the axe
+        //exemple: fetch the XY plane, "x" and "y" as parameter, return 0 if no
+        // path
+        //Return distance if perspective, else the zoom
+        function distanceToFetch(axe1, axe2) {
+            if(that.path === undefined) {
+                return 5;
+            }
+            var size = that.path.getTotalSize();
+            var distance = 0, width = 0, height = 0, length = 0;
+            width = Math.abs(size.max[axe1] - size.min[axe1]);
+            height = Math.abs(size.max[axe2] - size.min[axe2]);
+            if(width === 0 && height === 0) {
+                return 5;
+            }
+            length = (width < height) ? height : width;
+
+            if(that.camera.inPerspectiveMode === true) {
+                if(that.camera.fov === 0 || that.camera.fov === 180) {
+                    return distance;
+                }
+                distance = (length / 2)/Math.tan(that.camera.fov * Math.PI /180);
+            } else {
+                var cW = Math.abs(that.camera.right - that.camera.left);
+                var cH = Math.abs(that.camera.top - that.camera.bottom);
+                if(cW < width || cH < height) {
+                    distance = (width < height) ? cH / height : cW / width;
+                } else {
+                    distance = (width < height) ? height / cH : width / cW;
+                }
+            }
+            console.log(distance);
+
+            return distance;
+        }
+
+        //Return the center of the board
+        function centerPath() {
+            var center = { x : 0, y : 0, z : 0 };
+            if(that.path === undefined || that.path.getTotalSize() === undefined) {
+                return center;
+            }
+            var size = that.path.getTotalSize();
+            center.x = size.min.x + Math.abs(size.max.x - size.min.x) / 2 ;
+            center.y = size.min.y + Math.abs(size.max.y - size.min.y) / 2 ;
+            center.z = size.min.z + Math.abs(size.max.z - size.min.z) / 2 ;
+            return center;
+        }
+
+        function lookAtPoint(point, cameraPosition, rotation) {
+            console.log("-------------------");
+            console.log("point");
+            console.log(point);
+            console.log("cameraPosition");
+            console.log(cameraPosition);
+            console.log("-------------------");
             that.controls.reset();
             that.camera.position.x = cameraPosition.x;
             that.camera.position.y = cameraPosition.y;
             that.camera.position.z = cameraPosition.z;
-            that.camera.lookAt(point);
+            if(that.camera.inOrthographicMode === true) {
+                console.log(that.camera.zoom);
+                that.controls.dollyIn(that.camera.zoom);
+            }
+            if(rotation !== undefined) {
+                that.camera.rotateX(rotation.x);
+                that.camera.rotateY(rotation.y);
+                that.camera.rotateZ(rotation.z);
+            }
+            // that.camera.lookAt(point);
+            that.controls.target.x = point.x;
+            that.controls.target.y = point.y;
+            that.controls.target.z = point.z;
             that.refreshDisplay();
+        }
+
+        function showPlane(axeReal, axeImaginary, crossAxe) {
+            var center = centerPath();
+            console.log("center: ");
+            console.log(center);
+            var cameraPosition = { x : center.x, y : center.y, z : center.z };
+            if(that.camera.inPerspectiveMode === true) {
+                cameraPosition[crossAxe]=distanceToFetch(axeReal, axeImaginary);
+            } else {
+                that.camera.zoom = distanceToFetch("y", "z");
+            }
+            if(crossAxe === "y") {
+                cameraPosition.y *= -1;
+            }
+            lookAtPoint(center, cameraPosition);
         }
 
         //TODO: fit with the board size
         that.showX = function() {
-            lookAtPoint(that.scene.position, { x : 5, y : 0, z : 0 });
-            // that.camera.lookAt(that.scene.position);
-            // that.controls.reset();
-            // that.refreshDisplay();
+            showPlane("y", "z", "x");
+            // var center = centerPath();
+            // var distance = 0;
+            // if(that.camera.inPerspectiveMode === true) {
+            //     distance = distanceToFetch("y", "z");
+            // } else {
+            //     that.camera.zoom = distanceToFetch("y", "z");
+            // }
+            // lookAtPoint(center, { x : distance, y : 0, z : 0 },
+            //         { x : Math.PI/2, y : 0, z : 0 });
+
+            // lookAtPoint(that.scene.position, { x : 5, y : 0, z : 0 },
+            //         { x : Math.PI/2, y : 0, z : 0 });
         };
 
         that.showY = function() {
-            lookAtPoint(that.scene.position, { x : 0, y : 5, z : 0 });
-            // that.camera.rotateX(-that.camera.rotation.x);
-            // that.camera.rotateY(-that.camera.rotation.y);
-            // that.camera.rotateZ(-that.camera.rotation.z);
-            // that.camera.position.x = 0;
-            // that.camera.position.y = 5;
-            // that.camera.position.z = 0;
-            // that.camera.lookAt(that.scene.position);
-            // that.controls.reset();
-            // that.refreshDisplay();
+            showPlane("x", "z", "y");
+            // var center = centerPath();
+            // var distance = 0;
+            // if(that.camera.inPerspectiveMode === true) {
+            //     distance = distanceToFetch("x", "z");
+            // } else {
+            //     that.camera.zoom = distanceToFetch("x", "z");
+            // }
+            // lookAtPoint(center, { x : 0, y : -distance, z : 0 },
+            //         { x : 0, y : Math.PI, z : 0 });
+
+            // lookAtPoint(that.scene.position, { x : 0, y : -5, z : 0 },
+            //         { x : 0, y : Math.PI, z : 0 });
         };
 
         that.showZ = function() {
-            lookAtPoint(that.scene.position, { x : 0, y : 0, z : 5 });
-            // that.controls.reset();
-            // that.camera.rotateX(-that.camera.rotation.x);
-            // that.camera.rotateY(-that.camera.rotation.y);
-            // that.camera.rotateZ(-that.camera.rotation.z);
-            // that.camera.position.x = 0;
-            // that.camera.position.y = 0;
-            // that.camera.position.z = 5;
-            // that.camera.lookAt(that.scene.position);
-            // that.refreshDisplay();
+            showPlane("x", "y", "z");
+            // var center = centerPath();
+            // var distance = 0;
+            // if(that.camera.inPerspectiveMode === true) {
+            //     distance = distanceToFetch("x", "y");
+            // } else {
+            //     that.camera.zoom = distanceToFetch("x", "y");
+            // }
+            // lookAtPoint(center, { x : 0, y : 0, z : distance },
+            //         { x : 0, y : 0, z : 0 });
+
+            // lookAtPoint(that.scene.position, { x : 0, y : 0, z : 5 },
+            //         { x : 0, y : 0, z : 0 });
         };
 
         //Helpers management:
