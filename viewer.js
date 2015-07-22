@@ -74,13 +74,13 @@ GCodeViewer.Viewer = (function() {
         };
 
         function setCombinedCamera() {
-            var width = that.renderer.domElement.width; //-- Camera frustum width.
-            var height = that.renderer.domElement.height; //-- Camera frustum height.
+            var width = that.renderer.domElement.width/2; //-- Camera frustum width.
+            var height = that.renderer.domElement.height/2; //-- Camera frustum height.
             var fov = 75; //— Camera frustum vertical field of view in perspective view.
             var near = 0.1; //— Camera frustum near plane in perspective view.
             var far = 1000; //— Camera frustum far plane in perspective view.
             var orthoNear = -100; //— Camera frustum near plane in orthographic view.
-            var orthoFar = 100; //— Camera frustum far plane in orthographic view. 
+            var orthoFar = 100; //— Camera frustum far plane in orthographic view.
             that.camera = new THREE.CombinedCamera(width, height, fov, near,
                     far, orthoNear, orthoFar);
 
@@ -115,9 +115,12 @@ GCodeViewer.Viewer = (function() {
             } else {
                 var cW = Math.abs(that.camera.right - that.camera.left);
                 var cH = Math.abs(that.camera.top - that.camera.bottom);
-                if(cW < width || cH < height) {
+                console.log("width: " + width + " | height: " + height);
+                console.log("cW: " + cW + " | cH: " + cH);
+                //TODO: think about that
+                if(cW < width || cH < height) {  //if must unzoom
                     distance = (width < height) ? cH / height : cW / width;
-                } else {
+                } else {  //if must zoom
                     distance = (width < height) ? height / cH : width / cW;
                 }
             }
@@ -140,18 +143,11 @@ GCodeViewer.Viewer = (function() {
         }
 
         function lookAtPoint(point, cameraPosition, rotation) {
-            console.log("-------------------");
-            console.log("point");
-            console.log(point);
-            console.log("cameraPosition");
-            console.log(cameraPosition);
-            console.log("-------------------");
             that.controls.reset();
             that.camera.position.x = cameraPosition.x;
             that.camera.position.y = cameraPosition.y;
             that.camera.position.z = cameraPosition.z;
             if(that.camera.inOrthographicMode === true) {
-                console.log(that.camera.zoom);
                 that.controls.dollyIn(that.camera.zoom);
             }
             if(rotation !== undefined) {
@@ -168,13 +164,11 @@ GCodeViewer.Viewer = (function() {
 
         function showPlane(axeReal, axeImaginary, crossAxe) {
             var center = centerPath();
-            console.log("center: ");
-            console.log(center);
             var cameraPosition = { x : center.x, y : center.y, z : center.z };
             if(that.camera.inPerspectiveMode === true) {
                 cameraPosition[crossAxe]=distanceToFetch(axeReal, axeImaginary);
             } else {
-                that.camera.zoom = distanceToFetch("y", "z");
+                that.camera.zoom = distanceToFetch(axeReal, axeImaginary);
             }
             if(crossAxe === "y") {
                 cameraPosition.y *= -1;
@@ -559,6 +553,8 @@ GCodeViewer.Viewer = (function() {
             that.renderer.domElement.style.zIndex = 1;
             that.gui.domElement.style.position = "absolute";
             that.gui.domElement.style.zIndex = 2;
+            that.gui.domElement.style.top = 0;
+            that.gui.domElement.style.left = 0;
         }
 
         initialize();

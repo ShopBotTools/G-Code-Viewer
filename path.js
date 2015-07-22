@@ -33,7 +33,8 @@ GCodeViewer.TotalSize = (function() {
         };
 
         function createMeshText(message, options, color) {
-            var material = new THREE.MeshBasicMaterial({ color: color });
+            var material = new THREE.MeshBasicMaterial({ color: color,
+                side: THREE.DoubleSide });
             var textShapes = THREE.FontUtils.generateShapes(message, options);
             var geo = new THREE.ShapeGeometry(textShapes);
             return new THREE.Mesh(geo, material);
@@ -48,7 +49,7 @@ GCodeViewer.TotalSize = (function() {
         }
 
         that.setMeshes = function(totalSize, displayInMm) {
-            var material = new THREE.LineBasicMaterial( { color : 0xffffff });
+            var material = new THREE.LineBasicMaterial({ color : 0xffffff });
             var geometry = new THREE.Geometry();
             var type = (displayInMm === false) ? "in" : "mm";
             var d = (displayInMm === false) ? 1 : GCodeViewer.inchToMm;
