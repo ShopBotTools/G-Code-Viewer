@@ -427,6 +427,8 @@ GCodeViewer.Viewer = (function() {
             that.callbackError = callbackError;
             // that.setCameraControl();
 
+            that.inchToVector = 1; //Convert an inch to the value to put in vectors
+
             //Add the UI
             that.inMm = false;
             that.gui = new dat.GUI({ autoPlace : false });
@@ -448,8 +450,17 @@ GCodeViewer.Viewer = (function() {
             that.renderer.domElement.style.zIndex = 1;
             that.gui.domElement.style.position = "absolute";
             that.gui.domElement.style.zIndex = 2;
-            that.gui.domElement.style.top = 0;
-            that.gui.domElement.style.left = 0;
+            that.gui.domElement.style.top = "0px";
+            that.gui.domElement.style.left = "0px";
+
+            var span = document.createElement("span");
+            span.innerHTML = "Test dynamic";
+            span.style.color = "green";
+            span.style.position = "absolute";
+            span.style.zIndex = 10;
+            span.style.top = "0px";
+            span.style.left = "0px";
+            that.renderer.domElement.parentNode.appendChild(span);
         }
 
         initialize();
