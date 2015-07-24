@@ -24,6 +24,7 @@ GCodeViewer.TotalSize = (function() {
         };
 
         that.add = function() {
+            console.log(that.textWidth);
             that.scene.add(that.textWidth);
             that.scene.add(that.lineWidth);
             that.scene.add(that.textLength);
@@ -114,11 +115,11 @@ GCodeViewer.Path = (function () {
     "use strict";
     function Path(scene) {
         var that = this;
-        var totalSizeDisplayed = false;
+        // var totalSizeDisplayed = false;
 
-        that.totalSizeIsDisplayed = function() {
-            return totalSizeDisplayed;
-        };
+        // that.totalSizeIsDisplayed = function() {
+        //     return totalSizeDisplayed;
+        // };
 
         function resetPathsGeo() {
             that.geoG0Undone = new THREE.Geometry();
@@ -138,25 +139,25 @@ GCodeViewer.Path = (function () {
             that.meshG2G3Done = {};
         }
 
-        function resetTotalSize() {
-            that.totalSize = { min : {x:0, y:0, z:0}, max : { x:0, y:0, z:0} };
-        }
+        // function resetTotalSize() {
+        //     that.totalSize = { min : {x:0, y:0, z:0}, max : { x:0, y:0, z:0} };
+        // }
 
-        function checkTotalSize(boundingBox) {
-            var keys = ["x", "y", "z"];
-            var i = 0;
-            if(boundingBox === null) {
-                return;
-            }
-            for(i = keys.length - 1; i >= 0; i--) {
-                if(that.totalSize.min[keys[i]] > boundingBox.min[keys[i]]) {
-                    that.totalSize.min[keys[i]] = boundingBox.min[keys[i]];
-                }
-                if(that.totalSize.max[keys[i]] < boundingBox.max[keys[i]]) {
-                    that.totalSize.max[keys[i]] = boundingBox.max[keys[i]];
-                }
-            }
-        }
+        // function checkTotalSize(boundingBox) {
+        //     var keys = ["x", "y", "z"];
+        //     var i = 0;
+        //     if(boundingBox === null) {
+        //         return;
+        //     }
+        //     for(i = keys.length - 1; i >= 0; i--) {
+        //         if(that.totalSize.min[keys[i]] > boundingBox.min[keys[i]]) {
+        //             that.totalSize.min[keys[i]] = boundingBox.min[keys[i]];
+        //         }
+        //         if(that.totalSize.max[keys[i]] < boundingBox.max[keys[i]]) {
+        //             that.totalSize.max[keys[i]] = boundingBox.max[keys[i]];
+        //         }
+        //     }
+        // }
 
         that.removeTotalSize = function() {
             that.objTotalSize.remove();
@@ -175,73 +176,116 @@ GCodeViewer.Path = (function () {
             that.scene.remove(that.meshG2G3Done);
         };
 
-        that.add = function(withTotalSize, displayInMm) {
+        // that.add = function(withTotalSize, displayInMm) {
+        that.add = function() {
             that.scene.add(that.meshG0Undone);
             that.scene.add(that.meshG1Undone);
             that.scene.add(that.meshG2G3Undone);
             that.scene.add(that.meshG0Done);
             that.scene.add(that.meshG1Done);
             that.scene.add(that.meshG2G3Done);
-            if(withTotalSize === true) {
-                that.setTotalSize(displayInMm);
-                that.addTotalSize();
-            }
-            totalSizeDisplayed = withTotalSize;
+            // if(withTotalSize === true) {
+            //     that.setTotalSize(displayInMm);
+            //     that.addTotalSize();
+            // }
+            // totalSizeDisplayed = withTotalSize;
         };
 
         // that.getTotalSize = function(cncConfiguration) {
-        that.getTotalSize = function() {
-            resetTotalSize();
-            if(that.meshG0Undone.geometry === undefined) {
-                return that.totalSize;
-            }
-            if(that.meshG0Undone.geometry.vertices.length > 0) {
-                that.meshG0Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG0Undone.geometry.boundingBox);
-            }
-            if(that.meshG1Undone.geometry.vertices.length > 0) {
-                that.meshG1Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG1Undone.geometry.boundingBox);
-            }
-            if(that.meshG2G3Undone.geometry.vertices.length > 0) {
-                that.meshG2G3Undone.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG2G3Undone.geometry.boundingBox);
-            }
-            if(that.meshG0Done.geometry.vertices.length > 0) {
-                that.meshG0Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG0Done.geometry.boundingBox);
-            }
-            if(that.meshG1Done.geometry.vertices.length > 0) {
-                that.meshG1Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG1Done.geometry.boundingBox);
-            }
-            if(that.meshG2G3Done.geometry.vertices.length > 0) {
-                that.meshG2G3Done.geometry.computeBoundingBox();
-                checkTotalSize(that.meshG2G3Done.geometry.boundingBox);
-            }
-
-            return that.totalSize;
-        };
+        // that.getTotalSize = function() {
+        //     resetTotalSize();
+        //     if(that.meshG0Undone.geometry === undefined) {
+        //         return that.totalSize;
+        //     }
+        //     if(that.meshG0Undone.geometry.vertices.length > 0) {
+        //         that.meshG0Undone.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG0Undone.geometry.boundingBox);
+        //     }
+        //     if(that.meshG1Undone.geometry.vertices.length > 0) {
+        //         that.meshG1Undone.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG1Undone.geometry.boundingBox);
+        //     }
+        //     if(that.meshG2G3Undone.geometry.vertices.length > 0) {
+        //         that.meshG2G3Undone.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG2G3Undone.geometry.boundingBox);
+        //     }
+        //     if(that.meshG0Done.geometry.vertices.length > 0) {
+        //         that.meshG0Done.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG0Done.geometry.boundingBox);
+        //     }
+        //     if(that.meshG1Done.geometry.vertices.length > 0) {
+        //         that.meshG1Done.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG1Done.geometry.boundingBox);
+        //     }
+        //     if(that.meshG2G3Done.geometry.vertices.length > 0) {
+        //         that.meshG2G3Done.geometry.computeBoundingBox();
+        //         checkTotalSize(that.meshG2G3Done.geometry.boundingBox);
+        //     }
+        //
+        //     return that.totalSize;
+        // };
 
         // that.getGeometry = function(lines) {
+        function getGeometryStraight(line) {
+            var geometry = new THREE.Geometry();
+            geometry.vertices.push(new THREE.Vector3(
+                        line.start.x,
+                        line.start.y,
+                        line.start.z)
+            );
+            geometry.vertices.push(new THREE.Vector3(
+                        line.end.x,
+                        line.end.y,
+                        line.end.z)
+            );
+            // geometry.faces.push(new THREE.Face3(0, 1, 0));  //TODO: delete?
+
+            return geometry;
+        }
+
+        function getGeometryCurve(line) {
+            var i = 0, j = 0;
+            var bez = line.beziers;
+            var p0 = {}, p1 = {}, p2 = {}, p3 = {}, c = {};
+            var v = [];
+            var geometry = new THREE.Geometry();
+
+            for(i=0; i < bez.length; i++) {
+                p0 = new THREE.Vector3(bez[i].p0.x, bez[i].p0.y, bez[i].p0.z);
+                p1 = new THREE.Vector3(bez[i].p1.x, bez[i].p1.y, bez[i].p1.z);
+                p2 = new THREE.Vector3(bez[i].p2.x, bez[i].p2.y, bez[i].p2.z);
+                p3 = new THREE.Vector3(bez[i].p3.x, bez[i].p3.y, bez[i].p3.z);
+                c = new THREE.CubicBezierCurve3(p0, p1, p2, p3);
+                v = c.getPoints(32);
+
+                for(j=0; j < v.length; j++) {
+                    geometry.vertices.push(v[j]);
+                }
+            }
+            return geometry;
+        }
+
         function setGeometries(lines) {
             var i = 0, j = 0;
             var geometry = new THREE.Geometry();
+            console.log(lines);
 
             if(lines.length === 0) {
                 return;
             }
 
             for(i=0; i < lines.length; i++) {
-                if(lines[i].type === GCodeViewer.STRAIGHT) {
-                    geometry = lines[i].getGeometry();
-                    if(lines[i].word === "G0") {
-                        that.geoG0Undone.merge(geometry);
-                    } else {
-                        that.geoG1Undone.merge(geometry);
-                    }
-                } else if(lines[i].type === GCodeViewer.CURVED) {
-                    geometry = lines[i].getGeometry();
+                // if(lines[i].type === GCodeViewer.STRAIGHT) {
+                // geometry = lines[i].getGeometry();
+                if(lines[i].type === "G0") {
+                    geometry = getGeometryStraight(lines[i]);
+                    that.geoG0Undone.merge(geometry);
+                } else if(lines[i].type === "G0") {
+                    geometry = getGeometryStraight(lines[i]);
+                    that.geoG1Undone.merge(geometry);
+                } else if(lines[i].type === "G2" || lines[i].type === "G3") {
+                    // geometry = lines[i].getGeometry();
+                    geometry = getGeometryCurve(lines[i]);
                     that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
                     for(j=1; j < geometry.vertices.length-1; j++) {
                         that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
@@ -249,10 +293,9 @@ GCodeViewer.Path = (function () {
                     }
                     if(geometry.vertices.length > 1) {
                         that.geoG2G3Undone.vertices.push(
-                            geometry.vertices[geometry.vertices.length - 1]
-                        );
+                                geometry.vertices[geometry.vertices.length - 1]
+                                );
                     }
-
                 }
             }
         }
@@ -276,17 +319,17 @@ GCodeViewer.Path = (function () {
                     that.matG2G3Done, THREE.LinePieces);
         };
 
-        that.setTotalSize = function(displayInMm) {
-            that.objTotalSize.remove();
-            if(displayInMm === undefined) {
-                displayInMm = false;
-            }
-            that.objTotalSize.setMeshes(that.getTotalSize(), displayInMm);
-        };
+        // that.setTotalSize = function(displayInMm) {
+        //     that.objTotalSize.remove();
+        //     if(displayInMm === undefined) {
+        //         displayInMm = false;
+        //     }
+        //     that.objTotalSize.setMeshes(that.getTotalSize(), displayInMm);
+        // };
 
-        that.hideTotalSize = function() {
-            that.objTotalSize.remove();
-        };
+        // that.hideTotalSize = function() {
+        //     that.objTotalSize.remove();
+        // };
 
         function initialize(scene) {
             that.scene = scene;
@@ -302,8 +345,8 @@ GCodeViewer.Path = (function () {
                     { color : 0x8877dd, dashSize : 2 });
             that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
             that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xee6699 });
-            resetTotalSize();
-            that.objTotalSize = new GCodeViewer.TotalSize(that.scene);
+            // resetTotalSize();
+            // that.objTotalSize = new GCodeViewer.TotalSize(that.scene);
         }
 
         initialize(scene);

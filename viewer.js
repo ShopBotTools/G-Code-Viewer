@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GParser, GCodeViewer, dat */
+/*global THREE, GParser, GCodeViewer, GCodeToGeometry, dat */
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -285,128 +285,16 @@ GCodeViewer.Viewer = (function() {
             that.scene.remove(that.boardBox);
         };
 
-        //Returns a string if no command
-        function removeCommentsAndSpaces(command) {
-            var s = command.split('(')[0].split(';')[0]; //No need to use regex
-            return s.split(' ').join('').split('\t').join('');
-        }
-
-        //Parsing the result of GParser.parse
-        function parseParsedGCode(parsed) {
-            var obj = {};
-            var i = 0;
-            var w1 = "", w2 = "";
-            var tab = [];
-            var emptyObj = true;
-
-            for(i=0; i < parsed.words.length; i++) {
-                w1 = parsed.words[i][0];
-                w2 = parsed.words[i][1];
-                if(w1 === "G" || w1 === "M") {
-                    if(emptyObj === false) {
-                        tab.push(obj);
-                        obj = {};
-                    }
-                    obj.type = w1 + w2;
-                    emptyObj = false;
-                } else  {
-                    obj[w1.toLowerCase()] = parseFloat(w2, 10);
-                }
-            }
-            tab.push(obj);
-            return tab;
-        }
-
-        function setLines() {
-            var i = 0, j = 0, commandNumber = 0;
-            var line = {}, res = {};  //RESult
-            var start = { x: 0, y : 0, z : 0 };
-            var tabRes = [];
-            var crossAxe = "z";
-            var relative = false, inMm = false;
-
-            that.lines= [];
-
-            if(that.cncConfiguration.initialPosition !== undefined) {
-                start = {
-                    x : that.cncConfiguration.initialPosition.x,
-                    y : that.cncConfiguration.initialPosition.y,
-                    z : that.cncConfiguration.initialPosition.z
-                };
-            }
-
-            for(i=0; i < that.gcode.length; i++) {
-                //Sorry for not being really readable :'(
-                tabRes = parseParsedGCode(
-                    GParser.parse(
-                        removeCommentsAndSpaces(that.gcode[i]).toUpperCase()
-                    )
-                );
-
-                for(j = 0; j < tabRes.length; j++) {
-                    res = tabRes[j];
-                    if(res.type === "G0" || res.type === "G1") {
-                        line = new GCodeViewer.StraightLine(commandNumber,
-                                start, res, relative, inMm);
-                        that.lines.push(line);
-                        start = GCodeViewer.copyObject(line.end);
-                    } else if(res.type === "G2" || res.type === "G3") {
-                        line = new GCodeViewer.CurvedLine(commandNumber, start,
-                                res, relative, inMm, crossAxe);
-                        if(line.center === false) {
-                            displayError("Radius too short "+
-                                    "for command " + that.gcode[i] + " (line " +
-                                    i +")"
-                                    );
-                            break;
-                        }
-                        that.lines.push(line);
-                        start = GCodeViewer.copyObject(line.end);
-                    } else if(res.type === "G4") {
-                        console.log("Set pause so continue");
-                        // continue;  //Add the pause time somewhere?
-                    } else if(res.type === "G17") {
-                        crossAxe = "z";
-                    } else if(res.type === "G18") {
-                        crossAxe = "y";
-                    } else if(res.type === "G19") {
-                        crossAxe = "z";
-                    } else if(res.type === "G20") {
-                        //No need to convert start: always in inches
-                        inMm = false;
-                        console.log("set inches");
-                    } else if(res.type === "G21") {
-                        //No need to convert start: always in inches
-                        inMm = true;
-                        console.log("set mm");
-                    } else if(res.type === "G90") {
-                        relative = false;
-                        console.log("set absolute");
-                    } else if(res.type === "G91") {
-                        relative = true;
-                        console.log("set relative");
-                    } else if(res.type === "M4") {
-                        console.log("set spin on");
-                    } else if(res.type === "M8") {
-                        console.log("set spin off");
-                    } else if(res.type === "M30") {
-                        break;
-                    }
-
-                    commandNumber++;
-                }
-            }
-        }
-
         that.setGCode = function(string) {
-            if(string === "") {
-                displayError("There is no GCode");
+            that.gcode = GCodeToGeometry.parse(string);
+            if(that.gcode.isComplete === false) {
+                displayError(that.gcode.errorMessage);
                 return;
             }
-            that.gcode = string.split('\n');
-            setLines();
+
             that.path.remove();  //Removing old stuff
-            that.path.setMeshes(that.lines);
+            that.path.setMeshes(that.gcode.lines);
+            // that.totalSize.setSize(that.gcode.totalSize);
             that.refreshDisplay();  //To avoid confusion, we remove everything
         };
 
@@ -418,15 +306,21 @@ GCodeViewer.Viewer = (function() {
         //Have to set the gcode before
         that.viewPaths = function() {
             that.path.remove();  //Don't know how to check if already in scene
-            that.path.add(true);
+            that.path.add();
+            that.totalSize.setMeshes(that.gcode.size, that.inMm);
+            that.totalSize.add();
             that.refreshDisplay();
         };
 
         function changeDisplay(inMm) {
-            if(that.path.totalSizeIsDisplayed()) {
-                that.path.setTotalSize(inMm);
-                that.path.addTotalSize();
-            }
+            that.totalSize.setMeshes(that.gcode.size, inMm);
+            console.log('that.totalSize');
+            console.log(that.totalSize);
+            that.totalSize.add();
+            // if(that.path.totalSizeIsDisplayed()) {
+            //     that.path.setTotalSize(inMm);
+            //     that.path.addTotalSize();
+            // }
             that.refreshDisplay();
         }
 
@@ -528,6 +422,7 @@ GCodeViewer.Viewer = (function() {
             that.refreshDisplay();
 
             that.path = new GCodeViewer.Path(that.scene);
+            that.totalSize = new GCodeViewer.TotalSize(that.scene);
 
             that.callbackError = callbackError;
             // that.setCameraControl();
