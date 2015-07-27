@@ -50,6 +50,9 @@ GCodeViewer.TotalSize = function(scene) {
     }
 
     that.setMeshes = function(totalSize, displayInMm) {
+        if(totalSize === undefined) {
+            return;
+        }
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
         var geometry = new THREE.Geometry();
         var type = (displayInMm === false) ? "in" : "mm";

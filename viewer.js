@@ -66,10 +66,10 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     // path
     //Return distance if perspective, else the zoom
     function distanceToFetch(axe1, axe2) {
-        if(that.path === undefined) {
+        if(that.gcode.size === undefined) {
             return 5;
         }
-        var size = that.path.getTotalSize();
+        var size = that.gcode.size;
         var distance = 0, width = 0, height = 0, length = 0;
         width = Math.abs(size.max[axe1] - size.min[axe1]);
         height = Math.abs(size.max[axe2] - size.min[axe2]);
@@ -103,10 +103,10 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     //Return the center of the board
     function centerPath() {
         var center = { x : 0, y : 0, z : 0 };
-        if(that.path === undefined || that.path.getTotalSize() === undefined) {
+        if(that.gcode.size === undefined) {
             return center;
         }
-        var size = that.path.getTotalSize();
+        var size = that.gcode.size;
         center.x = size.min.x + Math.abs(size.max.x - size.min.x) / 2 ;
         center.y = size.min.y + Math.abs(size.max.y - size.min.y) / 2 ;
         center.z = size.min.z + Math.abs(size.max.z - size.min.z) / 2 ;
@@ -283,10 +283,10 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     };
 
     function changeDisplay(inMm) {
-        that.totalSize.setMeshes(that.gcode.size, inMm);
-        console.log('that.totalSize');
-        console.log(that.totalSize);
-        that.totalSize.add();
+        if(that.gcode.size !== undefined) {
+            that.totalSize.setMeshes(that.gcode.size, inMm);
+            that.totalSize.add();
+        }
         that.refreshDisplay();
     }
 
@@ -299,15 +299,15 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     };
 
     //TODO: delete that
-    that.printLines = function() {
+    that.printLines = function(lines) {
         var i = 0;
         var l = {};
-        for(i = 0; i < that.lines.length; i++) {
-            l = that.lines[i];
+        for(i = 0; i < lines.length; i++) {
+            l = lines[i];
             console.log("("+l.start.x+"; "+l.start.y+"; "+l.start.z+") => ("+l.end.x+"; "+l.end.y+"; "+l.end.z+")");
-
         }
     };
+
     that.createCircle = function(radius, segments) {
         var material = new THREE.LineBasicMaterial({ color: 0xffffff });
         var circleGeometry = new THREE.CircleGeometry(radius, segments);
@@ -325,15 +325,15 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     that.camera = {};
     that.scene = {};
     that.controls = {};
-    that.lines = [];  //Represents the paths of the bit (lines are straight or curve).
     that.cncConfiguration= {};
-    that.gcode = [];
-
-    that.cameraSet = false;
+    that.gcode = {};
 
     var width = window.innerWidth, height = window.innerHeight;
 
-    that.cncConfiguration = configuration;
+    that.inMm = false;
+    that.inchToVector = 1; //Convert an inch to the value to put in vectors
+    that.callbackError = callbackError;
+    that.cncConfiguration = (configuration === undefined) ? {} : configuration;
 
     if(domElement === undefined || domElement === null) {
         that.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -358,20 +358,13 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     light.position.set(0, 1, 1);
     that.scene.add( light );
 
+    that.path = new GCodeViewer.Path(that.scene);
+    that.totalSize = new GCodeViewer.TotalSize(that.scene);
     that.helpers = new GCodeViewer.Helpers(that.scene);
     that.showBoard();
     that.refreshDisplay();
 
-    that.path = new GCodeViewer.Path(that.scene);
-    that.totalSize = new GCodeViewer.TotalSize(that.scene);
-
-    that.callbackError = callbackError;
-    // that.setCameraControl();
-
-    that.inchToVector = 1; //Convert an inch to the value to put in vectors
-
     //Add the UI
-    that.inMm = false;
     that.gui = new dat.GUI({ autoPlace : false });
     that.gui.add(that, "inMm").onFinishChange(function() {
         changeDisplay(that.inMm);
@@ -393,13 +386,4 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     that.gui.domElement.style.zIndex = 2;
     that.gui.domElement.style.top = "0px";
     that.gui.domElement.style.left = "0px";
-
-    var span = document.createElement("span");
-    span.innerHTML = "Test dynamic";
-    span.style.color = "green";
-    span.style.position = "absolute";
-    span.style.zIndex = 10;
-    span.style.top = "0px";
-    span.style.left = "0px";
-    that.renderer.domElement.parentNode.appendChild(span);
 };
