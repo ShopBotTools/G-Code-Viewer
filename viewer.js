@@ -88,12 +88,7 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
             var cH = Math.abs(that.camera.top - that.camera.bottom);
             console.log("width: " + width + " | height: " + height);
             console.log("cW: " + cW + " | cH: " + cH);
-            //TODO: think about that
-            if(cW < width || cH < height) {  //if must unzoom
-                distance = (width < height) ? cH / height : cW / width;
-            } else {  //if must zoom
-                distance = (width < height) ? height / cH : width / cW;
-            }
+            distance = Math.min(cW / width, cH / height);
         }
         console.log(distance);
 
