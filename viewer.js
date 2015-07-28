@@ -45,13 +45,13 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     };
 
     function setCombinedCamera() {
-        var width = that.renderer.domElement.width/2; //-- Camera frustum width.
-        var height = that.renderer.domElement.height/2; //-- Camera frustum height.
-        var fov = 75; //— Camera frustum vertical field of view in perspective view.
-        var near = 0.1; //— Camera frustum near plane in perspective view.
-        var far = 1000; //— Camera frustum far plane in perspective view.
-        var orthoNear = -100; //— Camera frustum near plane in orthographic view.
-        var orthoFar = 100; //— Camera frustum far plane in orthographic view.
+        var width = that.renderer.domElement.width/2; // Camera frustum width.
+        var height = that.renderer.domElement.height/2; // Camera frustum height.
+        var fov = 75; // Camera frustum vertical field of view in perspective view.
+        var near = 0.1; // Camera frustum near plane in perspective view.
+        var far = 1000; // Camera frustum far plane in perspective view.
+        var orthoNear = -100; // Camera frustum near plane in orthographic view.
+        var orthoFar = 100; // Camera frustum far plane in orthographic view.
         that.camera = new THREE.CombinedCamera(width, height, fov, near,
                 far, orthoNear, orthoFar);
         that.camera.up.set(0, 0, 1);
@@ -75,13 +75,10 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         return center;
     }
 
-    //Return the distance needed to fetch the view according to the axe
-    //example: fetch the XY plane, "x" and "y" as parameter, return 0 if no
+    //Return the dollIn needed to fit the object according to the axe
+    //example: fetch the XY plane, "x" and "y" as parameter, return 1 if no
     // path
-    //Return distance if perspective, else the zoom
-    //
-    //TODO rename and explain about dollIn
-    function distanceToFetch(axe1, axe2) {
+    function dollInToFetch(axe1, axe2) {
         if(that.gcode.size === undefined) {
             return 1/5;
         }
@@ -116,77 +113,42 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     //cameraPosition (the axe for zoom and unzoom should be equal to 1)
     //dollIn value (or zoom value)
     function lookAtPoint(point, camPosition, dollyIn) {
+        var pos = that.controls.object.position;
         that.controls.reset();
-        that.camera.position.set(camPosition.x, camPosition.y, camPosition.z);
+        pos.set(camPosition.x, camPosition.y, camPosition.z);
         that.controls.target.set(point.x, point.y, point.z);
         that.controls.dollyIn(dollyIn);
         that.refreshDisplay();
     }
 
+    //TODO: fit with the board size
     function showPlane(axeReal, axeImaginary, crossAxe) {
-        var zoom = distanceToFetch(axeReal, axeImaginary);
+        var zoom = dollInToFetch(axeReal, axeImaginary);
         var center = centerPath();
         var cameraPosition = { x : center.x, y : center.y, z : center.z };
         cameraPosition[crossAxe] = 1;
-        // if(that.camera.inPerspectiveMode === true) {
-        //     cameraPosition[crossAxe] = distanceToFetch(axeReal, axeImaginary);
-        // } else {
-        //     cameraPosition[crossAxe] = 1;
-        //     zoom = distanceToFetch(axeReal, axeImaginary);
-        // }
         if(crossAxe === "y") {
             cameraPosition.y *= -1;
         }
         lookAtPoint(center, cameraPosition, zoom);
+        if(crossAxe === "z" && that.controls.object.position.z < 0) {
+            that.controls.rotateUp(Math.PI);
+        } else if((crossAxe === "x" && that.controls.object.position.x < 0) ||
+                (crossAxe === "y" && that.controls.object.position.y > 0)) {
+            that.controls.rotateLeft(Math.PI);
+        }
     }
 
-    //TODO: fit with the board size
     that.showX = function() {
         showPlane("y", "z", "x");
-        // var center = centerPath();
-        // var distance = 0;
-        // if(that.camera.inPerspectiveMode === true) {
-        //     distance = distanceToFetch("y", "z");
-        // } else {
-        //     that.camera.zoom = distanceToFetch("y", "z");
-        // }
-        // lookAtPoint(center, { x : distance, y : 0, z : 0 },
-        //         { x : Math.PI/2, y : 0, z : 0 });
-
-        // lookAtPoint(that.scene.position, { x : 5, y : 0, z : 0 },
-        //         { x : Math.PI/2, y : 0, z : 0 });
     };
 
     that.showY = function() {
         showPlane("x", "z", "y");
-        // var center = centerPath();
-        // var distance = 0;
-        // if(that.camera.inPerspectiveMode === true) {
-        //     distance = distanceToFetch("x", "z");
-        // } else {
-        //     that.camera.zoom = distanceToFetch("x", "z");
-        // }
-        // lookAtPoint(center, { x : 0, y : -distance, z : 0 },
-        //         { x : 0, y : Math.PI, z : 0 });
-
-        // lookAtPoint(that.scene.position, { x : 0, y : -5, z : 0 },
-        //         { x : 0, y : Math.PI, z : 0 });
     };
 
     that.showZ = function() {
         showPlane("x", "y", "z");
-        // var center = centerPath();
-        // var distance = 0;
-        // if(that.camera.inPerspectiveMode === true) {
-        //     distance = distanceToFetch("x", "y");
-        // } else {
-        //     that.camera.zoom = distanceToFetch("x", "y");
-        // }
-        // lookAtPoint(center, { x : 0, y : 0, z : distance },
-        //         { x : 0, y : 0, z : 0 });
-
-        // lookAtPoint(that.scene.position, { x : 0, y : 0, z : 5 },
-        //         { x : 0, y : 0, z : 0 });
     };
 
     //Helpers management:
