@@ -86,12 +86,10 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         } else {
             var cW = Math.abs(that.camera.right - that.camera.left);
             var cH = Math.abs(that.camera.top - that.camera.bottom);
-            console.log("width: " + width + " | height: " + height);
-            console.log("cW: " + cW + " | cH: " + cH);
             distance = Math.min(cW / width, cH / height);
         }
-        console.log(distance);
 
+        console.log("Returns distance: " + distance);
         return distance;
     }
 
@@ -108,20 +106,19 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         return center;
     }
 
-    function lookAtPoint(point, cameraPosition, rotation) {
+    function lookAtPoint(point, cameraPosition, zoom,  rotation) {
         that.controls.reset();
+        if(that.camera.inOrthographicMode === true) {
+            that.controls.dollyIn(zoom);
+        }
         that.camera.position.x = cameraPosition.x;
         that.camera.position.y = cameraPosition.y;
         that.camera.position.z = cameraPosition.z;
-        if(that.camera.inOrthographicMode === true) {
-            that.controls.dollyIn(that.camera.zoom);
-        }
         if(rotation !== undefined) {
             that.camera.rotateX(rotation.x);
             that.camera.rotateY(rotation.y);
             that.camera.rotateZ(rotation.z);
         }
-        // that.camera.lookAt(point);
         that.controls.target.x = point.x;
         that.controls.target.y = point.y;
         that.controls.target.z = point.z;
@@ -131,15 +128,23 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     function showPlane(axeReal, axeImaginary, crossAxe) {
         var center = centerPath();
         var cameraPosition = { x : center.x, y : center.y, z : center.z };
+        console.log("==============================");
+        console.log("Camera postion");
+        console.log(cameraPosition);
+        var zoom = 1;
         if(that.camera.inPerspectiveMode === true) {
-            cameraPosition[crossAxe]=distanceToFetch(axeReal, axeImaginary);
+            cameraPosition[crossAxe] = distanceToFetch(axeReal, axeImaginary);
         } else {
-            that.camera.zoom = distanceToFetch(axeReal, axeImaginary);
+            cameraPosition[crossAxe] = 1;
+            zoom = distanceToFetch(axeReal, axeImaginary);
         }
         if(crossAxe === "y") {
             cameraPosition.y *= -1;
         }
-        lookAtPoint(center, cameraPosition);
+        console.log("Camera postion");
+        console.log(cameraPosition);
+        console.log("==============================");
+        lookAtPoint(center, cameraPosition, zoom);
     }
 
     //TODO: fit with the board size
@@ -375,7 +380,7 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     //Set the display of the UI in the HTML page
     that.renderer.domElement.parentNode.style.position = "relative";
     that.renderer.domElement.parentNode.appendChild(that.gui.domElement);
-    that.renderer.domElement.style.position = "absolute";
+    // that.renderer.domElement.style.position = "absolute";
     that.renderer.domElement.style.zIndex = 1;
     that.gui.domElement.style.position = "absolute";
     that.gui.domElement.style.zIndex = 2;
