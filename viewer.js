@@ -54,43 +54,12 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         var orthoFar = 100; //— Camera frustum far plane in orthographic view.
         that.camera = new THREE.CombinedCamera(width, height, fov, near,
                 far, orthoNear, orthoFar);
+        that.camera.up.set(0, 0, 1);
 
         that.controls = new THREE.OrbitControls(that.camera,
                 that.renderer.domElement);
         that.controls.damping = 0.2;
         that.controls.addEventListener('change', render);
-    }
-
-    //Return the distance needed to fetch the view according to the axe
-    //exemple: fetch the XY plane, "x" and "y" as parameter, return 0 if no
-    // path
-    //Return distance if perspective, else the zoom
-    function distanceToFetch(axe1, axe2) {
-        if(that.gcode.size === undefined) {
-            return 5;
-        }
-        var size = that.gcode.size;
-        var distance = 0, width = 0, height = 0, length = 0;
-        width = Math.abs(size.max[axe1] - size.min[axe1]);
-        height = Math.abs(size.max[axe2] - size.min[axe2]);
-        if(width === 0 && height === 0) {
-            return 5;
-        }
-        length = (width < height) ? height : width;
-
-        if(that.camera.inPerspectiveMode === true) {
-            if(that.camera.fov === 0 || that.camera.fov === 180) {
-                return distance;
-            }
-            distance = (length / 2)/Math.tan(that.camera.fov * Math.PI /180);
-        } else {
-            var cW = Math.abs(that.camera.right - that.camera.left);
-            var cH = Math.abs(that.camera.top - that.camera.bottom);
-            distance = Math.min(cW / width, cH / height);
-        }
-
-        console.log("Returns distance: " + distance);
-        return distance;
     }
 
     //Return the center of the board
@@ -106,44 +75,68 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         return center;
     }
 
-    function lookAtPoint(point, cameraPosition, zoom,  rotation) {
+    //Return the distance needed to fetch the view according to the axe
+    //example: fetch the XY plane, "x" and "y" as parameter, return 0 if no
+    // path
+    //Return distance if perspective, else the zoom
+    //
+    //TODO rename and explain about dollIn
+    function distanceToFetch(axe1, axe2) {
+        if(that.gcode.size === undefined) {
+            return 1/5;
+        }
+        var size = that.gcode.size;
+        var distance = 0, width = 0, height = 0, length = 0;
+        width = Math.abs(size.max[axe1] - size.min[axe1]);
+        height = Math.abs(size.max[axe2] - size.min[axe2]);
+        if(width === 0 && height === 0) {
+            return 1/5;
+        }
+        length = (width < height) ? height : width;
+
+        if(that.camera.inPerspectiveMode === true) {
+            if(that.camera.fov === 0 || that.camera.fov === 180 || length === 0) {
+                return 1 / 5;
+            }
+            // The following commented operation give the distance, but we want
+            // the dollIn (so the inverse of the distance)
+            // distance = (length / 2)/Math.tan(that.camera.fov * Math.PI /180);
+            distance = Math.tan(that.camera.fov * Math.PI /180)/(length / 2);
+        } else {
+            var cW = Math.abs(that.camera.right - that.camera.left);
+            var cH = Math.abs(that.camera.top - that.camera.bottom);
+            distance = Math.min(cW / width, cH / height);
+        }
+
+        console.log("Returns distance: " + distance);
+        return distance;
+    }
+
+    //point to see
+    //cameraPosition (the axe for zoom and unzoom should be equal to 1)
+    //dollIn value (or zoom value)
+    function lookAtPoint(point, camPosition, dollyIn) {
         that.controls.reset();
-        if(that.camera.inOrthographicMode === true) {
-            that.controls.dollyIn(zoom);
-        }
-        that.camera.position.x = cameraPosition.x;
-        that.camera.position.y = cameraPosition.y;
-        that.camera.position.z = cameraPosition.z;
-        if(rotation !== undefined) {
-            that.camera.rotateX(rotation.x);
-            that.camera.rotateY(rotation.y);
-            that.camera.rotateZ(rotation.z);
-        }
-        that.controls.target.x = point.x;
-        that.controls.target.y = point.y;
-        that.controls.target.z = point.z;
+        that.camera.position.set(camPosition.x, camPosition.y, camPosition.z);
+        that.controls.target.set(point.x, point.y, point.z);
+        that.controls.dollyIn(dollyIn);
         that.refreshDisplay();
     }
 
     function showPlane(axeReal, axeImaginary, crossAxe) {
+        var zoom = distanceToFetch(axeReal, axeImaginary);
         var center = centerPath();
         var cameraPosition = { x : center.x, y : center.y, z : center.z };
-        console.log("==============================");
-        console.log("Camera postion");
-        console.log(cameraPosition);
-        var zoom = 1;
-        if(that.camera.inPerspectiveMode === true) {
-            cameraPosition[crossAxe] = distanceToFetch(axeReal, axeImaginary);
-        } else {
-            cameraPosition[crossAxe] = 1;
-            zoom = distanceToFetch(axeReal, axeImaginary);
-        }
+        cameraPosition[crossAxe] = 1;
+        // if(that.camera.inPerspectiveMode === true) {
+        //     cameraPosition[crossAxe] = distanceToFetch(axeReal, axeImaginary);
+        // } else {
+        //     cameraPosition[crossAxe] = 1;
+        //     zoom = distanceToFetch(axeReal, axeImaginary);
+        // }
         if(crossAxe === "y") {
             cameraPosition.y *= -1;
         }
-        console.log("Camera postion");
-        console.log(cameraPosition);
-        console.log("==============================");
         lookAtPoint(center, cameraPosition, zoom);
     }
 
