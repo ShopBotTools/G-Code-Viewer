@@ -126,17 +126,12 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         var zoom = dollInToFetch(axeReal, axeImaginary);
         var center = centerPath();
         var cameraPosition = { x : center.x, y : center.y, z : center.z };
-        cameraPosition[crossAxe] = 1;
         if(crossAxe === "y") {
-            cameraPosition.y *= -1;
+            cameraPosition[crossAxe] = center[crossAxe] - 1;
+        } else {
+            cameraPosition[crossAxe] = center[crossAxe] + 1;
         }
         lookAtPoint(center, cameraPosition, zoom);
-        if(crossAxe === "z" && that.controls.object.position.z < 0) {
-            that.controls.rotateUp(Math.PI);
-        } else if((crossAxe === "x" && that.controls.object.position.x < 0) ||
-                (crossAxe === "y" && that.controls.object.position.y > 0)) {
-            that.controls.rotateLeft(Math.PI);
-        }
     }
 
     that.showX = function() {
@@ -320,25 +315,18 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     that.refreshDisplay();
 
     //Add the UI
-    that.gui = new dat.GUI({ autoPlace : false });
-    that.gui.add(that, "inMm").onFinishChange(function() {
-        changeDisplay(that.inMm);
-    });
-    var folderPlanes = that.gui.addFolder("Planes");
-    folderPlanes.add(that, "showX");
-    folderPlanes.add(that, "showY");
-    folderPlanes.add(that, "showZ");
-    var folderCamera = that.gui.addFolder("Camera");
-    folderCamera.add(that, "setPerspectiveCamera");
-    folderCamera.add(that, "setOrthographicCamera");
+    var callbacks = {
+        showX : that.showX,
+        showY : that.showY,
+        showZ : that.showZ,
+        displayInMm : that.displayInMm ,
+        displayInIn : that.displayInInch ,
+        perspective : that.setPerspectiveCamera,
+        orthographic : that.setOrthographicCamera
+    };
+    that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
 
     //Set the display of the UI in the HTML page
     that.renderer.domElement.parentNode.style.position = "relative";
-    that.renderer.domElement.parentNode.appendChild(that.gui.domElement);
-    // that.renderer.domElement.style.position = "absolute";
     that.renderer.domElement.style.zIndex = 1;
-    that.gui.domElement.style.position = "absolute";
-    that.gui.domElement.style.zIndex = 2;
-    that.gui.domElement.style.top = "0px";
-    that.gui.domElement.style.left = "0px";
 };
