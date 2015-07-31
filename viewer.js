@@ -36,12 +36,12 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
 
     that.setPerspectiveCamera = function() {
         that.camera.toPerspective();
-        that.refreshDisplay();
+        that.showZ();
     };
 
     that.setOrthographicCamera = function() {
         that.camera.toOrthographic();
-        that.refreshDisplay();
+        that.showZ();
     };
 
     function setCombinedCamera() {
@@ -204,7 +204,7 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         that.path.add();
         that.totalSize.setMeshes(that.gcode.size, that.inMm);
         that.totalSize.add();
-        that.refreshDisplay();
+        that.showZ();
     };
 
     function changeDisplay(inMm) {
