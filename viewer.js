@@ -79,6 +79,8 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     //example: fetch the XY plane, "x" and "y" as parameter, return 1 if no
     // path
     function dollInToFetch(axe1, axe2) {
+        //NOTE: using a magic number because a lot of issue trying to do it
+        //TODO: use magic number
         if(that.gcode.size === undefined) {
             return 1/5;
         }

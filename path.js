@@ -196,7 +196,7 @@ GCodeViewer.Path = function(scene) {
             if(lines[i].type === "G0") {
                 geometry = getGeometryStraight(lines[i]);
                 that.geoG0Undone.merge(geometry);
-            } else if(lines[i].type === "G0") {
+            } else if(lines[i].type === "G1") {
                 geometry = getGeometryStraight(lines[i]);
                 that.geoG1Undone.merge(geometry);
             } else if(lines[i].type === "G2" || lines[i].type === "G3") {
