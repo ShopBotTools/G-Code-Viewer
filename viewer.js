@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GParser, GCodeViewer, GCodeToGeometry, dat */
+/*global THREE, GCodeViewer, GCodeToGeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -75,42 +75,6 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         return center;
     }
 
-    //Return the dollIn needed to fit the object according to the axe
-    //example: fetch the XY plane, "x" and "y" as parameter, return 1 if no
-    // path
-    function dollInToFetch(axe1, axe2) {
-        //NOTE: using a magic number because a lot of issue trying to do it
-        //TODO: use magic number
-        if(that.gcode.size === undefined) {
-            return 1/5;
-        }
-        var size = that.gcode.size;
-        var distance = 0, width = 0, height = 0, length = 0;
-        width = Math.abs(size.max[axe1] - size.min[axe1]);
-        height = Math.abs(size.max[axe2] - size.min[axe2]);
-        if(width === 0 && height === 0) {
-            return 1/5;
-        }
-        length = (width < height) ? height : width;
-
-        if(that.camera.inPerspectiveMode === true) {
-            if(that.camera.fov === 0 || that.camera.fov === 180 || length === 0) {
-                return 1 / 5;
-            }
-            // The following commented operation give the distance, but we want
-            // the dollIn (so the inverse of the distance)
-            // distance = (length / 2)/Math.tan(that.camera.fov * Math.PI /180);
-            distance = Math.tan(that.camera.fov * Math.PI /180)/(length / 2);
-        } else {
-            var cW = Math.abs(that.camera.right - that.camera.left);
-            var cH = Math.abs(that.camera.top - that.camera.bottom);
-            distance = Math.min(cW / width, cH / height);
-        }
-
-        console.log("Returns distance: " + distance);
-        return distance;
-    }
-
     //point to see
     //cameraPosition (the axe for zoom and unzoom should be equal to 1)
     //dollIn value (or zoom value)
@@ -124,8 +88,9 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     }
 
     //TODO: fit with the board size
-    function showPlane(axeReal, axeImaginary, crossAxe) {
-        var zoom = dollInToFetch(axeReal, axeImaginary);
+    function showPlane(crossAxe) {
+        // var zoom = dollInToFetch(axeReal, axeImaginary);
+        var zoom = 1;
         var center = centerPath();
         var cameraPosition = { x : center.x, y : center.y, z : center.z };
         if(crossAxe === "y") {
@@ -133,19 +98,27 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         } else {
             cameraPosition[crossAxe] = center[crossAxe] + 1;
         }
+
+        //NOTE: using a magic number because a lot of issue trying to
+        // calculate well the dollyIn. Someday, maybe, it will be done correctly
+        if(that.camera.inPerspectiveMode === true) {
+            zoom =  0.02;
+        } else {
+            zoom = 10;
+        }
         lookAtPoint(center, cameraPosition, zoom);
     }
 
     that.showX = function() {
-        showPlane("y", "z", "x");
+        showPlane("x");
     };
 
     that.showY = function() {
-        showPlane("x", "z", "y");
+        showPlane("y");
     };
 
     that.showZ = function() {
-        showPlane("x", "y", "z");
+        showPlane("z");
     };
 
     //Helpers management:
