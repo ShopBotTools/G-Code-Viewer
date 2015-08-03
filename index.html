@@ -5,25 +5,37 @@
     <title>GCode viewer</title>
 </head>
 <body>
-    <textarea id="gcode" name="" cols="30" rows="10"></textarea>
-    <button id="view">View</button>
-    <button id="test">Test</button>
-    <canvas id="canvas" width="600" height="400"></canvas>
+    <div style="display:inline-block;">
+        <textarea id="gcode" name="" cols="30" rows="10"></textarea>
+        <button id="view">View</button>
+    </div>
+
+    <div id="container" style="display: inline-block;">
+    </div>
+
+    <script src="gcodetogeometry.min.js"></script>
+
     <script src="three.min.js"></script>
+    <script src="CombinedCamera.js"></script>
+    <script src="helvetiker_regular.typeface.js"></script>
     <script src="OrbitControls.js"></script>
-    <!-- <script src="test.js"></script> -->
-    <script src="ThreeCSG.js"></script>
-    <script src="gcodeviewer.js"></script>
+
+    <script src="path.js"></script>
+    <script src="helper.js"></script>
+    <script src="gui.js"></script>
+    <script src="viewer.js"></script>
+
     <script type="text/javascript">
-        GCodeViewer.initialize({}, document.getElementById("canvas"));
-        GCodeViewer.initialize({});
+        // var config = {
+        //     board: { width: 10, length: 50, height: 5 }
+        // };
+        var viewer = new GCodeViewer.Viewer(document.getElementById("container"),
+                600, 400, function(msg) { alert(msg); }/* , config */);
         document.getElementById("view").onclick = function() {
-            GCodeViewer.setGCode(document.getElementById("gcode").value);
-            GCodeViewer.viewPaths();
+            viewer.setGCode(document.getElementById("gcode").value);
+            viewer.viewPaths();
         }
-        document.getElementById("test").onclick = function() {
-            GCodeViewer.test();
-        }
+        canvas = document.getElementById("canvas");
     </script>
 </body>
 </html>
