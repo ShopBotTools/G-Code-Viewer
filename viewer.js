@@ -3,7 +3,6 @@
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
- * GCode Viewer: version 1.0 ; 2015-08-02
  */
 
 /**
@@ -72,9 +71,15 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
             return center;
         }
         var size = that.gcode.size;
-        center.x = size.min.x + Math.abs(size.max.x - size.min.x) / 2 ;
-        center.y = size.min.y + Math.abs(size.max.y - size.min.y) / 2 ;
-        center.z = size.min.z + Math.abs(size.max.z - size.min.z) / 2 ;
+        center.x = size.min.x + Math.abs(size.max.x - size.min.x) / 2;
+        center.y = size.min.y + Math.abs(size.max.y - size.min.y) / 2;
+        center.z = size.min.z + Math.abs(size.max.z - size.min.z) / 2;
+
+        if(that.cncConfiguration.initialPosition !== undefined) {
+            center.x += that.cncConfiguration.initialPosition.x;
+            center.y += that.cncConfiguration.initialPosition.y;
+            center.z += that.cncConfiguration.initialPosition.z;
+        }
         return center;
     }
 
@@ -191,7 +196,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         }
 
         that.path.remove();  //Removing old stuff
-        that.path.setMeshes(that.gcode.lines);
+        that.path.setMeshes(that.gcode.lines,
+                that.cncConfiguration.initialPosition);
         that.refreshDisplay();  //To avoid confusion, we remove everything
     };
 
@@ -204,14 +210,16 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.viewPaths = function() {
         that.path.remove();  //Don't know how to check if already in scene
         that.path.add();
-        that.totalSize.setMeshes(that.gcode.size, that.inMm);
+        that.totalSize.setMeshes(that.gcode.size, that.inMm,
+                that.cncConfiguration.initialPosition);
         that.totalSize.add();
         that.showZ();
     };
 
     function changeDisplay(inMm) {
         if(that.gcode.size !== undefined) {
-            that.totalSize.setMeshes(that.gcode.size, inMm);
+            that.totalSize.setMeshes(that.gcode.size, inMm,
+                that.cncConfiguration.initialPosition);
             that.totalSize.add();
         }
         that.refreshDisplay();

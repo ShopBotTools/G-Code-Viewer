@@ -3,7 +3,6 @@
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
- * GCode Viewer: version 1.0 ; 2015-08-02
  */
 
 /**
@@ -44,6 +43,7 @@ GCodeViewer.TotalSize = function(scene) {
     }
 
     //Really dumb function that return the size, on the axe, of a mesh
+    //Should use bounding box!
     function sizeMesh(mesh, axe) {
         var v = mesh.geometry.vertices;
         if(v.length <= 1) {
@@ -52,7 +52,7 @@ GCodeViewer.TotalSize = function(scene) {
         return Math.abs(v[v.length - 1][axe] - v[0][axe]);
     }
 
-    that.setMeshes = function(totalSize, displayInMm) {
+    that.setMeshes = function(totalSize, displayInMm, initialPosition) {
         if(totalSize === undefined) {
             return;
         }
@@ -63,9 +63,11 @@ GCodeViewer.TotalSize = function(scene) {
         var width = Math.abs(totalSize.max.x - totalSize.min.x);
         var length = Math.abs(totalSize.max.y - totalSize.min.y);
         var height = Math.abs(totalSize.max.z - totalSize.min.z);
-        var textW = width * d, textL = length * d, textH = height * d;
+        var textW = (width * d).toFixed(2);
+        var textL = (length * d).toFixed(2);
+        var textH = (height * d).toFixed(2);
         var options = {'font' : 'helvetiker','weight' : 'normal',
-            'style' : 'normal','size' : 2,'curveSegments' : 300};
+            'style' : 'normal','size' : 1,'curveSegments' : 300};
         var color = 0xffffff;
 
         that.remove();
@@ -77,7 +79,8 @@ GCodeViewer.TotalSize = function(scene) {
         that.textWidth = createMeshText(textW + " " + type, options, color);
         that.textWidth.position.x = that.lineWidth.geometry.vertices[0].x +
             width / 2;
-        that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y-3;
+        that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y -
+            (options.size + 1);
         that.textWidth.position.z = that.lineWidth.geometry.vertices[0].z;
 
         // For y axe
@@ -88,7 +91,7 @@ GCodeViewer.TotalSize = function(scene) {
         that.textLength = createMeshText(textL + " " + type, options, color);
         that.textLength.rotateZ(-Math.PI/2);
         that.textLength.position.x = that.lineLength.geometry.vertices[0].x-
-            3;
+            (options.size + 1);
         that.textLength.position.y = that.lineLength.geometry.vertices[0].y+
             length / 2;
         that.textLength.position.z = that.lineLength.geometry.vertices[0].z;
@@ -100,11 +103,20 @@ GCodeViewer.TotalSize = function(scene) {
         that.lineHeight =  new THREE.Line(geometry, material);
         that.textHeight = createMeshText(textH + " " + type, options, color);
         that.textHeight.rotateX(Math.PI / 2);
-        that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x-
-            sizeMesh(that.textHeight, "x") - 2;
+        that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x -
+            sizeMesh(that.textHeight, "x") - options.size;
         that.textHeight.position.y = that.lineHeight.geometry.vertices[0].y;
-        that.textHeight.position.z = that.lineHeight.geometry.vertices[0].z+
+        that.textHeight.position.z = that.lineHeight.geometry.vertices[0].z +
             height / 2;
+
+        if(initialPosition !== undefined) {
+            that.lineWidth.position.x += initialPosition.x;
+            that.textWidth.position.x += initialPosition.x;
+            that.lineLength.position.y += initialPosition.y;
+            that.textLength.position.y += initialPosition.y;
+            that.textHeight.position.z += initialPosition.z;
+            that.lineHeight.position.z += initialPosition.z;
+        }
     };
 
     // initialize
@@ -218,7 +230,7 @@ GCodeViewer.Path = function(scene) {
         }
     }
 
-    that.setMeshes = function(lines) {
+    that.setMeshes = function(lines, initialPosition) {
         resetPathsGeo();
         resetPathsMesh();
         setGeometries(lines);
@@ -235,6 +247,21 @@ GCodeViewer.Path = function(scene) {
                 that.matG1Done, THREE.LinePieces);
         that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
                 that.matG2G3Done, THREE.LinePieces);
+
+        if(initialPosition !== undefined) {
+            that.meshG0Undone.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+            that.meshG1Undone.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+            that.meshG2G3Undone.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+            that.meshG0Done.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+            that.meshG1Done.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+            that.meshG2G3Done.position.set(initialPosition.x,
+                    initialPosition.y, initialPosition.z);
+        }
     };
 
     // initialize

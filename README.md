@@ -47,6 +47,5 @@ The code in the `index.html` is pretty straightforward and should help a lot.
 ##TODO:
 A lot of things can be added to this viewer:
 * Improve the interface (camera, helpers, UI...)
-* Ability to set initial position of the tool
 * Display a bit and make it follow the path (while highlighting the GCode)
 * Display the result of the cut by setting a type of bit

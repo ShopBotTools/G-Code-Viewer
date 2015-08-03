@@ -3,7 +3,6 @@
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
- * GCode Viewer: version 1.0 ; 2015-08-02
  */
 
 /**
@@ -26,7 +25,6 @@ GCodeViewer.AxisHelper = function(scene) {
 
 };
 
-//TODO: do a grid?
 GCodeViewer.Helpers = function(scene) {
     "use strict";
     var that = this;
