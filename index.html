@@ -10,8 +10,8 @@
         <button id="view">View</button>
         <button id="test">Test</button>
     </div>
-    <div id="container" style="display:inline-block;">
-        <canvas id="canvas" width="600" height="400"></canvas>
+
+    <div id="container" style="display: inline-block;">
     </div>
 
     <script src="gcodetogeometry.min.js"></script>
@@ -21,7 +21,6 @@
     <script src="helvetiker_regular.typeface.js"></script>
     <script src="OrbitControls.js"></script>
 
-    <script src="util.js"></script>
     <script src="path.js"></script>
     <script src="helper.js"></script>
     <script src="gui.js"></script>
@@ -31,9 +30,8 @@
         // var config = {
         //     board: { width: 10, length: 50, height: 5 }
         // };
-        var config;
-        var g = new GCodeViewer.Viewer(config, document.getElementById("canvas"),
-                function(msg) { alert(msg); });
+        var g = new GCodeViewer.Viewer(document.getElementById("container"), 600,
+                400, function(msg) { alert(msg); });
         document.getElementById("view").onclick = function() {
             g.setGCode(document.getElementById("gcode").value);
             g.viewPaths();

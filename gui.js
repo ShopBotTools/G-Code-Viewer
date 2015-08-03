@@ -29,6 +29,12 @@ GCodeViewer.Gui = function(domElement, callbacks) {
 
     that.widgets = {};
 
+    //If not one of this, the positionning will not work correctly
+    if(domElement.parentNode.style.position !== "absolute" &&
+            domElement.parentNode.style.position !== "relative") {
+        domElement.parentNode.style.position = "relative";
+    }
+
     var x = 5, y = 5;
     addWidget("showX", x, y, "data:image/png;base64," + GCodeViewer.xImage);
     x += 40;

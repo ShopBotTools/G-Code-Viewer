@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeToGeometry, GCodeViewer */
+/*global THREE, GCodeToGeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -8,6 +8,8 @@
 /**
  * This file contains the class managing the path view.
  */
+
+var GCodeViewer = {};
 
 //Class to create the meshes showing the measure of the path
 GCodeViewer.TotalSize = function(scene) {

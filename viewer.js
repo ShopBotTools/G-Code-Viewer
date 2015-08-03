@@ -10,7 +10,9 @@
  * user will instantiate. This is the main class.
  */
 
-GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
+// GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
+GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
+        callbackError, configuration) {
     "use strict";
     var that = this;
 
@@ -87,7 +89,6 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         that.refreshDisplay();
     }
 
-    //TODO: fit with the board size
     function showPlane(crossAxe) {
         // var zoom = dollInToFetch(axeReal, axeImaginary);
         var zoom = 1;
@@ -223,23 +224,7 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         changeDisplay(false);
     };
 
-    //TODO: delete that
-    that.printLines = function(lines) {
-        var i = 0;
-        var l = {};
-        for(i = 0; i < lines.length; i++) {
-            l = lines[i];
-            console.log("("+l.start.x+"; "+l.start.y+"; "+l.start.z+") => ("+l.end.x+"; "+l.end.y+"; "+l.end.z+")");
-        }
-    };
-
-    that.createCircle = function(radius, segments) {
-        var material = new THREE.LineBasicMaterial({ color: 0xffffff });
-        var circleGeometry = new THREE.CircleGeometry(radius, segments);
-        that.circleGeometry = circleGeometry;
-        return new THREE.Line(circleGeometry , material);
-    };
-
+    //TODO: delete before commit stable version
     that.test = function() {
         that.refreshDisplay();
     };
@@ -253,35 +238,26 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
     that.cncConfiguration= {};
     that.gcode = {};
 
-    var width = window.innerWidth, height = window.innerHeight;
-
     that.inMm = false;
     that.inchToVector = 1; //Convert an inch to the value to put in vectors
     that.callbackError = callbackError;
     that.cncConfiguration = (configuration === undefined) ? {} : configuration;
 
-    if(domElement === undefined || domElement === null) {
-        that.renderer = new THREE.WebGLRenderer({antialias: true});
-        that.renderer.setSize(width, height);
-        document.body.appendChild(that.renderer.domElement);
-    } else {
-        that.renderer = new THREE.WebGLRenderer({
-            canvas: domElement,
-            antialias: true
-        });
-        width = parseInt(domElement.width, 10);
-        height = parseInt(domElement.height, 10);
+    if(container === undefined || container === null) {
+        displayError("No container set.");
+        return;
     }
+    that.renderer = new THREE.WebGLRenderer({antialias: true});
+    that.renderer.setSize(widthCanvas, heightCanvas);
+    that.renderer.domElement.style.zIndex = 1;
+    container.appendChild(that.renderer.domElement);
+
     // that.renderer.setClearColor( 0xf0f0f0 );
     that.renderer.setPixelRatio( window.devicePixelRatio );
 
     that.scene = new THREE.Scene();
     setCombinedCamera();
     that.showZ();
-
-    var light = new THREE.PointLight( 0xffffff, 0.8 );
-    light.position.set(0, 1, 1);
-    that.scene.add( light );
 
     that.path = new GCodeViewer.Path(that.scene);
     that.totalSize = new GCodeViewer.TotalSize(that.scene);
@@ -300,8 +276,4 @@ GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
         orthographic : that.setOrthographicCamera
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
-
-    //Set the display of the UI in the HTML page
-    that.renderer.domElement.parentNode.style.position = "relative";
-    that.renderer.domElement.style.zIndex = 1;
 };
