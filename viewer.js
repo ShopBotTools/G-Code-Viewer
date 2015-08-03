@@ -103,9 +103,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         //NOTE: using a magic number because a lot of issue trying to
         // calculate well the dollyIn. Someday, maybe, it will be done correctly
         if(that.camera.inPerspectiveMode === true) {
-            zoom =  0.02;
+            zoom =  0.25;
         } else {
-            zoom = 10;
+            zoom = 20;
         }
         lookAtPoint(center, cameraPosition, zoom);
     }

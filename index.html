@@ -30,14 +30,14 @@
         // var config = {
         //     board: { width: 10, length: 50, height: 5 }
         // };
-        var g = new GCodeViewer.Viewer(document.getElementById("container"), 600,
-                400, function(msg) { alert(msg); });
+        var viewer = new GCodeViewer.Viewer(document.getElementById("container"),
+                600, 400, function(msg) { alert(msg); }/* , config */);
         document.getElementById("view").onclick = function() {
-            g.setGCode(document.getElementById("gcode").value);
-            g.viewPaths();
+            viewer.setGCode(document.getElementById("gcode").value);
+            viewer.viewPaths();
         }
         document.getElementById("test").onclick = function() {
-            g.test();
+            viewer.test();
         }
         canvas = document.getElementById("canvas");
     </script>
