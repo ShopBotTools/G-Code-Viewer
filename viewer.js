@@ -199,6 +199,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.path.setMeshes(that.gcode.lines,
                 that.cncConfiguration.initialPosition);
         that.refreshDisplay();  //To avoid confusion, we remove everything
+        that.gui.setGCode(that.gcode.gcode);
     };
 
     that.hidePaths = function() {
