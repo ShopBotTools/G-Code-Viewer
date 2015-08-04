@@ -14,6 +14,32 @@ GCodeViewer.Gui = function(domElement, callbacks) {
     "use strict";
     var that = this;
 
+    var highlightedElt = null;
+
+    //elt is the li element in the ul
+    //lineNumber is the lineNumber corresponding to this li
+    function scrollTo(elt, lineNumber) {
+        var height = elt.offsetHeight;
+        lineNumber--;
+        elt.parentNode.scrollTop = height * lineNumber;
+        elt.parentNode.scrollLeft = 0;
+        console.log(height * (lineNumber + 1));
+        console.log(elt.offsetTop);
+    }
+
+    that.highlight = function(lineNumber) {
+        var elt = document.getElementById("li-" + lineNumber);
+        if(elt === null || elt === highlightedElt) {
+            return;
+        }
+        if(highlightedElt !== null) {
+            highlightedElt.children[0].style.background = "#7f7f7f";
+        }
+        elt.children[0].style.background = "#ff0000";
+        highlightedElt = elt;
+        scrollTo(elt, lineNumber);
+    };
+
     function addWidget(id, x, y, src) {
         var elt = document.createElement("img");
         elt.id = id;
@@ -146,7 +172,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
             pre.style.margin = "0px";
             pre.style.padding = "0px";
             pre.style.background = "#7f7f7f";
-            pre.innerHTML = lineFormat(i, gcode.length) + gcode[i];
+            pre.innerHTML = lineFormat(i+1, gcode.length) + gcode[i];
             li = document.createElement("li");
             li.appendChild(pre);
             li.id = "li-"+(i+1);
@@ -154,6 +180,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
             li.style.background = "#7f7f7f";
             that.widgets.listGCode.appendChild(li);
         }
+        scrollTo(li, 0);
     };
 
     //intialize
