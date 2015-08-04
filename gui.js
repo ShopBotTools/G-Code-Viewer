@@ -146,7 +146,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
             pre.style.margin = "0px";
             pre.style.padding = "0px";
             pre.style.background = "#7f7f7f";
-            pre.innerHTML = lineFormat(i, gcode.length) + gcode[i];
+            pre.innerHTML = lineFormat(i+1, gcode.length) + gcode[i];
             li = document.createElement("li");
             li.appendChild(pre);
             li.id = "li-"+(i+1);
