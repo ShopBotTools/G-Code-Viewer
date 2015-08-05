@@ -16,6 +16,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     "use strict";
     var that = this;
 
+    var lengthBit = 3;
+
     that.show = function() {
         that.scene.add(that.bit);
         that.refreshFunction();
@@ -35,10 +37,30 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             nearlyEqual(posA.z, posB.z));
     }
 
-    //TODO: delete
-    function printVector(name, vector) {
-        console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
+    function getPositionBit() {
+        return {
+            x : that.bit.position.x,
+            y : that.bit.position.y,
+            z : that.bit.position.z - lengthBit / 2,
+        };
     }
+
+    function setPositionBit(point) {
+        that.bit.position.set(point.x, point.y, point.z + lengthBit / 2);
+    }
+
+    function moveBit(vector) {
+        var pos = getPositionBit();
+        pos.x += vector.x;
+        pos.y += vector.y;
+        pos.z += vector.z;
+        setPositionBit(pos);
+    }
+
+    // //TODO: delete
+    // function printVector(name, vector) {
+    //     console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
+    // }
 
     //Give the move to do
     function deltaSpeed(position, destination, speed, deltaTime) {
@@ -100,14 +122,14 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         var deltaTime = calculateDeltaTime();
 
         //moving the bit
-        var move = deltaSpeed(that.bit.position, that.currentPath[0],
+        var move = deltaSpeed(getPositionBit(), that.currentPath[0],
                 that.currentSpeed, deltaTime);
+        moveBit(move);
+        // that.bit.position.x += move.x;
+        // that.bit.position.y += move.y;
+        // that.bit.position.z += move.z;
 
-        that.bit.position.x += move.x;
-        that.bit.position.y += move.y;
-        that.bit.position.z += move.z;
-
-        if(samePosition(that.bit.position, that.currentPath[0]) === true) {
+        if(samePosition(getPositionBit(), that.currentPath[0]) === true) {
             that.currentPath.shift();
             console.log(that.currentPath);
         }
@@ -136,9 +158,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         that.gui.highlight(that.currentLineNumber);
         // console.log(that.currentLineNumber);
         // console.log(that.currentPath);
-        that.bit.position.x = that.currentPath[0].x;
-        that.bit.position.y = that.currentPath[0].y;
-        that.bit.position.z = that.currentPath[0].z;
+        setPositionBit(that.currentPath[0]);
+        // that.bit.position.x = that.currentPath[0].x;
+        // that.bit.position.y = that.currentPath[0].y;
+        // that.bit.position.z = that.currentPath[0].z;
         that.refreshFunction();
         that.animating = true;  //Must be at the end
     };
@@ -148,9 +171,11 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     };
 
     function createBit() {
-        var geometry = new THREE.CylinderGeometry(0, 1, 3, 32);
+        var geometry = new THREE.CylinderGeometry(0, 1, lengthBit, 32);
         var material = new THREE.MeshBasicMaterial({color: 0xffff00});
         that.bit = new THREE.Mesh(geometry, material);
+        that.bit.rotateX(-Math.PI / 2);
+        setPositionBit({ x : 0, y : 0, z : 0 });
     }
 
     //Speed are in inches by minutes. Internally converted it in inches by ms
