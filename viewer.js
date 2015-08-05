@@ -10,7 +10,6 @@
  * user will instantiate. This is the main class.
  */
 
-// GCodeViewer.Viewer = function(configuration, domElement, callbackError) {
 GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         callbackError, configuration) {
     "use strict";
@@ -281,4 +280,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         orthographic : that.setOrthographicCamera
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
+
+    //Add animation
+    that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
+            that.gui, 180, 360);  //normal: 3 in/s; fast: 6 in/s
 };
