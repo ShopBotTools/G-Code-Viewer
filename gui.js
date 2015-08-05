@@ -23,8 +23,6 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         lineNumber--;
         elt.parentNode.scrollTop = height * lineNumber;
         elt.parentNode.scrollLeft = 0;
-        console.log(height * (lineNumber + 1));
-        console.log(elt.offsetTop);
     }
 
     that.highlight = function(lineNumber) {

@@ -35,19 +35,35 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             nearlyEqual(posA.z, posB.z));
     }
 
+    //TODO: delete
+    function printVector(name, vector) {
+        console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
+    }
+
     //Give the move to do
     function deltaSpeed(position, destination, speed, deltaTime) {
+        // console.log(speed + " * " + deltaTime);
         speed = speed * deltaTime;
         var dX = destination.x - position.x;
         var dY = destination.y - position.y;
         var dZ = destination.z - position.z;
+        // printVector("position", position);
+        // printVector("destination", destination);
+        // console.log("speed: " + speed);
+
         var length = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
+
+        if(length === 0) {
+            return { x : dX, y : dY, z : dZ };
+        }
+
         var move = {
             x : dX / length * speed,
             y : dY / length * speed,
             z : dZ / length * speed
         };
 
+        // printVector("move", move);
         if(GCodeToGeometry.lengthVector3(move) > length) {
             return { x : dX, y : dY, z : dZ };
         }
@@ -62,15 +78,17 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         //TODO: need meshes....
         //that.meshes.GOUndone
         //that.currentPath = ....
-        console.log(line);
+        console.log("line = " + line);
 
+        //TODO: do correctly the bottom
         that.currentPath = [ { x : 0, y : 0, z : 0 }, { x : 1, y : 1, z : 1 } ];
+        that.currentSpeed = that.fastSpeed;
     }
 
     //Used to have an smooth animation
     function calculateDeltaTime() {
         var newTime = new Date().getTime();
-        var deltaTime = that.lastTime - newTime;
+        var deltaTime = newTime - that.lastTime;
         that.lastTime = newTime;
         return deltaTime;
     }
@@ -83,19 +101,20 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
 
         //moving the bit
         var move = deltaSpeed(that.bit.position, that.currentPath[0],
-                that.currentSpeed);
+                that.currentSpeed, deltaTime);
 
-        that.bit.position.x += move.x * deltaTime;
-        that.bit.position.y += move.y * deltaTime;
-        that.bit.position.z += move.z * deltaTime;
+        that.bit.position.x += move.x;
+        that.bit.position.y += move.y;
+        that.bit.position.z += move.z;
 
         if(samePosition(that.bit.position, that.currentPath[0]) === true) {
             that.currentPath.shift();
+            console.log(that.currentPath);
         }
 
-        if(that.currentPath.length() === 0) {
+        if(that.currentPath.length === 0) {
             that.currentLineNumber++;
-            if(that.currentLineNumber >= that.lines.length()) {
+            if(that.currentLineNumber >= that.lines.length) {
                 that.animating = false;
             } else {
                 setPath(that.lines[that.currentLineNumber]);
@@ -115,6 +134,12 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         that.currentLineNumber = 0;
         setPath(that.lines[that.currentLineNumber]);
         that.gui.highlight(that.currentLineNumber);
+        // console.log(that.currentLineNumber);
+        // console.log(that.currentPath);
+        that.bit.position.x = that.currentPath[0].x;
+        that.bit.position.y = that.currentPath[0].y;
+        that.bit.position.z = that.currentPath[0].z;
+        that.refreshFunction();
         that.animating = true;  //Must be at the end
     };
 
@@ -144,5 +169,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
 
     that.animating = false;
     that.lastTime = new Date().getTime();
-    setInterval(update, 333);  //333 = 30 FPS (not a vidya, no need higher)
+    // setInterval(update, 333);  //333 = 30 FPS (not a vidya, no need higher)
+    // setInterval(update, 166);  //166 = 60 FPS (not a vidya, no need higher)
+    setInterval(update, 41);  //41 = 240 FPS (not a vidya, no need higher)
 };
