@@ -158,6 +158,19 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.refreshDisplay();
     };
 
+    that.animatePath = function() {
+        var meshes = {
+            G0Undone : that.path.meshG0Undone,
+            G1Undone : that.path.meshG1Undone,
+            G2G3Undone : that.path.meshG2G3Undone,
+            G0Done : that.path.meshG0Done,
+            G1Done : that.path.meshG1Done,
+            G2G3Done : that.path.meshG2G3Done,
+        };
+        that.animation.show();
+        that.animation.startAnimation(that.gcode.lines, meshes);
+    };
+
     that.showBoard = function() {
         if(that.cncConfiguration.board === undefined) {
             return;
