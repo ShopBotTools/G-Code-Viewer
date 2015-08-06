@@ -45,7 +45,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     }
 
     function getPositionBit() {
-        console.log(that);
         return {
             x : that.bit.position.x,
             y : that.bit.position.y,
@@ -65,22 +64,17 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         setPositionBit(pos);
     }
 
-    // //TODO: delete
-    // function printVector(name, vector) {
-    //     console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
-    // }
+    //TODO: delete
+    function printVector(name, vector) {
+        console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
+    }
 
     //Give the move to do
     function deltaSpeed(position, destination, speed, deltaTime) {
-        // console.log(speed + " * " + deltaTime);
         speed = speed * deltaTime;
         var dX = destination.x - position.x;
         var dY = destination.y - position.y;
         var dZ = destination.z - position.z;
-        // printVector("position", position);
-        // printVector("destination", destination);
-        // console.log("speed: " + speed);
-
         var length = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
 
         if(length === 0) {
@@ -104,67 +98,75 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     //     that.lines = lines;
     // };
 
+    //Return true if a and b in the same position
+    function pointsEqual(a, b) {
+        return (a.x === b.x && a.y === b.y && a.z === b.z);
+    }
+
+    //Push in currentPath the vertices starting from the start to the end,
+    //i is the index to start searching in the vertices
+    //it returns the index of the the end + 1 or -1 if the end or start was not
+    //found (so can return i = length if the end was the last vertices)
+    function pushVerticesInPath(start, end, vertices, i) {
+        if(i >= vertices.length && i < 0) {
+            return -1;
+        }
+
+        while(i < vertices.length && pointsEqual(start, vertices[i]) === false) {
+            i++;
+        }
+        if(i >= vertices.length) {
+            return -1;
+        }
+
+        do {
+            that.currentPath.push(vertices[i]);
+            i++;
+        } while(i < vertices.length && pointsEqual(end, vertices[i]) === false);
+        if(i >= vertices.length) {
+            return -1;
+        }
+        if(pointsEqual(end, vertices[i]) === true) {
+            that.currentPath.push(vertices[i]);
+            i++;
+        }
+
+        return i;
+    }
+
     //Return true if a path is set (path.length > 0), else false
     function setPath(line) {
         var i = 0;  //It could be deleted and work directly on the iVertexGn
         var vertices = [];
         that.currentPath = [];
-        console.log(line);
 
         //For the while(not start point): the meshes are dashed lines so some
         //vertices appear twice. However, it should not enter in this loop
         if(line.type === "G0") {
             vertices = that.meshes.G0Undone.geometry.vertices;
             i = that.iVertexG0;
-            while(vertices[i].x !== line.start.x && vertices[i].y !== line.start.y &&
-                    vertices[i].z !== line.start.z) {
-                i++;
-            }
-            while(vertices[i].x !== line.end.x && vertices[i].y !== line.end.y &&
-                    vertices[i].z !== line.end.z)
-            {
-                console.log("pushing");
-                console.log(vertices[i]);
-                that.currentPath.push(vertices[i]);
-                i++;
-            }
+            i = pushVerticesInPath(line.start, line.end, vertices, i);
             that.iVertexG0 = i;
             that.currentSpeed = that.fastSpeed;
             that.currentType = "G0";
         } else if(line.type === "G1") {
             vertices = that.meshes.G1Undone.geometry.vertices;
             i = that.iVertexG1;
-            while(vertices[i].x !== line.start.x && vertices[i].y !== line.start.y &&
-                    vertices[i].z !== line.start.z) {
-                i++;
-            }
-            while(vertices[i].x !== line.end.x && vertices[i].y !== line.end.y &&
-                    vertices[i].z !== line.end.z)
-            {
-                that.currentPath.push(vertices[i]);
-                i++;
-            }
+            i = pushVerticesInPath(line.start, line.end, vertices, i);
             that.iVertexG1 = i;
             that.currentSpeed = that.normalSpeed;
             that.currentType = "G1";
         } else {
             vertices = that.meshes.G2G3Undone.geometry.vertices;
             i = that.iVertexG2G3;
-            while(vertices[i].x !== line.start.x && vertices[i].y !== line.start.y &&
-                    vertices[i].z !== line.start.z) {
-                i++;
-            }
-            while(vertices[i].x !== line.end.x && vertices[i].y !== line.end.y &&
-                    vertices[i].z !== line.end.z)
-            {
-                that.currentPath.push(vertices[i]);
-                i++;
-            }
+            i = pushVerticesInPath(line.beziers[0].p0,
+                    line.beziers[line.beziers.length - 1].p3, vertices, i);
             that.iVertexG2G3 = i;
             that.currentSpeed = that.normalSpeed;
             that.currentType = "G2G3";
         }
 
+        //I don't test the result of pushVerticesInPath because of the test here:
         return (that.currentPath > 0);
     }
 
@@ -186,7 +188,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             if(that.currentLineIndex >= that.lines.length) {
                 that.animating = false;
             } else {
-                setPath(that.lines[that.currentLineIndex]);
+                if(setPath(that.lines[that.currentLineIndex]) === false) {
+                    return;
+                }
                 that.gui.highlight(that.lines[that.currentLineIndex].lineNumber);
             }
         } else {
@@ -222,7 +226,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         that.currentType = "";
         setPath(that.lines[that.currentLineIndex]);
         that.gui.highlight(that.lines[that.currentLineIndex].lineNumber);
-        console.log(that.currentPath);
+        // console.log(that.currentPath);
         if(that.currentPath.length > 0) {
             setPositionBit(that.currentPath[0]);
         }
