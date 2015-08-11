@@ -170,6 +170,21 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         return (that.currentPath > 0);
     }
 
+    //TODO: Rename after refactorization
+    function setPathFromLines() {
+        var i = 0, j = 0;
+        that.path = [];
+        for(i = 0; i < that.lines.length; i++) {
+            setPath(that.lines[i]);
+            for(j = 0; j < that.currentPath.length; j++) {
+                that.path.push({
+                    point : that.currentPath[j],
+                    type : that.currentType
+                });
+            }
+        }
+    }
+
     //Used to have an smooth animation
     function calculateDeltaTime() {
         var newTime = new Date().getTime();
@@ -198,7 +213,16 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             var move = deltaSpeed(getPositionBit(), that.currentPath[0],
                     that.currentSpeed, deltaTime);
             moveBit(move);
+            //Here: send new position
             if(samePosition(getPositionBit(), that.currentPath[0])) {
+                //TODO: say to the path class to add this vertice to the done
+                if(that.currentType === "G0") {
+                    console.log("done G0 vertex");
+                } else if(that.currentType === "G1") {
+                    console.log("done G1 vertex");
+                } else if(that.currentType === "G2G3") {
+                    console.log("done G2G3 vertex");
+                }
                 that.currentPath.shift();
             }
         }
@@ -217,6 +241,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             return false;
         }
 
+
         //Index of the vertex of the geometry of the meshes
         that.iVertexG0 = 0;
         that.iVertexG1 = 0;
@@ -224,6 +249,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
 
         that.currentLineIndex = 0;
         that.currentType = "";
+        // setPathFromLines();
+        // console.log(that.path);
         setPath(that.lines[that.currentLineIndex]);
         that.gui.highlight(that.lines[that.currentLineIndex].lineNumber);
         // console.log(that.currentPath);
