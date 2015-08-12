@@ -11,10 +11,9 @@
 
 //refresFunction is the function to refresh the display/render the scene
 //speeds are in inches by minutes (feedrate)
-GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
+//path is the instance of the class Path
+GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         fastSpeed) {
-    //TODO: integrate the initial position management by using the position
-    //of the meshes
     "use strict";
     var that = this;
 
@@ -34,15 +33,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     that.isAnimating = function() {
         return that.animating;
     };
-
-    function nearlyEqual(a, b) {
-        return Math.floor(a * 1000) === Math.floor(b * 1000);
-    }
-
-    function samePosition(posA, posB) {
-        return (nearlyEqual(posA.x, posB.x) && nearlyEqual(posA.y, posB.y) && 
-            nearlyEqual(posA.z, posB.z));
-    }
 
     function getPositionBit() {
         return {
@@ -64,11 +54,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         setPositionBit(pos);
     }
 
-    //TODO: delete
-    function printVector(name, vector) {
-        console.log(name + " = { x : "+vector.x+", y : "+vector.y+", z : "+vector.z+" }");
-    }
-
     //Give the move to do
     function deltaSpeed(position, destination, speed, deltaTime) {
         speed = speed * deltaTime;
@@ -87,102 +72,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
             z : dZ / length * speed
         };
 
-        // printVector("move", move);
         if(GCodeToGeometry.lengthVector3(move) > length) {
             return { x : dX, y : dY, z : dZ };
         }
         return move;
-    }
-
-    // that.setLines = function(lines) {
-    //     that.lines = lines;
-    // };
-
-    //Return true if a and b in the same position
-    function pointsEqual(a, b) {
-        return (a.x === b.x && a.y === b.y && a.z === b.z);
-    }
-
-    //Push in currentPath the vertices starting from the start to the end,
-    //i is the index to start searching in the vertices
-    //it returns the index of the the end + 1 or -1 if the end or start was not
-    //found (so can return i = length if the end was the last vertices)
-    function pushVerticesInPath(start, end, vertices, i) {
-        if(i >= vertices.length && i < 0) {
-            return -1;
-        }
-
-        while(i < vertices.length && pointsEqual(start, vertices[i]) === false) {
-            i++;
-        }
-        if(i >= vertices.length) {
-            return -1;
-        }
-
-        do {
-            that.currentPath.push(vertices[i]);
-            i++;
-        } while(i < vertices.length && pointsEqual(end, vertices[i]) === false);
-        if(i >= vertices.length) {
-            return -1;
-        }
-        if(pointsEqual(end, vertices[i]) === true) {
-            that.currentPath.push(vertices[i]);
-            i++;
-        }
-
-        return i;
-    }
-
-    //Return true if a path is set (path.length > 0), else false
-    function setPath(line) {
-        var i = 0;  //It could be deleted and work directly on the iVertexGn
-        var vertices = [];
-        that.currentPath = [];
-
-        //For the while(not start point): the meshes are dashed lines so some
-        //vertices appear twice. However, it should not enter in this loop
-        if(line.type === "G0") {
-            vertices = that.meshes.G0Undone.geometry.vertices;
-            i = that.iVertexG0;
-            i = pushVerticesInPath(line.start, line.end, vertices, i);
-            that.iVertexG0 = i;
-            that.currentSpeed = that.fastSpeed;
-            that.currentType = "G0";
-        } else if(line.type === "G1") {
-            vertices = that.meshes.G1Undone.geometry.vertices;
-            i = that.iVertexG1;
-            i = pushVerticesInPath(line.start, line.end, vertices, i);
-            that.iVertexG1 = i;
-            that.currentSpeed = that.normalSpeed;
-            that.currentType = "G1";
-        } else {
-            vertices = that.meshes.G2G3Undone.geometry.vertices;
-            i = that.iVertexG2G3;
-            i = pushVerticesInPath(line.beziers[0].p0,
-                    line.beziers[line.beziers.length - 1].p3, vertices, i);
-            that.iVertexG2G3 = i;
-            that.currentSpeed = that.normalSpeed;
-            that.currentType = "G2G3";
-        }
-
-        //I don't test the result of pushVerticesInPath because of the test here:
-        return (that.currentPath > 0);
-    }
-
-    //TODO: Rename after refactorization
-    function setPathFromLines() {
-        var i = 0, j = 0;
-        that.path = [];
-        for(i = 0; i < that.lines.length; i++) {
-            setPath(that.lines[i]);
-            for(j = 0; j < that.currentPath.length; j++) {
-                that.path.push({
-                    point : that.currentPath[j],
-                    type : that.currentType
-                });
-            }
-        }
     }
 
     //Used to have an smooth animation
@@ -193,70 +86,75 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
         return deltaTime;
     }
 
+    //Warn the path class of the current position
+    function warnPath() {
+        //TODO: use the methods from path class when it will be done
+        var type = that.currentPath[that.iPath].type;
+        if(type === "G0") {
+            console.log("done G0 vertex");
+        } else if(type === "G1") {
+            console.log("done G1 vertex");
+        } else if(type === "G2" || type === "G3") {
+            console.log("done G2G3 vertex");
+        }
+    }
+
+    function setCurrentSpeed() {
+        var type = that.currentPath[that.iPath].type;
+        if(type === "G0") {
+            that.currentSpeed = that.fastSpeed;
+        } else {
+            that.currentSpeed = that.normalSpeed;
+        }
+    }
+
+    //Check if need to change index of the path
+    //return true if continuing the animation, else false
+    function checkChangeIndexPath() {
+        //TODO: should be a while not if (else, jerk)
+        if(GCodeViewer.samePosition(that.currentPath[that.iPath].point,
+                    getPositionBit())) {
+            that.iPath++;
+
+            if(that.iPath >= that.currentPath.length) {
+                that.animating = false;
+                return false;
+            }
+            that.gui.highlight(that.currentPath[that.iPath].lineNumber);
+            setCurrentSpeed();
+        }
+        return true;
+    }
+
     function update() {
+        var deltaTime = calculateDeltaTime(); //Must be here to update each time
         if(that.animating === false) {
             return;
         }
 
-        if(that.currentPath.length === 0) {
-            that.currentLineIndex++;
-            if(that.currentLineIndex >= that.lines.length) {
-                that.animating = false;
-            } else {
-                if(setPath(that.lines[that.currentLineIndex]) === false) {
-                    return;
-                }
-                that.gui.highlight(that.lines[that.currentLineIndex].lineNumber);
-            }
-        } else {
-            var deltaTime = calculateDeltaTime();
-            var move = deltaSpeed(getPositionBit(), that.currentPath[0],
-                    that.currentSpeed, deltaTime);
-            moveBit(move);
-            //Here: send new position
-            if(samePosition(getPositionBit(), that.currentPath[0])) {
-                //TODO: say to the path class to add this vertice to the done
-                if(that.currentType === "G0") {
-                    console.log("done G0 vertex");
-                } else if(that.currentType === "G1") {
-                    console.log("done G1 vertex");
-                } else if(that.currentType === "G2G3") {
-                    console.log("done G2G3 vertex");
-                }
-                that.currentPath.shift();
-            }
+        warnPath();
+        if(checkChangeIndexPath() === false) {
+            return;
         }
+
+        var move = deltaSpeed(getPositionBit(),
+                that.currentPath[that.iPath].point,
+                that.currentSpeed, deltaTime);
+        moveBit(move);
 
         that.refreshFunction();
     }
 
     // returns true if start the animation; false if problem
-    that.startAnimation = function(lines, meshes) {
-        if(lines === undefined || meshes === undefined) {
-            return false;
-        }
-        that.lines = lines;
-        that.meshes = meshes;
-        if(lines.length === 0) {
-            return false;
-        }
-
-
-        //Index of the vertex of the geometry of the meshes
-        that.iVertexG0 = 0;
-        that.iVertexG1 = 0;
-        that.iVertexG2G3 = 0;
-
-        that.currentLineIndex = 0;
-        that.currentType = "";
-        // setPathFromLines();
-        // console.log(that.path);
-        setPath(that.lines[that.currentLineIndex]);
-        that.gui.highlight(that.lines[that.currentLineIndex].lineNumber);
-        // console.log(that.currentPath);
+    that.startAnimation = function() {
+        that.currentPath = that.path.getPath();
+        that.iPath = 0;
         if(that.currentPath.length > 0) {
-            setPositionBit(that.currentPath[0]);
+            that.gui.highlight(that.currentPath[that.iPath].lineNumber);
+            setPositionBit(that.currentPath[0].point);
+            setCurrentSpeed();
         }
+
         that.refreshFunction();
         that.animating = true;  //Must be at the end
 
@@ -282,13 +180,14 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, normalSpeed,
     }
 
     //initialize
-    that.lines = [];
-    that.meshes = {};
+    that.path = path;
     setSpeeds(normalSpeed, fastSpeed);
     that.scene = scene;
     that.refreshFunction = refreshFunction;
     that.gui = gui;
     createBit();
+
+    that.path = path;
 
     that.animating = false;
     that.lastTime = new Date().getTime();

@@ -234,6 +234,8 @@ GCodeViewer.Path = function(scene) {
         resetPathsGeo();
         resetPathsMesh();
         setGeometries(lines);
+        that.lines = lines;
+        that.initialPosition = { x : 0, y : 0, z : 0};
 
         that.meshG0Undone = new THREE.Line(that.geoG0Undone,
                 that.matG0Undone, THREE.LinePieces);
@@ -249,6 +251,9 @@ GCodeViewer.Path = function(scene) {
                 that.matG2G3Done, THREE.LinePieces);
 
         if(initialPosition !== undefined) {
+            that.initialPosition.x = initialPosition.x;
+            that.initialPosition.y = initialPosition.y;
+            that.initialPosition.z = initialPosition.z;
             that.meshG0Undone.position.set(initialPosition.x,
                     initialPosition.y, initialPosition.z);
             that.meshG1Undone.position.set(initialPosition.x,
@@ -262,6 +267,98 @@ GCodeViewer.Path = function(scene) {
             that.meshG2G3Done.position.set(initialPosition.x,
                     initialPosition.y, initialPosition.z);
         }
+    };
+
+    //Return the next index
+    function setPathFromVertices(path, vertices, index, end, type, lineNumber) {
+        if(index >= vertices.length) {
+            return -1;
+        }
+
+        while(index < vertices.length &&
+                GCodeViewer.pointsEqual(vertices[index], end) === false)
+        {
+            path.push({
+                point : GCodeViewer.copyPoint(vertices[index]),
+                type : type,
+                lineNumber : lineNumber
+            });
+            index++;
+        }
+
+        while(index < vertices.length &&
+                GCodeViewer.pointsEqual(vertices[index], end) === true)
+        {
+            path.push({
+                point : GCodeViewer.copyPoint(vertices[index]),
+                type : type,
+                lineNumber : lineNumber
+            });
+            index++;
+        }
+
+        return index;
+    }
+
+    function removeDoubloons(path) {
+        var i = 0;
+
+        for(i = 0; i < path.length; i++) {
+            while(i < path.length - 1 &&
+                    path[i].lineNumber === path[i+1].lineNumber &&
+                    GCodeViewer.pointsEqual(path[i].point, path[i+1].point))
+            {
+                path.splice(i+1, 1);
+            }
+        }
+    }
+
+    that.getPath = function() {
+        var path = [], vertices = [];
+        var iLine = 0, iG0 = 0, iG1 = 0, iG2G3 = 0;
+        var line = {}, end = {}, type = "", lineNumber = 0;
+
+        if(that.lines === undefined) {
+            return [];
+        }
+
+        //Copy all the vertices to the path
+        for(iLine = 0; iLine < that.lines.length; iLine++) {
+            line = that.lines[iLine];
+            type = line.type;
+            lineNumber = line.lineNumber;
+            if(type === "G0") {
+                vertices = that.meshG0Undone.geometry.vertices;
+                end = line.end;
+                iG0 = setPathFromVertices(path, vertices, iG0, end, type,
+                        lineNumber);
+                if(iG0 < 0) {
+                    return [];
+                }
+            } else if(type === "G1") {
+                vertices = that.meshG1Undone.geometry.vertices;
+                end = line.end;
+                iG1 = setPathFromVertices(path, vertices, iG1, end, type,
+                        lineNumber);
+                if(iG1 < 0) {
+                    return [];
+                }
+            } else if(type === "G2" || type === "G3") {
+                vertices = that.meshG2G3Undone.geometry.vertices;
+                end = line.beziers[line.beziers.length - 1].p3;
+                iG2G3 = setPathFromVertices(path, vertices, iG2G3, end, type,
+                        lineNumber);
+                if(iG2G3 < 0) {
+                    return [];
+                }
+            } else {
+                return [];  //unknown type
+            }
+        }
+
+        removeDoubloons(path);
+
+        return path;
     };
 
     // initialize

@@ -159,16 +159,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
 
     that.animatePath = function() {
-        var meshes = {
-            G0Undone : that.path.meshG0Undone,
-            G1Undone : that.path.meshG1Undone,
-            G2G3Undone : that.path.meshG2G3Undone,
-            G0Done : that.path.meshG0Done,
-            G1Done : that.path.meshG1Done,
-            G2G3Done : that.path.meshG2G3Done,
-        };
         that.animation.show();
-        that.animation.startAnimation(that.gcode.lines, meshes);
+        that.animation.startAnimation();
     };
 
     that.showBoard = function() {
@@ -226,6 +218,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.totalSize.setMeshes(that.gcode.size, that.inMm,
                 that.cncConfiguration.initialPosition);
         that.totalSize.add();
+        that.animation.hide();
+        that.animation.stopAnimation();
         that.showZ();
     };
 
@@ -296,5 +290,5 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     //Add animation
     that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
-            that.gui, 180, 360);  //normal: 3 in/s; fast: 6 in/s
+            that.gui, that.path, 180, 360);  //normal: 3 in/s; fast: 6 in/s
 };
