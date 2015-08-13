@@ -365,6 +365,7 @@ GCodeViewer.Path = function(scene) {
     that.isReachingPoint = function(pointPath, currentPosition) {
         var verticesDone = [], verticesUndone = [];
         var p = currentPosition;
+        console.log("point is reaching");
 
         if(pointPath.type === "G0") {
             verticesUndone = that.meshG0Undone.geometry.vertices;
@@ -378,10 +379,13 @@ GCodeViewer.Path = function(scene) {
         }
 
         if(verticesDone.length < 2) {
+            console.log("False for isReachingPoint");
             return false;
         }
         verticesUndone[0].set(p.x, p.y, p.z);
         verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
+
+        return true;
     };
 
     //When the bit reached this point
@@ -390,6 +394,7 @@ GCodeViewer.Path = function(scene) {
     that.reachedPoint = function(pointPath) {
         //TODO: manage to change meshes
         var verticesDone = [], verticesUndone = [];
+        console.log("point reached");
 
         if(pointPath.type === "G0") {
             verticesUndone = that.meshG0Undone.geometry.vertices;
@@ -403,6 +408,7 @@ GCodeViewer.Path = function(scene) {
         }
 
         if(verticesUndone.length < 2) {
+            console.log("False for reachedPoint");
             return false;
         }
 
@@ -427,6 +433,8 @@ GCodeViewer.Path = function(scene) {
             verticesDone.push(verticesUndone[0].clone());
             verticesDone.push(verticesUndone[0].clone());
         }
+
+        return true;
     };
 
     that.isReturningToPoint = function(pointPath, currentPosition) {
@@ -449,7 +457,7 @@ GCodeViewer.Path = function(scene) {
     that.matG2G3Undone = new THREE.LineBasicMaterial(
             { color : 0xffffff });
     that.matG0Done = new THREE.LineDashedMaterial(
-            { color : 0x8877dd, dashSize : 2 });
+            { color : 0xff0000, dashSize : 2 });
     that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
     that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xee6699 });
 };

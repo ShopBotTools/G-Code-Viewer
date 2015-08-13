@@ -164,6 +164,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
         that.gui.highlight(that.currentPath[that.iPath].lineNumber);
         setPositionBit(that.currentPath[0].point);
+        warnPath(true, true);
         setCurrentSpeed();
         that.refreshFunction();
         that.animating = true;  //Must be at the end
