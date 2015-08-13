@@ -361,6 +361,48 @@ GCodeViewer.Path = function(scene) {
         return path;
     };
 
+    //The bit did not reach yet on of the vertice
+    that.isReachingPoint = function(pointPath, currentPosition) {
+        var verticesDone = [], verticesUndone = [];
+        var p = currentPosition;
+
+        if(pointPath.type === "G0") {
+            verticesUndone = that.meshG0Undone.geometry.vertices;
+            verticesDone = that.meshG0Done.geometry.vertices;
+        } else if(pointPath.type === "G1") {
+            verticesUndone = that.meshG1Undone.geometry.vertices;
+            verticesDone = that.meshG1Done.geometry.vertices;
+        } else {  //I assume the types are correct
+            verticesUndone = that.meshG2G3Undone.geometry.vertices;
+            verticesDone = that.meshG2G3Done.geometry.vertices;
+        }
+        verticesUndone[0].set(p.x, p.y, p.z);
+        verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
+    };
+
+    //When the bit reached this point
+    //pointPath is a cell of the path of type:
+    //{ point : {x, y, z}, type, lineNumber }
+    that.reachedPoint = function(pointPath) {
+        //TODO: manage to change meshes
+
+        if(pointPath.type === "G0") {
+            // if(samePosition(pointPath.point,
+        }
+
+        //if point in undone: add three vertices
+        //
+    };
+
+    that.isReturningToPoint = function(pointPath, currentPosition) {
+    };
+
+    //pointPath is a cell of the path of type:
+    //{ point : {x, y, z}, type, lineNumber }
+    that.returnedToPoint = function(pointPath) {
+        //TODO: manage to change meshes
+    };
+
     // initialize
     that.scene = scene;
     resetPathsGeo();

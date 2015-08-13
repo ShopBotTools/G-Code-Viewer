@@ -87,15 +87,23 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     }
 
     //Warn the path class of the current position
-    function warnPath() {
-        //TODO: use the methods from path class when it will be done
-        var type = that.currentPath[that.iPath].type;
-        if(type === "G0") {
-            console.log("done G0 vertex");
-        } else if(type === "G1") {
-            console.log("done G1 vertex");
-        } else if(type === "G2" || type === "G3") {
-            console.log("done G2G3 vertex");
+    //forward {bool}, true if the bit goes forward (do the path chronologically)
+    //changedIndex: if true, means that the point reached the current point
+    function warnPath(forward, changedIndex) {
+        if(changedIndex === true) {
+            if(forward === true) {
+                that.path.reachedPoint(that.currentPath[that.iPath]);
+            } else {
+                that.path.returnedToPoint(that.currentPath[that.iPath]);
+            }
+        } else {
+            if(forward === true) {
+                that.path.isReachingPoint(that.currentPath[that.iPath],
+                        getPositionBit());
+            } else {
+                that.path.isReturningToPoint(that.currentPath[that.iPath],
+                        getPositionBit());
+            }
         }
     }
 
@@ -111,9 +119,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     //Check if need to change index of the path
     //return true if continuing the animation, else false
     function checkChangeIndexPath() {
-        //TODO: should be a while not if (else, jerk)
+        //TODO: should be a while not if (else, maybe jerk)
         if(GCodeViewer.samePosition(that.currentPath[that.iPath].point,
                     getPositionBit())) {
+            warnPath(true, true);
             that.iPath++;
 
             if(that.iPath >= that.currentPath.length) {
@@ -132,7 +141,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             return;
         }
 
-        warnPath();
+        warnPath(true, false);
         if(checkChangeIndexPath() === false) {
             return;
         }
