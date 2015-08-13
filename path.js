@@ -376,6 +376,10 @@ GCodeViewer.Path = function(scene) {
             verticesUndone = that.meshG2G3Undone.geometry.vertices;
             verticesDone = that.meshG2G3Done.geometry.vertices;
         }
+
+        if(verticesDone.length < 2) {
+            return false;
+        }
         verticesUndone[0].set(p.x, p.y, p.z);
         verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
     };
@@ -385,13 +389,44 @@ GCodeViewer.Path = function(scene) {
     //{ point : {x, y, z}, type, lineNumber }
     that.reachedPoint = function(pointPath) {
         //TODO: manage to change meshes
+        var verticesDone = [], verticesUndone = [];
 
         if(pointPath.type === "G0") {
-            // if(samePosition(pointPath.point,
+            verticesUndone = that.meshG0Undone.geometry.vertices;
+            verticesDone = that.meshG0Done.geometry.vertices;
+        } else if(pointPath.type === "G1") {
+            verticesUndone = that.meshG1Undone.geometry.vertices;
+            verticesDone = that.meshG1Done.geometry.vertices;
+        } else {  //I assume the types are correct
+            verticesUndone = that.meshG2G3Undone.geometry.vertices;
+            verticesDone = that.meshG2G3Done.geometry.vertices;
         }
 
-        //if point in undone: add three vertices
-        //
+        if(verticesUndone.length < 2) {
+            return false;
+        }
+
+        if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1])) {
+            //Means we finished a whole line section
+            //Remove the two, make sure
+            if(verticesDone.length > 0) {
+                verticesDone[verticesDone.length -1].x = verticesDone[1].x;
+                verticesDone[verticesDone.length -1].y = verticesDone[1].y;
+                verticesDone[verticesDone.length -1].z = verticesDone[1].z;
+            }
+            // else {
+            // The idea was two put two vertices but why? If no vertice was
+            // added already, that means the start and end positions of this
+            // line section was in the same place. So it does nothing
+            // }
+            verticesUndone.splice(0, 2);
+        } else {
+            //Means we are a the start of a line section
+            //Add the start of the line section and the vertice which will
+            // follow the bit
+            verticesDone.push(verticesUndone[0].clone());
+            verticesDone.push(verticesUndone[0].clone());
+        }
     };
 
     that.isReturningToPoint = function(pointPath, currentPosition) {
