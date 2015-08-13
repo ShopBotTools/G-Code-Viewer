@@ -364,26 +364,37 @@ GCodeViewer.Path = function(scene) {
     //The bit did not reach yet on of the vertice
     that.isReachingPoint = function(pointPath, currentPosition) {
         var verticesDone = [], verticesUndone = [];
+        var geometryDone = [], geometryUndone = [];
         var p = currentPosition;
         console.log("point is reaching");
 
         if(pointPath.type === "G0") {
             verticesUndone = that.meshG0Undone.geometry.vertices;
             verticesDone = that.meshG0Done.geometry.vertices;
+            geometryUndone = that.meshG0Undone.geometry;
+            geometryDone = that.meshG0Done.geometry;
         } else if(pointPath.type === "G1") {
             verticesUndone = that.meshG1Undone.geometry.vertices;
             verticesDone = that.meshG1Done.geometry.vertices;
+            geometryUndone = that.meshG1Undone.geometry;
+            geometryDone = that.meshG1Done.geometry;
         } else {  //I assume the types are correct
             verticesUndone = that.meshG2G3Undone.geometry.vertices;
             verticesDone = that.meshG2G3Done.geometry.vertices;
+            geometryUndone = that.meshG2G3Undone.geometry;
+            geometryDone = that.meshG2G3Done.geometry;
         }
 
         if(verticesDone.length < 2) {
             console.log("False for isReachingPoint");
             return false;
         }
+        geometryUndone.dynamic = true;
+        geometryDone.dynamic = true;
         verticesUndone[0].set(p.x, p.y, p.z);
         verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
+        geometryUndone.verticesNeedUpdate = true;
+        geometryDone.verticesNeedUpdate = true;
 
         return true;
     };
@@ -394,17 +405,24 @@ GCodeViewer.Path = function(scene) {
     that.reachedPoint = function(pointPath) {
         //TODO: manage to change meshes
         var verticesDone = [], verticesUndone = [];
+        var geometryDone = [], geometryUndone = [];
         console.log("point reached");
 
         if(pointPath.type === "G0") {
             verticesUndone = that.meshG0Undone.geometry.vertices;
             verticesDone = that.meshG0Done.geometry.vertices;
+            geometryUndone = that.meshG0Undone.geometry;
+            geometryDone = that.meshG0Done.geometry;
         } else if(pointPath.type === "G1") {
             verticesUndone = that.meshG1Undone.geometry.vertices;
             verticesDone = that.meshG1Done.geometry.vertices;
+            geometryUndone = that.meshG1Undone.geometry;
+            geometryDone = that.meshG1Done.geometry;
         } else {  //I assume the types are correct
             verticesUndone = that.meshG2G3Undone.geometry.vertices;
             verticesDone = that.meshG2G3Done.geometry.vertices;
+            geometryUndone = that.meshG2G3Undone.geometry;
+            geometryDone = that.meshG2G3Done.geometry;
         }
 
         if(verticesUndone.length < 2) {
@@ -412,6 +430,8 @@ GCodeViewer.Path = function(scene) {
             return false;
         }
 
+        geometryUndone.dynamic = true;
+        geometryDone.dynamic = true;
         if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1])) {
             //Means we finished a whole line section
             //Remove the two, make sure
@@ -433,6 +453,8 @@ GCodeViewer.Path = function(scene) {
             verticesDone.push(verticesUndone[0].clone());
             verticesDone.push(verticesUndone[0].clone());
         }
+        geometryUndone.verticesNeedUpdate = true;
+        geometryDone.verticesNeedUpdate = true;
 
         return true;
     };
@@ -459,5 +481,5 @@ GCodeViewer.Path = function(scene) {
     that.matG0Done = new THREE.LineDashedMaterial(
             { color : 0xff0000, dashSize : 2 });
     that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
-    that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xee6699 });
+    that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
 };
