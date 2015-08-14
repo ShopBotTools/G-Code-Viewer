@@ -154,6 +154,14 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.refreshFunction();
     }
 
+    that.pause = function() {
+        that.animating = false;
+    };
+
+    that.resume = function() {
+        that.animating = true;
+    };
+
     // returns true if start the animation; false if problem
     that.startAnimation = function() {
         that.currentPath = that.path.getPath();
