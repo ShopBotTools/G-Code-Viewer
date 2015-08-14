@@ -120,8 +120,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     //return true if continuing the animation, else false
     function checkChangeIndexPath() {
         //TODO: should be a while not if (else, maybe jerk)
-        if(GCodeViewer.samePosition(that.currentPath[that.iPath].point,
-                    getPositionBit())) {
+        while(that.iPath < that.currentPath.length &&
+                GCodeViewer.samePosition(that.currentPath[that.iPath].point,
+                    getPositionBit()) === true) {
             warnPath(true, true);
             that.iPath++;
 
@@ -141,7 +142,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             return;
         }
 
-        warnPath(true, false);
         if(checkChangeIndexPath() === false) {
             return;
         }
@@ -150,6 +150,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
                 that.currentPath[that.iPath].point,
                 that.currentSpeed, deltaTime);
         moveBit(move);
+        warnPath(true, false);
 
         that.refreshFunction();
     }
@@ -172,7 +173,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
         that.gui.highlight(that.currentPath[that.iPath].lineNumber);
         setPositionBit(that.currentPath[0].point);
-        warnPath(true, true);
+        // warnPath(true, true);
         setCurrentSpeed();
         that.refreshFunction();
         that.animating = true;  //Must be at the end

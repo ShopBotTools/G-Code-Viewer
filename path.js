@@ -398,7 +398,6 @@ GCodeViewer.Path = function(scene) {
                 that.scene.add(that.meshG2G3Undone);
             }
         }
-
     }
 
     //The bit did not reach yet on of the vertice
@@ -429,6 +428,7 @@ GCodeViewer.Path = function(scene) {
             console.log("False for isReachingPoint");
             return false;
         }
+        console.log("Reaching: " + pointPath.type);
         verticesUndone[0].set(p.x, p.y, p.z);
         verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
         changeMesh(meshDone, verticesDone, pointPath.type, true);
@@ -441,6 +441,7 @@ GCodeViewer.Path = function(scene) {
     //pointPath is a cell of the path of type:
     //{ point : {x, y, z}, type, lineNumber }
     that.reachedPoint = function(pointPath) {
+        console.log("Reached : " + pointPath.type);
         //TODO: manage to change meshes
         var verticesDone = [], verticesUndone = [];
         var meshDone = {}, meshUndone = {};
@@ -467,50 +468,96 @@ GCodeViewer.Path = function(scene) {
             return false;
         }
 
-        // //At the end of a whole command path, there will be three vertices,
-        // // which is not a problem (but not optimized)
-        // // One that now represents the end of the section
-        // // An other used because of dashed line
-        // // The last used for representing the bit position
-        // //The important thing is that there must be in the same position
-        // // an odd number of vertices
-        // if(verticesDone.length > 0) {
-        //     verticesDone[verticesDone.length -1].x = verticesUndone[0].x;
-        //     verticesDone[verticesDone.length -1].y = verticesUndone[0].y;
-        //     verticesDone[verticesDone.length -1].z = verticesUndone[0].z;
-        // }
-        // verticesDone.push(verticesUndone[0].clone());
-        // verticesDone.push(verticesUndone[0].clone());
-        // verticesUndone.splice(0, 2);
+        //For the done meshes, we have three situations:
+        // 1. Start of a path: need to add two vertices (one for the start,
+        //      one for the bit position)
+        // 2. End of an intermediate path: need to set the last vertice to
+        //      the end position add two vertices (same rule than before)
+        // 3. End of a path: need to set the last vertice to the end position
+        //For the undone meshes:
+        // 1. Start of a path: nothing to do, the first vertice will follow
+        //      the bit position
+        // 2. End of any sort of path: delete the two first vertices
 
-        if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1])) {
-            //Means we finished a whole line section
-            //Remove the two, make sure
-            // if(verticesDone.length > 0) {
-            //     verticesDone[verticesDone.length -1].x = verticesUndone[1].x;
-            //     verticesDone[verticesDone.length -1].y = verticesUndone[1].y;
-            //     verticesDone[verticesDone.length -1].z = verticesUndone[1].z;
-            // }
-            console.log("Whole section done");
-            // else {
-            // The idea was two put two vertices but why? If no vertice was
-            // added already, that means the start and end positions of this
-            // line section was in the same place. So it does nothing
-            // }
+        //Start of a path
+        if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1]) === false) {
+            // console.log("Start of a path");
             verticesDone.push(verticesUndone[0].clone());
             verticesDone.push(verticesUndone[0].clone());
+            // console.log(verticesDone);
+        } else {  //End of a path (intermediate or not)
+            if(verticesDone.length > 0) {
+                // console.log("WOOOOOOOOOUUUUUUUUUUUUUUUUUUUUUUUAAAAAAAAAAAH!!!");
+                verticesDone[verticesDone.length -1].x = verticesUndone[0].x;
+                verticesDone[verticesDone.length -1].y = verticesUndone[0].y;
+                verticesDone[verticesDone.length -1].z = verticesUndone[0].z;
+                // console.log(verticesDone);
+            }
+            //End of an intermediate
+            if(verticesUndone.length > 2 &&
+                    GCodeViewer.samePosition(verticesUndone[0], verticesUndone[2]) === true) {
+                console.log("End of intermediate path");
+                verticesDone.push(verticesUndone[0].clone());
+                verticesDone.push(verticesUndone[0].clone());
+                console.log(verticesDone);
+            }
+            else {  //TODO: delete this else
+                console.log("End of path");
+            }
+
             verticesUndone.splice(0, 2);
-            // console.log(verticesUndone[0]);
-            // console.log(verticesUndone[1]);
-            // console.log(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1]));
-        } else {
-            //Means we are a the start of a line section
-            //Add the start of the line section and the vertice which will
-            // follow the bit
-            console.log("Start new section");
-            verticesDone.push(verticesUndone[0].clone());
-            verticesDone.push(verticesUndone[0].clone());
         }
+
+        // if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1]) === true) {
+        //     //TODO: Resolve problem here, add too much vertices in undone
+        //
+        //     //Means we finished a whole line section
+        //     //Remove the two, make sure
+        //     // if(verticesDone.length > 0) {
+        //     //     verticesDone[verticesDone.length -1].x = verticesUndone[1].x;
+        //     //     verticesDone[verticesDone.length -1].y = verticesUndone[1].y;
+        //     //     verticesDone[verticesDone.length -1].z = verticesUndone[1].z;
+        //     // }
+        //     console.log("Whole section done");
+        //     // else {
+        //     // The idea was two put two vertices but why? If no vertice was
+        //     // added already, that means the start and end positions of this
+        //     // line section was in the same place. So it does nothing
+        //     // }
+        //
+        //     if(verticesDone.length > 0) {
+        //         endOfPath = GCodeViewer.samePosition(verticesUndone[1]
+        //         if(verticesUndone.length > 2 &&
+        //             
+        //     }
+        //
+        //     // //Test if done is in bit position
+        //     // if(verticesDone.length > 0) {
+        //     //     if(GCodeViewer.samePosition(verticesDone[verticesDone.length-1],
+        //     //                 verticesDone[0])) {
+        //     //         verticesDone[verticesDone.length -1].x = verticesUndone[1].x;
+        //     //         verticesDone[verticesDone.length -1].y = verticesUndone[1].y;
+        //     //         verticesDone[verticesDone.length -1].z = verticesUndone[1].z;
+        //     //         verticesDone.push(verticesUndone[1].clone());
+        //     //     } // else {
+        //     //         verticesDone.push(verticesUndone[1].clone());
+        //     //         verticesDone.push(verticesUndone[1].clone());
+        //     //     //}
+        //     // }
+        //     // // verticesDone.push(verticesUndone[0].clone());
+        //     // // verticesDone.push(verticesUndone[0].clone());
+        //
+        //     verticesUndone.splice(0, 2);
+        // } else {
+        //     //Means we are a the start of a line section
+        //     //Add the start of the line section and the vertice which will
+        //     // follow the bit
+        //     console.log("Start new section");
+        //
+        //     //NOTE: seems to be good
+        //     verticesDone.push(verticesUndone[0].clone());
+        //     verticesDone.push(verticesUndone[0].clone());
+        // }
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
         changeMesh(meshUndone, verticesUndone, pointPath.type, false);
@@ -543,7 +590,7 @@ GCodeViewer.Path = function(scene) {
     that.matG2G3Undone = new THREE.LineBasicMaterial(
             { color : 0xffffff });
     that.matG0Done = new THREE.LineDashedMaterial(
-            { color : 0xff0000, dashSize : 2 });
-    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
-    that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff0000 });
+            { color : 0xff00ff, dashSize : 2 });
+    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
+    that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
 };
