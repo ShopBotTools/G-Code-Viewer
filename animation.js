@@ -20,6 +20,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     var lengthBit = 3;
 
     that.show = function() {
+        console.log("Afficher");
         that.scene.add(that.bit);
         that.refreshFunction();
     };
@@ -137,7 +138,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     function update() {
         var deltaTime = calculateDeltaTime(); //Must be here to update each time
-        if(that.animating === false) {
+        // if(that.animating === false) {
+        if(that.isRunning() === false) {
             return;
         }
 
@@ -155,15 +157,34 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     }
 
     that.pause = function() {
-        that.animating = false;
+        that.isInPause = true;
+        // that.animating = false;
     };
 
     that.resume = function() {
-        that.animating = true;
+        that.isInPause = false;
+        // that.animating = true;
+    };
+
+    that.stop = function() {
+        that.isInPause = false;
+        that.animating = false;
+    };
+
+    that.isPaused = function() {
+        return that.isInPause === true && that.animating === true;
+    };
+
+    that.isStopped = function() {
+        return that.isInPause === false && that.animating === false;
+    };
+
+    that.isRunning = function() {
+        return that.isInPause === false && that.animating === true;
     };
 
     // returns true if start the animation; false if problem
-    that.startAnimation = function() {
+    that.start = function() {
         that.currentPath = that.path.getPath();
         that.iPath = 0;
         if(that.currentPath.length === 0) {
@@ -175,13 +196,11 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         // warnPath(true, true);
         setCurrentSpeed();
         that.refreshFunction();
+
         that.animating = true;  //Must be at the end
+        that.isInPause = false;
 
         return true;
-    };
-
-    that.stopAnimation = function() {
-        that.animating = false;
     };
 
     function createBit() {
@@ -208,7 +227,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     that.path = path;
 
-    that.animating = false;
+    // that.animating = false;
+    that.stop();
     that.lastTime = new Date().getTime();
     setInterval(update, 41);  //41 = 240 FPS (not a vidya but below it is rough)
 };
