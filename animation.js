@@ -119,7 +119,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     //Check if need to change index of the path
     //return true if continuing the animation, else false
     function checkChangeIndexPath() {
-        //TODO: should be a while not if (else, maybe jerk)
         while(that.iPath < that.currentPath.length &&
                 GCodeViewer.samePosition(that.currentPath[that.iPath].point,
                     getPositionBit()) === true) {
