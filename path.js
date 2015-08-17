@@ -269,6 +269,25 @@ GCodeViewer.Path = function(scene) {
         }
     };
 
+    //Redo the meshes as it was
+    that.redoMeshes = function() {
+        that.remove();
+        // that.meshG0Undone = new THREE.Line(that.geoG0Undone,
+        //         that.matG0Undone, THREE.LinePieces);
+        // that.meshG1Undone = new THREE.Line(that.geoG1Undone,
+        //         that.matG1Undone, THREE.LinePieces);
+        // that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone,
+        //         that.matG2G3Undone, THREE.LinePieces);
+        // that.meshG0Done = new THREE.Line(that.geoG0Done,
+        //         that.matG0Done, THREE.LinePieces);
+        // that.meshG1Done = new THREE.Line(that.geoG1Done,
+        //         that.matG1Done, THREE.LinePieces);
+        // that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
+        //         that.matG2G3Done, THREE.LinePieces);
+        that.setMeshes(that.lines, that.initialPosition);
+        that.add();
+    };
+
     //Return the next index
     function setPathFromVertices(path, vertices, index, end, type, lineNumber) {
         if(index >= vertices.length) {

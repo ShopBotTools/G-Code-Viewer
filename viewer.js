@@ -219,7 +219,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
                 that.cncConfiguration.initialPosition);
         that.totalSize.add();
         that.animation.hide();
-        that.animation.stop();
+        that.animation.reset();
         that.showZ();
     };
 
@@ -279,13 +279,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     var resumeButtonFun = function () {
         if(that.animation.isStopped()) {
             console.log("Start");
-            // that.animation.start();
             that.animatePath();
         } else if(that.animation.isPaused()) {
             console.log("resume");
             that.animation.resume();
-        } else {
-            console.log("Ahahaha");
         }
     };
 
@@ -300,7 +297,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         orthographic : that.setOrthographicCamera,
         resume : resumeButtonFun,
         pause : function() { that.animation.pause(); },
-        reset : that.viewPaths  //TODO: make a real reset function
+        reset : function() { that.animation.reset(); }
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
 

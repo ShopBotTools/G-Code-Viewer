@@ -9,7 +9,7 @@
  * This file contains the class managing the animation of the bit.
  */
 
-//refresFunction is the function to refresh the display/render the scene
+//refreshFunction is the function to refresh the display/render the scene
 //speeds are in inches by minutes (feedrate)
 //path is the instance of the class Path
 GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
@@ -138,7 +138,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     function update() {
         var deltaTime = calculateDeltaTime(); //Must be here to update each time
-        // if(that.animating === false) {
         if(that.isRunning() === false) {
             return;
         }
@@ -155,21 +154,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
         that.refreshFunction();
     }
-
-    that.pause = function() {
-        that.isInPause = true;
-        // that.animating = false;
-    };
-
-    that.resume = function() {
-        that.isInPause = false;
-        // that.animating = true;
-    };
-
-    that.stop = function() {
-        that.isInPause = false;
-        that.animating = false;
-    };
 
     that.isPaused = function() {
         return that.isInPause === true && that.animating === true;
@@ -201,6 +185,30 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.isInPause = false;
 
         return true;
+    };
+
+    that.pause = function() {
+        if(that.isStopped() === false) {
+            that.isInPause = true;
+        }
+    };
+
+    that.resume = function() {
+        if(that.isStopped() === false) {
+            that.isInPause = false;
+        }
+    };
+
+    that.stop = function() {
+        that.isInPause = false;
+        that.animating = false;
+    };
+
+    that.reset = function() {
+        setPositionBit({ x : 0, y : 0, z : 0 });
+        that.path.redoMeshes();
+        that.stop();
+        that.refreshFunction();
     };
 
     function createBit() {
