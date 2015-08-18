@@ -127,6 +127,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
             if(that.iPath >= that.currentPath.length) {
                 that.animating = false;
+                that.gui.setStatusAnimation("stop");
                 return false;
             }
             that.gui.highlight(that.currentPath[that.iPath].lineNumber);
@@ -236,18 +237,21 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     that.pause = function() {
         if(that.isStopped() === false) {
             that.isInPause = true;
+            that.gui.setStatusAnimation("pause");
         }
     };
 
     that.resume = function() {
         if(that.isStopped() === false) {
             that.isInPause = false;
+            that.gui.setStatusAnimation("running");
         }
     };
 
     that.stop = function() {
         that.isInPause = false;
         that.animating = false;
+        that.gui.setStatusAnimation("stop");
     };
 
     that.reset = function() {

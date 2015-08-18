@@ -44,6 +44,16 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         scrollTo(elt, lineNumber);
     };
 
+    that.setStatusAnimation = function(animationStatus) {
+        if(animationStatus === "running") {
+            that.widgets.resume.hidden = true;
+            that.widgets.pause.hidden = false;
+        } else {
+            that.widgets.resume.hidden = false;
+            that.widgets.pause.hidden = true;
+        }
+    };
+
     function addWidget(id, x, y, src) {
         var elt = document.createElement("img");
         elt.id = id;
