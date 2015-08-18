@@ -443,7 +443,6 @@ GCodeViewer.Path = function(scene) {
         }
 
         if(verticesDone.length < 2) {
-            console.log("False for isReachingPoint");
             return false;
         }
         verticesUndone[0].set(p.x, p.y, p.z);
@@ -479,7 +478,6 @@ GCodeViewer.Path = function(scene) {
         }
 
         if(verticesUndone.length < 2) {
-            console.log("False for reachedPoint");
             return false;
         }
 
@@ -509,9 +507,6 @@ GCodeViewer.Path = function(scene) {
                     GCodeViewer.samePosition(verticesUndone[0], verticesUndone[2]) === true) {
                 verticesDone.push(verticesUndone[0].clone());
                 verticesDone.push(verticesUndone[0].clone());
-            }
-            else {  //TODO: delete this else
-                console.log("End of path");
             }
 
             verticesUndone.splice(0, 2);

@@ -57,14 +57,13 @@ GCodeViewer.Gui = function(domElement, callbacks) {
     function addWidget(id, x, y, src) {
         var elt = document.createElement("img");
         elt.id = id;
+        that.widgets[id] = elt;
         elt.src = src;
         elt.style.cursor = "pointer";
         elt.style.position = "absolute";
         elt.style.zIndex = 2;
-        elt.style.left = x + "px";
-        elt.style.top = y + "px";
         domElement.parentNode.appendChild(elt);
-        that.widgets[id] = elt;
+        placeWidget(id, x, y);
     }
 
     //Set the buttons for displaying the planes. X and Y for the first button

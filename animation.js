@@ -198,7 +198,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     }
 
     //Go to the command in the line number
-    //Return false if lineNumber is wrong
+    //Returns false if lineNumber is wrong
     that.goTo = function(lineNumber) {
         that.path.redoMeshes();
         that.stop();
@@ -290,7 +290,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     that.refreshFunction = refreshFunction;
     that.gui = gui;
     createBit();
-
 
     that.stop();
     that.lastTime = new Date().getTime();

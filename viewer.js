@@ -290,10 +290,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     //Add the UI
     var resumeButtonFun = function () {
         if(that.animation.isStopped()) {
-            console.log("Start");
             that.animatePath();
         } else if(that.animation.isPaused()) {
-            console.log("resume");
             that.animation.resume();
         }
     };
