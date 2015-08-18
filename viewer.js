@@ -297,6 +297,11 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         }
     };
 
+    var goToLineFun = function(lineNumber) {
+        that.animation.show();
+        that.animation.goTo(lineNumber);
+    };
+
     //Add the UI
     var callbacks = {
         showX : that.showX,
@@ -308,7 +313,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         orthographic : that.setOrthographicCamera,
         resume : resumeButtonFun,
         pause : function() { that.animation.pause(); },
-        reset : function() { that.animation.reset(); }
+        reset : function() { that.animation.reset(); },
+        goToLine : goToLineFun
+
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
 

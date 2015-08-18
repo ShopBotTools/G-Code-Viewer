@@ -191,7 +191,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     function fineIndexPath(lineNumber) {
         var i = 0;
         for(i=0; i < that.currentPath.length; i++) {
-            if(that.currentPath[i].lineNumber === lineNumber) {
+            if(that.currentPath[i].lineNumber >= lineNumber) {
                 return i;
             }
         }

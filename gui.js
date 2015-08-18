@@ -157,8 +157,6 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         domElement.parentNode.appendChild(div);
         that.widgets[id] = div;
         placeWidget("divGCode", ((domElement.width - width) / 2), y);
-        // div.style.left = ((domElement.width - width) / 2) + "px";
-        // div.style.top = y + "px";
 
         var p = document.createElement("p");
         p.style.width = "100%";
@@ -197,6 +195,14 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         return str + line + " | ";
     }
 
+    //Weird stuff for JavaScript awesome hipstered awesomeness lolilol le meme
+    // (sarcasm intended)
+    function makeLiHandler(lineNumber) {
+        return function() {
+            return that.cbGoToLine(lineNumber);
+        };
+    }
+
     //gcode is the array in the parsed gcode
     that.setGCode = function(gcode) {
         var i = 0;
@@ -213,7 +219,9 @@ GCodeViewer.Gui = function(domElement, callbacks) {
             li.id = "li-"+(i+1);
             li.style.listStyleType = "none";
             li.style.background = "#7f7f7f";
+            li.style.cursor = "pointer";
             that.widgets.listGCode.appendChild(li);
+            li.onclick = makeLiHandler(i+1);
         }
         scrollTo(li, 0);
     };
@@ -272,6 +280,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
     setCameraButtons(x, y, callbacks.perspective, callbacks.orthographic);
 
     setGCodeInterface(5);
+    that.cbGoToLine = callbacks.goToLine;
 
     y = domElement.height - GCodeViewer.iconSize - that.margin;
     setAnimationButtons(y, callbacks.resume, callbacks.pause, callbacks.reset);
