@@ -257,7 +257,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.camera = {};
     that.scene = {};
     that.controls = {};
-    that.cncConfiguration= {};
+    that.cncConfiguration = {};
     that.gcode = {};
 
     that.inMm = false;
@@ -287,6 +287,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.showBoard();
     that.refreshDisplay();
 
+    //Add the UI
     var resumeButtonFun = function () {
         if(that.animation.isStopped()) {
             console.log("Start");
@@ -302,7 +303,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.animation.goTo(lineNumber);
     };
 
-    //Add the UI
     var callbacks = {
         showX : that.showX,
         showY : that.showY,
@@ -319,7 +319,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
 
+    //normal: 3 in/s; fast: 6 in/s
     //Add animation
     that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
-            that.gui, that.path, 180, 360);  //normal: 3 in/s; fast: 6 in/s
+            that.gui, that.path, 180, 360,
+            that.cncConfiguration.initialPosition);
 };

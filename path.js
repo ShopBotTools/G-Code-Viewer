@@ -272,18 +272,6 @@ GCodeViewer.Path = function(scene) {
     //Redo the meshes as it was
     that.redoMeshes = function() {
         that.remove();
-        // that.meshG0Undone = new THREE.Line(that.geoG0Undone,
-        //         that.matG0Undone, THREE.LinePieces);
-        // that.meshG1Undone = new THREE.Line(that.geoG1Undone,
-        //         that.matG1Undone, THREE.LinePieces);
-        // that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone,
-        //         that.matG2G3Undone, THREE.LinePieces);
-        // that.meshG0Done = new THREE.Line(that.geoG0Done,
-        //         that.matG0Done, THREE.LinePieces);
-        // that.meshG1Done = new THREE.Line(that.geoG1Done,
-        //         that.matG1Done, THREE.LinePieces);
-        // that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
-        //         that.matG2G3Done, THREE.LinePieces);
         that.setMeshes(that.lines, that.initialPosition);
         that.add();
     };
@@ -383,7 +371,7 @@ GCodeViewer.Path = function(scene) {
     //This is ridculous not to manage to update the vertices
     //Change the selectionned mesh
     function changeMesh(mesh, vertices, type, done) {
-        var mat = {};
+        var mat = {}, pos = {};
         var geo = new THREE.Geometry();
         geo.vertices = vertices;
         that.scene.remove(mesh);
@@ -391,29 +379,41 @@ GCodeViewer.Path = function(scene) {
         if(done === true) {
             if(type === "G0") {
                 mat = that.matG0Done;
+                pos = that.meshG0Done.position.clone();
                 that.meshG0Done = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG0Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG0Done);
             } else if(type === "G1") {
                 mat = that.matG1Done;
+                pos = that.meshG1Done.position.clone();
                 that.meshG1Done = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG1Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG1Done);
             } else {
                 mat = that.matG2G3Done;
+                pos = that.meshG2G3Done.position.clone();
                 that.meshG2G3Done = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG2G3Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG2G3Done);
             }
         } else {
             if(type === "G0") {
                 mat = that.matG0Undone;
+                pos = that.meshG0Undone.position.clone();
                 that.meshG0Undone = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG0Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG0Undone);
             } else if(type === "G1") {
                 mat = that.matG1Undone;
+                pos = that.meshG1Undone.position.clone();
                 that.meshG1Undone = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG1Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG1Undone);
             } else {
                 mat = that.matG2G3Undone;
+                pos = that.meshG2G3Undone.position.clone();
                 that.meshG2G3Undone = new THREE.Line(geo, mat, THREE.LinePieces);
+                that.meshG2G3Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG2G3Undone);
             }
         }

@@ -13,7 +13,7 @@
 //speeds are in inches by minutes (feedrate)
 //path is the instance of the class Path
 GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
-        fastSpeed) {
+        fastSpeed, initialPosition) {
     "use strict";
     var that = this;
 
@@ -38,7 +38,16 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return {
             x : that.bit.position.x,
             y : that.bit.position.y,
-            z : that.bit.position.z - lengthBit / 2,
+            z : that.bit.position.z - lengthBit / 2
+        };
+    }
+
+    function getPositionBitRelative() {
+        var pos = getPositionBit();
+        return {
+            x : pos.x - that.initialPosition.x,
+            y : pos.y - that.initialPosition.y,
+            z : pos.z - that.initialPosition.z
         };
     }
 
@@ -99,10 +108,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         } else {
             if(forward === true) {
                 that.path.isReachingPoint(that.currentPath[that.iPath],
-                        getPositionBit());
+                        getPositionBitRelative());
             } else {
                 that.path.isReturningToPoint(that.currentPath[that.iPath],
-                        getPositionBit());
+                        getPositionBitRelative());
             }
         }
     }
@@ -121,7 +130,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     function checkChangeIndexPath() {
         while(that.iPath < that.currentPath.length &&
                 GCodeViewer.samePosition(that.currentPath[that.iPath].point,
-                    getPositionBit()) === true) {
+                    getPositionBitRelative()) === true) {
             warnPath(true, true);
             that.iPath++;
 
@@ -146,7 +155,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             return;
         }
 
-        var move = deltaSpeed(getPositionBit(),
+        var move = deltaSpeed(getPositionBitRelative(),
                 that.currentPath[that.iPath].point,
                 that.currentSpeed, deltaTime);
         moveBit(move);
@@ -176,7 +185,11 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         }
 
         that.gui.highlight(that.currentPath[that.iPath].lineNumber);
-        setPositionBit(that.currentPath[0].point);
+        setPositionBit({
+            x : that.initialPosition.x + that.currentPath[0].point.x,
+            y : that.initialPosition.y + that.currentPath[0].point.y,
+            z : that.initialPosition.z + that.currentPath[0].point.z
+        });
         // warnPath(true, true);
         setCurrentSpeed();
         that.refreshFunction();
@@ -206,6 +219,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.stop();
         that.currentPath = that.path.getPath();
         var iLine = fineIndexPath(lineNumber);
+        var pos = { x : 0, y : 0, z : 0 };
 
         if(iLine === -1) {
             return false;
@@ -219,12 +233,19 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             that.path.reachedPoint(that.currentPath[that.iPath]);
         }
 
+        //TODO: Those lines seem dumb, change it
         if(that.iPath > 0) {
-            setPositionBit(that.currentPath[that.iPath].point);
+            pos = that.currentPath[that.iPath].point;
             that.iPath++;
         } else {
-            setPositionBit({ x : 0, y : 0, z : 0 });
+            pos = that.currentPath[0].point;
         }
+
+        pos.x += that.initialPosition.x;
+        pos.y += that.initialPosition.y;
+        pos.z += that.initialPosition.z;
+        setPositionBit(pos);
+
         that.gui.highlight(that.currentPath[that.iPath].lineNumber);
         setCurrentSpeed();
         that.animating = true;
@@ -255,7 +276,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     };
 
     that.reset = function() {
-        setPositionBit({ x : 0, y : 0, z : 0 });
+        setPositionBit(that.initialPosition);
         that.path.redoMeshes();
         that.stop();
         that.refreshFunction();
@@ -266,7 +287,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         var material = new THREE.MeshBasicMaterial({color: 0xffff00});
         that.bit = new THREE.Mesh(geometry, material);
         that.bit.rotateX(-Math.PI / 2);
-        setPositionBit({ x : 0, y : 0, z : 0 });
+        setPositionBit(that.initialPosition);
     }
 
     //Speed are in inches by minutes. Internally converted it in inches by ms
@@ -277,15 +298,18 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     //initialize
     that.path = path;
+    if(initialPosition === undefined) {
+        that.initialPosition = { x : 0, y : 0, z : 0};
+    } else {
+        that.initialPosition = initialPosition;
+    }
     setSpeeds(normalSpeed, fastSpeed);
     that.scene = scene;
     that.refreshFunction = refreshFunction;
     that.gui = gui;
     createBit();
 
-    that.path = path;
 
-    // that.animating = false;
     that.stop();
     that.lastTime = new Date().getTime();
     setInterval(update, 41);  //41 = 240 FPS (not a vidya but below it is rough)
