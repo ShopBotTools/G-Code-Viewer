@@ -38,16 +38,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     //To call when the canvas or container has resized
     //width and height are numbers in pixel
     that.resized = function(width, height) {
-        console.log("Change size");
-        // var width = parseInt(that.renderer.domElement.width;
-        // var height = that.renderer.domElement.height;
         that.renderer.setSize(width, height);
         that.camera.setSize(width, height);
         that.camera.updateProjectionMatrix();
         that.refreshDisplay();
 
-        // TODO: call the GUI for resizing
-        console.log("Redo the GUI");
+        that.gui.resized();
     };
 
     that.setPerspectiveCamera = function() {

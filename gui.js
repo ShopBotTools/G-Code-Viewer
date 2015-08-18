@@ -25,6 +25,12 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         elt.parentNode.scrollLeft = 0;
     }
 
+    //Place a widget in the position
+    function placeWidget(name, x, y) {
+        that.widgets[name].style.left = x + "px";
+        that.widgets[name].style.top = y + "px";
+    }
+
     that.highlight = function(lineNumber) {
         var elt = document.getElementById("li-" + lineNumber);
         if(elt === null || elt === highlightedElt) {
@@ -54,9 +60,9 @@ GCodeViewer.Gui = function(domElement, callbacks) {
     //Set the buttons for displaying the planes. X and Y for the first button
     function setAxesButtons(x, y, callbackX, callbackY, callbackZ) {
         addWidget("showX", x, y, "data:image/png;base64," + GCodeViewer.xImage);
-        x += 40;
+        y += GCodeViewer.iconSize + that.margin;
         addWidget("showY", x, y, "data:image/png;base64," + GCodeViewer.yImage);
-        x += 40;
+        y += GCodeViewer.iconSize + that.margin;
         addWidget("showZ", x, y, "data:image/png;base64," + GCodeViewer.zImage);
 
         that.widgets.showX.onclick = function(){
@@ -146,12 +152,13 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         div.style.position = "absolute";
         div.style.width = width + "px";
         div.style.zIndex = 2;
-        div.style.left = ((domElement.width - width) / 2) + "px";
-        div.style.top = y + "px";
         div.style.background = "#7f7f7f";
         //Change text color?
         domElement.parentNode.appendChild(div);
         that.widgets[id] = div;
+        placeWidget("divGCode", ((domElement.width - width) / 2), y);
+        // div.style.left = ((domElement.width - width) / 2) + "px";
+        // div.style.top = y + "px";
 
         var p = document.createElement("p");
         p.style.width = "100%";
@@ -211,6 +218,38 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         scrollTo(li, 0);
     };
 
+    //To call when the canvas or container has resized
+    that.resized = function() {
+        var divGCode = document.getElementById("divGCode");
+        var s = GCodeViewer.iconSize, m = that.margin;
+        var w = domElement.width, h = domElement.height;
+
+        var x = m, y = m;
+        placeWidget("showX", x, y);
+        placeWidget("showY", x, y + s + m);
+        placeWidget("showZ", x, y + (s + m) * 2);
+
+        x = m;
+        y = h - m - s;
+        placeWidget("displayInIn", x, y);
+        placeWidget("displayInMm", x, y);
+
+        x = w - m - s;
+        y = h - m - s;
+        placeWidget("perspective", x, y);
+        placeWidget("orthographic", x, y);
+
+        x = (w / 2) - s - m / 2;
+        y = h - m - s;
+        placeWidget("resume", x, y);
+        placeWidget("pause", x, y);
+        placeWidget("reset", (w / 2) + m / 2, y);
+
+        x = (w - (parseInt(divGCode.style.width, 10))) / 2;
+        y = m;
+        placeWidget("divGCode", x, y);
+    };
+
     //intialize
     that.widgets = {};
 
@@ -220,22 +259,25 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         domElement.parentNode.style.position = "relative";
     }
 
+    that.margin = 5; //margin between the icons
+
     var x = 5, y = 5;
 
     setAxesButtons(x, y, callbacks.showX, callbacks.showY, callbacks.showZ);
 
-    x = 5;
-    y = domElement.height - 37;
+    y = domElement.height - GCodeViewer.iconSize - that.margin;
     setUnitButtons(x, y, callbacks.displayInIn, callbacks.displayInMm);
 
-    x = domElement.width - 37;
+    x = domElement.width - GCodeViewer.iconSize - that.margin;
     setCameraButtons(x, y, callbacks.perspective, callbacks.orthographic);
 
     setGCodeInterface(5);
 
-    setAnimationButtons(domElement.height - 37, callbacks.resume,
-            callbacks.pause, callbacks.reset);
+    y = domElement.height - GCodeViewer.iconSize - that.margin;
+    setAnimationButtons(y, callbacks.resume, callbacks.pause, callbacks.reset);
 };
+
+GCodeViewer.iconSize = 32;
 
 GCodeViewer.xImage = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlz%0AAAAB%2BgAAAfoBF4pEbwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAARDSURB%0AVFiFvZdPTGJXFMY/HoyDVZ7KC22nkqjpQjFqY7TFlkRrNWMTM840aeKOkGiUJ0bjnwWulCpGE1cm%0AuugKDYjCZsZ/SceYLrQkOk0ZrItaSlupWDM1FtEKPh7QjRgGtQh1%2BHb33pPv/N457937Loem6RKh%0AUPgVSZJcJFEej8d/fHzcz6MoSqPRaF4SBBFKJgDLssTAwICGEAgEvMjke3t7/GQA8Hi8IEmS9wgA%0AnPDk5uZmhlQqVbjdbl4yIABwiMiRSqV6uL%2B//65cLq9OEgAuAXZ2dtK8Xm%2BKWCz%2B0%2BVyZZ2dnSXl%0ApbwsdX5%2B/j/b29sGtVpdMjIyshWe9/l8xOjoaAEATk5OzolCoXD%2Bl6Hdbn9rZmYmDwAqKipe1dXV%0A/XUrgJvE5/ODa2treaurqx9yuVxWJBJ9XV9f/%2Bqm%2BMbGxkdWq1XC5/N96%2Bvrk7H8iVgBAGA0Glco%0AijoKBAK81tbWL25qj1qt/sBqtUoAoLOzc7msrMxzJwAikYjRarXzAEIul%2BtBS0vLJ9ExW1tbgvHx%0A8c8BoLi4eCeyjf8bAABaW1t/r6mpeQEAs7OzVYuLi%2B9Ersvl8nqv15vK5/N9U1NTS7f1vTUAAMzN%0AzV22QqlUPgm3oqenp9RmsxUAQHd391JpaWnM0icEQFGUf2xs7CmHwwm5XK4Hzc3NMpvNJpicnHwI%0AACUlJTtarfbHeDzjAgAAhULhrK2tfQEAJpOpsqGhodHn86WmpqaeGQyGhXj94gYAXv8qnE6nGAB6%0AenqWi4qKTpMCQFGUv7q6%2BrLUeXl5fwwODm4n4pUQgMViyZqfn68Ij3d3d7PNZvN7SQFgWZajUCge%0AMwxznyRJj1Ao/DsYDBJdXV2PEjk/4gZQqVQf2e32XADo7%2B9fGB4efoaLDaqpqUn2RgEsFkuWTqer%0AAQCZTGbt7u62X2xQ3wOA2Wy%2BskHdGQDLshy5XP6YYZgUkiRP9Hr98/Ca0WhcEQqFR4FAgBu5QSUE%0AQBDXM9E0LXU4HLkAoFarl3Jzc73hNZFIxAwNDS3gohVKpfLjhAGuk8ViyZqenv4MAGQy2cu%2Bvr6f%0ArgH8raqq6gcAmJmZ%2BXR5efnthACCweBr44vSP2EYJkUgEJzo9fpvbjIzGAzPMzMzjwOBAI%2Bm6QaG%0AYWI%2BYMwApVIpdTgcOcDV0kcrOzv7XKvVPgMQcjqdYpqmpbH8Y/4RFRQUHA0MDJhJkjzv6ur6JVZ8%0AW1vbr36/3%2BB2u%2B%2BnpaX5w/Onp6fc9PT0QNwAvb29P8eKiVZnZ%2BcV0MrKyi/FYvGRXq//liRJ9kaA%0Ag4MDQUdHR1m8Sa9TZmbmOZfLDQHA4eFhhtVqlUgkkvc3NjZ0YrHYdy2ATqf77i6SR8tkMpWWl5dv%0AT0xMrISThwGScic0m81PCwsLo4/rEOHxePwsyyZ0Ksaj6OQsyxIej8fPaW9vL87IyNCQJHnvTUNE%0AKnw9/xdmGsVJKdWDkQAAAABJRU5ErkJggg%3D%3D%0A";
 GCodeViewer.yImage = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlz%0AAAAB%2BgAAAfoBF4pEbwAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANISURB%0AVFiF7ZfPSyNnHMafvBlt6epMNIorTsXFgyTQhVJ3FcHASrqnFvbQXqVBEDOO8SCIguhMA%2BofYEAU%0AIWCCrvGwlYVtu22KhyIRqbuLSwhtiQd/gmx1mhqdeTvppbOErK6J1elln9P7vvPwfD/zZX68r8Xr%0A9d4uLy//mmVZK0yUoija0dHRCGO322VZlp8RQjJmAlBKiSRJMiktLWWyi29tbb1vBgDDMDrLskUE%0AgMVYXF1d5Zqamr46PDxkzIAAYCHZs%2B7u7vs7Ozs329vb75kEgNcAiUTiRjqdLuZ5fnd7e7vs%2BPjY%0AlIfydasbGhr%2B2tjYCA8MDNweHx9/YaxPTk7e2t/f/4BhGH1wcDBOCDk76V/puo6xsTEHpZRUVVUd%0Ad3V1JfMCOE%2BKohRLkvQlAOzu7j6emJhYe5vf5/M1BgKBzwDA7/c/vCj/7bcDoL%2B/P9Hc3PwcAKam%0Apu4vLy%2BXn%2BeNxWK26enpTwGgpaXl%2BdDQUPw/AwBAJBJ5wnHckaZpxR6P5wGl1JLr0XUdHo/nc1VV%0A32NZ9s9wOPxtPtl5AfA8f%2BL3%2B5cAZJLJZK0gCHdzPaIo3onH4/UAMDw8vFRXV5e%2BMgAA6Onp%2Bb21%0AtXUdAILBoDsajdqNaysrK7aZmRk3ALhcrl/6%2Bvp%2BzTc3bwAAmJub%2B85msx1qmlbU0dHxQFVVkt16%0AjuOU2dnZ7wvJLAigpqbmdHR09BsAmc3NzQ87OzubBUG4m0gk6gFkZFleqq2tPSkks%2BBPrtfrTS4u%0ALq5Fo9E74XC4jRCiA0BbW9tab2/vb4XmFdQBQ/Pz80/tdvsrSimjqmpxWVnZH6FQ6IfLZF0KoLKy%0AUhUEIWrMRVH8sbq6%2BtQ0AACoqKhInzU2DeCq9A7gDYCLfrfXDmC23gDQdf3/BTBbl979ut3ufUmS%0AIsb4In8qlbKWlJT8fWUATqczNTIy8jJfv8vl%2BoLn%2BVehUOgnlmXpuQB7e3ulPp/vk8uCZctms51a%0ArdYMABwcHHDr6%2BsOh8NRH4vFgjzPn5wJEAwGf76K4rlaWFj4uLGxcSMQCDw1ihsAppwJI5HII6fT%0AmcpZzhBFUTRK6bW/DbnFKaVEURTNIoriRxzHySzLFl03RLaM4/k/sFU/3aF%2B8ScAAAAASUVORK5C%0AYII%3D%0A";
