@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeViewer, GCodeToGeometry*/
+/*global THREE, THREEx, GCodeViewer, GCodeToGeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -34,6 +34,21 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
             that.callbackError(message);
         }
     }
+
+    //To call when the canvas or container has resized
+    //width and height are numbers in pixel
+    that.resized = function(width, height) {
+        console.log("Change size");
+        // var width = parseInt(that.renderer.domElement.width;
+        // var height = that.renderer.domElement.height;
+        that.renderer.setSize(width, height);
+        that.camera.setSize(width, height);
+        that.camera.updateProjectionMatrix();
+        that.refreshDisplay();
+
+        // TODO: call the GUI for resizing
+        console.log("Redo the GUI");
+    };
 
     that.setPerspectiveCamera = function() {
         that.camera.toPerspective();
@@ -262,12 +277,22 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.renderer.setSize(widthCanvas, heightCanvas);
     that.renderer.domElement.style.zIndex = 1;
     container.appendChild(that.renderer.domElement);
+    that.renderer.domElement.addEventListener('resize', that.resized, false);
 
     // that.renderer.setClearColor( 0xf0f0f0 );
     that.renderer.setPixelRatio( window.devicePixelRatio );
 
     that.scene = new THREE.Scene();
     setCombinedCamera();
+    // var dimensionFun = function() {
+    //     return that.renderer.domElement;
+    // };
+    // var winResize = new THREEx.WindowResize(that.renderer, that.camera,
+    //         dimensionFun);
+    // console.log(winResize);
+    // var winResize = new THREEx.WindowResize(that.renderer, that.camera);
+
+    // console.log(winResize);
     that.showZ();
 
     that.path = new GCodeViewer.Path(that.scene);

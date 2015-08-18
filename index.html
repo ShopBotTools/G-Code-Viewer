@@ -8,6 +8,7 @@
     <div style="display:inline-block;">
         <textarea id="gcode" name="" cols="30" rows="10"></textarea>
         <button id="view">View</button>
+        <button id="resize">Resize</button>
     </div>
 
     <div id="container" style="display: inline-block;">
@@ -32,13 +33,28 @@
         //     initialPosition: { x: 5, y: 3, z: 1 },
         //     board: { width: 10, length: 50, height: 5 }
         // };
-        var viewer = new GCodeViewer.Viewer(document.getElementById("container"),
-                600, 400, function(msg) { alert(msg); }/* , config */);
+        var container = document.getElementById("container");
+        // var container = document.body;
+        // var width = window.innerWidth, height = window.innerHeight;
+        var width = 600, height = 400;
+        // var width = 320, height = 480;  //vertical iPhone size
+        var viewer = new GCodeViewer.Viewer(container,
+                width, height, function(msg) { alert(msg); }/* , config */);
         document.getElementById("view").onclick = function() {
             viewer.setGCode(document.getElementById("gcode").value);
             viewer.viewPaths();
         }
-        canvas = document.getElementById("canvas");
+        document.getElementById("resize").onclick = function() {
+            var container = document.getElementById("container");
+            // var width = 300 + 400 * Math.random();
+            // var canvas = document.getElementById("container").children[0];
+            var width = 300;
+            var height = 600;
+            // container.style.border = "12px green solid";
+            container.style.width = width + "px";
+            container.style.height = height + "px";
+            viewer.resized(width, height);
+        }
     </script>
 </body>
 </html>
