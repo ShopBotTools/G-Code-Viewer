@@ -29,11 +29,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.refreshFunction();
     };
 
-    //If that.animating become private
-    that.isAnimating = function() {
-        return that.animating;
-    };
-
     function getPositionBit() {
         return {
             x : that.bit.position.x,
@@ -98,21 +93,12 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     //Warn the path class of the current position
     //forward {bool}, true if the bit goes forward (do the path chronologically)
     //changedIndex: if true, means that the point reached the current point
-    function warnPath(forward, changedIndex) {
+    function warnPath(changedIndex) {
         if(changedIndex === true) {
-            if(forward === true) {
-                that.path.reachedPoint(that.currentPath[that.iPath]);
-            } else {
-                that.path.returnedToPoint(that.currentPath[that.iPath]);
-            }
+            that.path.reachedPoint(that.currentPath[that.iPath]);
         } else {
-            if(forward === true) {
-                that.path.isReachingPoint(that.currentPath[that.iPath],
-                        getPositionBitRelative());
-            } else {
-                that.path.isReturningToPoint(that.currentPath[that.iPath],
-                        getPositionBitRelative());
-            }
+            that.path.isReachingPoint(that.currentPath[that.iPath],
+                    getPositionBitRelative());
         }
     }
 
@@ -131,7 +117,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         while(that.iPath < that.currentPath.length &&
                 GCodeViewer.samePosition(that.currentPath[that.iPath].point,
                     getPositionBitRelative()) === true) {
-            warnPath(true, true);
+            warnPath(true);
             that.iPath++;
 
             if(that.iPath >= that.currentPath.length) {
@@ -159,7 +145,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
                 that.currentPath[that.iPath].point,
                 that.currentSpeed, deltaTime);
         moveBit(move);
-        warnPath(true, false);
+        warnPath(false);
 
         that.refreshFunction();
     }
@@ -190,7 +176,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             y : that.initialPosition.y + that.currentPath[0].point.y,
             z : that.initialPosition.z + that.currentPath[0].point.z
         });
-        // warnPath(true, true);
         setCurrentSpeed();
         that.refreshFunction();
 
@@ -233,12 +218,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
             that.path.reachedPoint(that.currentPath[that.iPath]);
         }
 
-        //TODO: Those lines seem dumb, change it
+        pos = that.currentPath[that.iPath].point;
         if(that.iPath > 0) {
-            pos = that.currentPath[that.iPath].point;
             that.iPath++;
-        } else {
-            pos = that.currentPath[0].point;
         }
 
         pos.x += that.initialPosition.x;

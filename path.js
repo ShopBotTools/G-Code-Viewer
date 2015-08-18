@@ -523,17 +523,6 @@ GCodeViewer.Path = function(scene) {
         return true;
     };
 
-    that.isReturningToPoint = function(pointPath, currentPosition) {
-        console.log("back" + pointPath + " " + currentPosition);
-    };
-
-    //pointPath is a cell of the path of type:
-    //{ point : {x, y, z}, type, lineNumber }
-    that.returnedToPoint = function(pointPath) {
-        //TODO: manage to change meshes
-        console.log("back" + pointPath);
-    };
-
     // initialize
     that.scene = scene;
     resetPathsGeo();
