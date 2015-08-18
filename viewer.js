@@ -37,7 +37,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     //To call when the canvas or container has resized
     //width and height are numbers in pixel
-    that.resized = function(width, height) {
+    that.resize = function(width, height) {
         that.renderer.setSize(width, height);
         that.camera.setSize(width, height);
         that.camera.updateProjectionMatrix();
@@ -273,22 +273,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.renderer.setSize(widthCanvas, heightCanvas);
     that.renderer.domElement.style.zIndex = 1;
     container.appendChild(that.renderer.domElement);
-    that.renderer.domElement.addEventListener('resize', that.resized, false);
 
     // that.renderer.setClearColor( 0xf0f0f0 );
     that.renderer.setPixelRatio( window.devicePixelRatio );
 
     that.scene = new THREE.Scene();
     setCombinedCamera();
-    // var dimensionFun = function() {
-    //     return that.renderer.domElement;
-    // };
-    // var winResize = new THREEx.WindowResize(that.renderer, that.camera,
-    //         dimensionFun);
-    // console.log(winResize);
-    // var winResize = new THREEx.WindowResize(that.renderer, that.camera);
-
-    // console.log(winResize);
     that.showZ();
 
     that.path = new GCodeViewer.Path(that.scene);
