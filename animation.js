@@ -20,7 +20,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     var lengthBit = 3;
 
     that.show = function() {
-        console.log("Afficher");
         that.scene.add(that.bit);
         that.refreshFunction();
     };
@@ -183,6 +182,53 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
         that.animating = true;  //Must be at the end
         that.isInPause = false;
+
+        return true;
+    };
+
+    //Returns the index of the point in path associated to this lineNumber
+    // returns -1 if nothing found
+    function fineIndexPath(lineNumber) {
+        var i = 0;
+        for(i=0; i < that.currentPath.length; i++) {
+            if(that.currentPath[i].lineNumber === lineNumber) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    //Go to the command in the line number
+    //Return false if lineNumber is wrong
+    that.goTo = function(lineNumber) {
+        that.path.redoMeshes();
+        that.stop();
+        that.currentPath = that.path.getPath();
+        var iLine = fineIndexPath(lineNumber);
+
+        if(iLine === -1) {
+            return false;
+        }
+
+        that.iPath = 0;
+
+        for(that.iPath=0; that.iPath < iLine; that.iPath++) {
+            that.path.isReachingPoint(that.currentPath[that.iPath],
+                    that.currentPath[that.iPath].point);
+            that.path.reachedPoint(that.currentPath[that.iPath]);
+        }
+
+        if(that.iPath > 0) {
+            setPositionBit(that.currentPath[that.iPath].point);
+            that.iPath++;
+        } else {
+            setPositionBit({ x : 0, y : 0, z : 0 });
+        }
+        that.gui.highlight(that.currentPath[that.iPath].lineNumber);
+        setCurrentSpeed();
+        that.animating = true;
+        that.isInPause = true;
+        that.refreshFunction();
 
         return true;
     };

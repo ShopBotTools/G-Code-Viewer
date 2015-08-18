@@ -539,11 +539,11 @@ GCodeViewer.Path = function(scene) {
     resetPathsGeo();
     resetPathsMesh();
     that.matG0Undone = new THREE.LineDashedMaterial(
-            { color : 0x8877dd, dashSize : 7 });
+            { color : 0xff0000, dashSize : 7 });
     that.matG1Undone = new THREE.LineBasicMaterial(
-            { color : 0xffffff });
+            { color : 0x000ff });
     that.matG2G3Undone = new THREE.LineBasicMaterial(
-            { color : 0xffffff });
+            { color : 0x000ff });
     that.matG0Done = new THREE.LineDashedMaterial(
             { color : 0xff00ff, dashSize : 2 });
     that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
