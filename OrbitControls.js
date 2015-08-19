@@ -198,6 +198,8 @@ THREE.OrbitControls = function ( object, domElement ) {
             targetDistance *= Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180.0 );
 
             // we actually don't use screenWidth, since perspective camera is fixed to screen height
+            // scope.panLeft( 2 * deltaX / element.clientHeight );
+            // scope.panUp( 2 * deltaY / element.clientHeight );
             scope.panLeft( 2 * deltaX * targetDistance / element.clientHeight );
             scope.panUp( 2 * deltaY * targetDistance / element.clientHeight );
 
@@ -206,8 +208,11 @@ THREE.OrbitControls = function ( object, domElement ) {
            scope.object.inOrthographicMode === true ) ) {
 
             // orthographic
-            scope.panLeft( deltaX * (scope.object.right - scope.object.left) / element.clientWidth );
-            scope.panUp( deltaY * (scope.object.top - scope.object.bottom) / element.clientHeight );
+            // scope.panLeft( deltaX * (scope.object.right - scope.object.left) / element.clientWidth );
+            // scope.panUp( deltaY * (scope.object.top - scope.object.bottom) / element.clientHeight );
+            var coeff = scope.object.zoom / 2;
+            scope.panLeft( deltaX * (scope.object.right - scope.object.left) / (coeff * element.clientWidth ));
+            scope.panUp( deltaY * (scope.object.top - scope.object.bottom) / (coeff * element.clientHeight ));
 
         } else {
 
