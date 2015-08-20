@@ -29,17 +29,17 @@
     <script src="viewer.js"></script>
 
     <script type="text/javascript">
-        var config = {
-            initialPosition: { x: 5, y: 3, z: 1 },
-            board: { width: 10, length: 50, height: 5 }
-        };
+        // var config = {
+        //     initialPosition: { x: 5, y: 3, z: 1 },
+        //     board: { width: 10, length: 50, height: 5 }
+        // };
         var container = document.getElementById("container");
         // var container = document.body;
         // var width = window.innerWidth, height = window.innerHeight;
         var width = 600, height = 400;
         // var width = 320, height = 480;  //vertical iPhone size
         var viewer = new GCodeViewer.Viewer(container,
-                width, height, function(msg) { alert(msg); }, config);
+                width, height, function(msg) { alert(msg); }/* , config */);
         document.getElementById("view").onclick = function() {
             viewer.setGCode(document.getElementById("gcode").value);
             viewer.viewPaths();

@@ -232,6 +232,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.animation.hide();
         that.animation.reset();
         that.showZ();
+        that.helpers.resize(that.gcode.size);
+        that.refreshDisplay();
     };
 
     function changeDisplay(inMm) {
