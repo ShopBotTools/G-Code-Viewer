@@ -17,7 +17,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     "use strict";
     var that = this;
 
-    var lengthBit = 3;
+    var lengthBit = 1;
 
     that.show = function() {
         that.scene.add(that.bit);
@@ -265,7 +265,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     };
 
     function createBit() {
-        var geometry = new THREE.CylinderGeometry(0, 1, lengthBit, 32);
+        var geometry = new THREE.CylinderGeometry(0, lengthBit / 3, lengthBit, 32);
         var material = new THREE.MeshBasicMaterial({color: 0xffff00});
         that.bit = new THREE.Mesh(geometry, material);
         that.bit.rotateX(-Math.PI / 2);

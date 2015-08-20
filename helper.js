@@ -63,7 +63,6 @@ GCodeViewer.Helpers = function(scene) {
 
     //size is a struct { length, head, font }
     function createArrowsHelper(headSize) {
-        console.log("Headsize : " + headSize);
         var length = 3, fontSize = headSize * 2;
         var options = {'font' : 'helvetiker','weight' : 'normal',
             'style' : 'normal','size' : fontSize,'curveSegments' : 300};
