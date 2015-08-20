@@ -73,7 +73,7 @@ THREE.OrbitControls = function ( object, domElement ) {
     // The four arrow keys
     this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, SHIFT: 16};
 
-    this.keyZoomActivated = false;
+    this.keyPanActivated = false;
 
     // Mouse buttons
     this.mouseButtons = { ORBIT: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.RIGHT };
@@ -408,11 +408,11 @@ THREE.OrbitControls = function ( object, domElement ) {
         if ( event.button === scope.mouseButtons.ORBIT ) {
             //NOTE: modification here from the original
             // we use this to activate the zoom if shift is pressed
-            if(scope.keyZoomActivated === true) {
-                if(scope.noZoom === true) return;
+            if(scope.keyPanActivated === true) {
+                if(scope.pan === true) return;
 
-                state = STATE.DOLLY;
-                dollyStart.set( event.clientX, event.clientY );
+                state = STATE.PAN;
+                panStart.set( event.clientX, event.clientY );
             } else {
                 if ( scope.noRotate === true ) return;
 
@@ -554,7 +554,7 @@ THREE.OrbitControls = function ( object, domElement ) {
         if ( scope.enabled === false || scope.noKeys === true || scope.noPan === true ) return;
 
         if(event.keyCode === scope.keys.SHIFT) {
-            scope.keyZoomActivated = false;
+            scope.keyPanActivated = false;
         }
     }
 
@@ -565,7 +565,7 @@ THREE.OrbitControls = function ( object, domElement ) {
         switch ( event.keyCode ) {
 
             case scope.keys.SHIFT:
-                scope.keyZoomActivated = true;
+                scope.keyPanActivated = true;
                 break;
 
             case scope.keys.UP:
