@@ -71,7 +71,9 @@ THREE.OrbitControls = function ( object, domElement ) {
     this.noKeys = false;
 
     // The four arrow keys
-    this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
+    this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, SHIFT: 16};
+
+    this.keyZoomActivated = false;
 
     // Mouse buttons
     this.mouseButtons = { ORBIT: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.RIGHT };
@@ -404,11 +406,20 @@ THREE.OrbitControls = function ( object, domElement ) {
         event.preventDefault();
 
         if ( event.button === scope.mouseButtons.ORBIT ) {
-            if ( scope.noRotate === true ) return;
+            //NOTE: modification here from the original
+            // we use this to activate the zoom if shift is pressed
+            if(scope.keyZoomActivated === true) {
+                if(scope.noZoom === true) return;
 
-            state = STATE.ROTATE;
+                state = STATE.DOLLY;
+                dollyStart.set( event.clientX, event.clientY );
+            } else {
+                if ( scope.noRotate === true ) return;
 
-            rotateStart.set( event.clientX, event.clientY );
+                state = STATE.ROTATE;
+
+                rotateStart.set( event.clientX, event.clientY );
+            }
 
         } else if ( event.button === scope.mouseButtons.ZOOM ) {
             if ( scope.noZoom === true ) return;
@@ -423,7 +434,6 @@ THREE.OrbitControls = function ( object, domElement ) {
             state = STATE.PAN;
 
             panStart.set( event.clientX, event.clientY );
-
         }
 
         if ( state !== STATE.NONE ) {
@@ -539,11 +549,24 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     }
 
+    function onKeyUp( event ) {
+
+        if ( scope.enabled === false || scope.noKeys === true || scope.noPan === true ) return;
+
+        if(event.keyCode === scope.keys.SHIFT) {
+            scope.keyZoomActivated = false;
+        }
+    }
+
     function onKeyDown( event ) {
 
         if ( scope.enabled === false || scope.noKeys === true || scope.noPan === true ) return;
 
         switch ( event.keyCode ) {
+
+            case scope.keys.SHIFT:
+                scope.keyZoomActivated = true;
+                break;
 
             case scope.keys.UP:
                 scope.pan( 0, scope.keyPanSpeed );
@@ -713,6 +736,7 @@ THREE.OrbitControls = function ( object, domElement ) {
     this.domElement.addEventListener( 'touchmove', touchmove, false );
 
     window.addEventListener( 'keydown', onKeyDown, false );
+    window.addEventListener( 'keyup', onKeyUp, false );
 
     // force an update at start
     this.update();
