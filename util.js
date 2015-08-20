@@ -15,7 +15,7 @@ GCodeViewer.copyPoint = function(point) {
 };
 
 GCodeViewer.nearlyEqual = function(a, b) {
-    return Math.abs(b - a) <= 0.0001;
+    return Math.abs(b - a) <= 0.001;
 };
 
 GCodeViewer.samePosition = function(posA, posB) {
