@@ -124,7 +124,6 @@ GCodeViewer.Helpers = function(scene) {
         var xSize = 0, ySize = 0;
         var minSize = 0.25, maxSize = 3, coeff = 40;
         var size = minSize;
-        that.totalSize = totalSize;
         that.removeArrows();
 
         if(totalSize !== undefined) {
@@ -155,7 +154,6 @@ GCodeViewer.Helpers = function(scene) {
     }
 
     // initialize
-    that.totalSize = undefined;  //Used for the size of the helper
     that.scene = scene;
     createHelpers();
     that.addHelpers();

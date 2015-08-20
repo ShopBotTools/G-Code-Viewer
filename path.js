@@ -45,17 +45,28 @@ GCodeViewer.TotalSize = function(scene) {
     //Really dumb function that return the size, on the axe, of a mesh
     //Should use bounding box!
     function sizeMesh(mesh, axe) {
-        var v = mesh.geometry.vertices;
-        if(v.length <= 1) {
-            return 0;
-        }
-        return Math.abs(v[v.length - 1][axe] - v[0][axe]);
+        var bb = {};
+        mesh.geometry.computeBoundingBox();
+        bb = mesh.geometry.boundingBox;
+        return Math.abs(bb.max[axe] - bb.min[axe]);
+    }
+
+    function calculateFontSize(width, length, height) {
+        var minSize = 0.25, maxSize = 3, coeff = 20;
+        var biggest = Math.max(width, length, height);
+        var size = minSize;
+
+        size = Math.max(minSize, biggest / coeff);
+        size = Math.min(maxSize, size);
+
+        return size;
     }
 
     that.setMeshes = function(totalSize, displayInMm, initialPosition) {
         if(totalSize === undefined) {
             return;
         }
+        var margin = 0.5;
         var material = new THREE.LineBasicMaterial({ color : 0xffffff });
         var geometry = new THREE.Geometry();
         var type = (displayInMm === false) ? "in" : "mm";
@@ -66,48 +77,51 @@ GCodeViewer.TotalSize = function(scene) {
         var textW = (width * d).toFixed(2);
         var textL = (length * d).toFixed(2);
         var textH = (height * d).toFixed(2);
+        var fontSize = calculateFontSize(width, length, height);
         var options = {'font' : 'helvetiker','weight' : 'normal',
-            'style' : 'normal','size' : 1,'curveSegments' : 300};
+            'style' : 'normal','size' : fontSize,'curveSegments' : 300};
         var color = 0xffffff;
 
         that.remove();
 
         // For x axe
-        geometry.vertices.push(new THREE.Vector3(totalSize.min.x, -2 , 0));
-        geometry.vertices.push(new THREE.Vector3(totalSize.max.x, -2 , 0));
+        var y = totalSize.max.y + margin;
+        geometry.vertices.push(new THREE.Vector3(totalSize.min.x, y , 0));
+        geometry.vertices.push(new THREE.Vector3(totalSize.max.x, y , 0));
         that.lineWidth =  new THREE.Line(geometry, material);
         that.textWidth = createMeshText(textW + " " + type, options, color);
         that.textWidth.position.x = that.lineWidth.geometry.vertices[0].x +
-            width / 2;
-        that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y -
-            (options.size + 1);
+            (width - sizeMesh(that.textWidth, "x")) / 2;
+        that.textWidth.position.y = that.lineWidth.geometry.vertices[0].y +
+            options.size;
         that.textWidth.position.z = that.lineWidth.geometry.vertices[0].z;
 
         // For y axe
+        var x = totalSize.max.x + margin;
         geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(-2, totalSize.min.y, 0));
-        geometry.vertices.push(new THREE.Vector3(-2, totalSize.max.y, 0));
+        geometry.vertices.push(new THREE.Vector3(x, totalSize.min.y, 0));
+        geometry.vertices.push(new THREE.Vector3(x, totalSize.max.y, 0));
         that.lineLength =  new THREE.Line(geometry, material);
         that.textLength = createMeshText(textL + " " + type, options, color);
         that.textLength.rotateZ(-Math.PI/2);
-        that.textLength.position.x = that.lineLength.geometry.vertices[0].x-
-            (options.size + 1);
-        that.textLength.position.y = that.lineLength.geometry.vertices[0].y+
-            length / 2;
+        that.textLength.position.x = that.lineLength.geometry.vertices[0].x +
+            options.size;
+        that.textLength.position.y = that.lineLength.geometry.vertices[0].y +
+            (length + sizeMesh(that.textLength, "x")) / 2;  //x 'cause rotation
         that.textLength.position.z = that.lineLength.geometry.vertices[0].z;
 
         // For z axe
         geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.min.z));
-        geometry.vertices.push(new THREE.Vector3(-2, 0, totalSize.max.z));
+        geometry.vertices.push(new THREE.Vector3(x, y, totalSize.min.z));
+        geometry.vertices.push(new THREE.Vector3(x, y, totalSize.max.z));
         that.lineHeight =  new THREE.Line(geometry, material);
         that.textHeight = createMeshText(textH + " " + type, options, color);
         that.textHeight.rotateX(Math.PI / 2);
-        that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x -
-            sizeMesh(that.textHeight, "x") - options.size;
+        that.textHeight.position.x = that.lineHeight.geometry.vertices[0].x +
+            options.size;
         that.textHeight.position.y = that.lineHeight.geometry.vertices[0].y;
         that.textHeight.position.z = that.lineHeight.geometry.vertices[0].z +
-            height / 2;
+            (height - sizeMesh(that.textHeight, "y")) / 2;  //y 'cause rotation
 
         if(initialPosition !== undefined) {
             that.lineWidth.position.x += initialPosition.x;
