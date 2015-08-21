@@ -232,7 +232,10 @@ GCodeViewer.Gui = function(domElement, callbacks) {
             that.widgets.listGCode.appendChild(li);
             li.onclick = makeLiHandler(i+1);
         }
-        scrollTo(li, 0);
+        //We do not care of the li, just here for knowing the height
+        if(li !== undefined) {
+            scrollTo(li, 0);
+        }
     };
 
     //To call when the canvas or container has resized
