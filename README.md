@@ -9,7 +9,12 @@ This app uses the [Gcode-To-Geometry
 app](https://github.com/ShopBotTools/Handibot-GCode-To-Geometry). The GCode
 commands supported are listed there.
 
-The G0 paths are displayed by blue lines, the G1, G2 and G3 by white lines.
+The G0 paths are displayed by red lines, the G1, G2 and G3 by blue lines.
+
+It is possible to see the animation of the bit during the operation. For
+convenience, it is possible to see the command currently animated by toggling
+the GCode displayer. It is also possible to click on a GCode line command to
+have the animation starting direcly from this command.
 
 ##How to use the app:
 In your code you need to instantiate the class GCodeViewer.Viewer
@@ -46,6 +51,5 @@ The code in the `index.html` is pretty straightforward and should help a lot.
 
 ##TODO:
 A lot of things can be added to this viewer:
-* Improve the interface (camera, helpers, UI...)
-* Display a bit and make it follow the path (while highlighting the GCode)
+* Improve the design of interface (icons, colors...)
 * Display the result of the cut by setting a type of bit

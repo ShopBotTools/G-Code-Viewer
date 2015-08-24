@@ -73,7 +73,7 @@ GCodeViewer.TotalSize = function(scene) {
      * @param {boolean} displayInMm If true, shows the size in millimeter. Else
      * in inch.
      * @param {object} initialPosition The position, in 3D, where thr whole
-     * path begins (optionnal).
+     * path begins (optional).
      */
     that.setMeshes = function(totalSize, displayInMm, initialPosition) {
         if(totalSize === undefined) {
@@ -268,7 +268,7 @@ GCodeViewer.Path = function(scene) {
      *
      * @param {array} lines The array of lines describing the whole path.
      * @param {object} initialPosition The position, in 3D, where thr whole
-     * path begins (optionnal).
+     * path begins (optional).
      */
     that.setMeshes = function(lines, initialPosition) {
         resetPathsGeo();
@@ -415,7 +415,7 @@ GCodeViewer.Path = function(scene) {
         return path;
     };
 
-    //This is ridculous not to manage to update the vertices
+    //This is ridiculous not to manage to update the vertices
     //Change the selectionned mesh
     function changeMesh(mesh, vertices, type, done) {
         var mat = {}, pos = {};
@@ -546,11 +546,11 @@ GCodeViewer.Path = function(scene) {
         //For the done meshes, we have three situations:
         // 1. Start of a path: need to add two vertices (one for the start,
         //      one for the bit position)
-        // 2. End of an intermediate path: need to set the last vertice to
+        // 2. End of an intermediate path: need to set the last vertex to
         //      the end position add two vertices (same rule than before)
-        // 3. End of a path: need to set the last vertice to the end position
+        // 3. End of a path: need to set the last vertex to the end position
         //For the undone meshes:
-        // 1. Start of a path: nothing to do, the first vertice will follow
+        // 1. Start of a path: nothing to do, the first vertex will follow
         //      the bit position
         // 2. End of any sort of path: delete the two first vertices
 
