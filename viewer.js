@@ -305,6 +305,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.refreshDisplay();
     };
 
+    // Show the size in inch (if false) or millimeter (if true)
     function changeDisplay(inMm) {
         if(that.gcode.size !== undefined) {
             that.totalSize.setMeshes(that.gcode.size, inMm,
@@ -314,10 +315,16 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.refreshDisplay();
     }
 
+    /**
+     * Show the size in millimiter.
+     */
     that.displayInMm = function() {
         changeDisplay(true);
     };
 
+    /**
+     * Show the size in inch.
+     */
     that.displayInInch = function() {
         changeDisplay(false);
     };

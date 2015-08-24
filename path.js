@@ -16,6 +16,9 @@ GCodeViewer.TotalSize = function(scene) {
     "use strict";
     var that = this;
 
+    /**
+     * Removes the meshes from the scene.
+     */
     that.remove = function() {
         that.scene.remove(that.textWidth);
         that.scene.remove(that.lineWidth);
@@ -25,6 +28,9 @@ GCodeViewer.TotalSize = function(scene) {
         that.scene.remove(that.lineHeight);
     };
 
+    /**
+     * Adds the meshes to the scene.
+     */
     that.add = function() {
         that.scene.add(that.textWidth);
         that.scene.add(that.lineWidth);
@@ -42,8 +48,6 @@ GCodeViewer.TotalSize = function(scene) {
         return new THREE.Mesh(geo, material);
     }
 
-    //Really dumb function that return the size, on the axe, of a mesh
-    //Should use bounding box!
     function sizeMesh(mesh, axe) {
         var bb = {};
         mesh.geometry.computeBoundingBox();
@@ -62,6 +66,15 @@ GCodeViewer.TotalSize = function(scene) {
         return size;
     }
 
+    /**
+     * Sets the meshes.
+     *
+     * @param {object} totalSize The total size of the whole path.
+     * @param {boolean} displayInMm If true, shows the size in millimeter. Else
+     * in inch.
+     * @param {object} initialPosition The position, in 3D, where thr whole
+     * path begins (optionnal).
+     */
     that.setMeshes = function(totalSize, displayInMm, initialPosition) {
         if(totalSize === undefined) {
             return;
@@ -166,6 +179,9 @@ GCodeViewer.Path = function(scene) {
         that.meshG2G3Done = {};
     }
 
+    /**
+     * Removes the meshes from the scene.
+     */
     that.remove = function() {
         that.scene.remove(that.meshG0Undone);
         that.scene.remove(that.meshG1Undone);
@@ -175,6 +191,9 @@ GCodeViewer.Path = function(scene) {
         that.scene.remove(that.meshG2G3Done);
     };
 
+    /**
+     * Adds the meshes to the scene.
+     */
     that.add = function() {
         that.scene.add(that.meshG0Undone);
         that.scene.add(that.meshG1Undone);
@@ -244,6 +263,13 @@ GCodeViewer.Path = function(scene) {
         }
     }
 
+    /**
+     * Sets the meshes.
+     *
+     * @param {array} lines The array of lines describing the whole path.
+     * @param {object} initialPosition The position, in 3D, where thr whole
+     * path begins (optionnal).
+     */
     that.setMeshes = function(lines, initialPosition) {
         resetPathsGeo();
         resetPathsMesh();
@@ -283,7 +309,9 @@ GCodeViewer.Path = function(scene) {
         }
     };
 
-    //Redo the meshes as it was
+    /**
+     * Redoes the meshes as it was
+     */
     that.redoMeshes = function() {
         that.remove();
         that.setMeshes(that.lines, that.initialPosition);
@@ -334,6 +362,11 @@ GCodeViewer.Path = function(scene) {
         }
     }
 
+    /**
+     * Returns the path the animation has to follow.
+     *
+     * @return {array} The path the animation has to follow.
+     */
     that.getPath = function() {
         var path = [], vertices = [];
         var iLine = 0, iG0 = 0, iG1 = 0, iG2G3 = 0;
@@ -433,7 +466,16 @@ GCodeViewer.Path = function(scene) {
         }
     }
 
-    //The bit did not reach yet on of the vertice
+    /**
+     * To call when the bit from the animation is reaching one point from the
+     * path. WARNING: this function must be called at least one between two use
+     * of "reachedPoint" function.
+     *
+     * @param {object} pointPath The point path the bit is reaching (this point
+     * is from the path returned by getPath).
+     * @param {object} currentPosition The current position of the bit in 3D.
+     * @return {boolean} False if there was a problem.
+     */
     that.isReachingPoint = function(pointPath, currentPosition) {
         var verticesDone = [], verticesUndone = [];
         var meshDone = {}, meshUndone = {};
@@ -467,9 +509,15 @@ GCodeViewer.Path = function(scene) {
         return true;
     };
 
-    //When the bit reached this point
-    //pointPath is a cell of the path of type:
-    //{ point : {x, y, z}, type, lineNumber }
+    /**
+     * To call when the bit from the animation has reached one point from the
+     * path. WARNING: this function must be called at least one between two use
+     * of "isReachingPoint" function.
+     *
+     * @param {object} pointPath The point path the bit has reached (this point
+     * is from the path returned by getPath).
+     * @return {boolean} False if there was a problem.
+     */
     that.reachedPoint = function(pointPath) {
         var verticesDone = [], verticesUndone = [];
         var meshDone = {}, meshUndone = {};

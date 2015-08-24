@@ -16,6 +16,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
 
     var highlightedElt = null;
 
+    //Scroll the ul to the li having this line number.
     //elt is the li element in the ul
     //lineNumber is the lineNumber corresponding to this li
     function scrollTo(elt, lineNumber) {
@@ -31,6 +32,11 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         that.widgets[name].style.top = y + "px";
     }
 
+    /**
+     * Highlights the line at this line number.
+     *
+     * @param {number} lineNumber The number of the line to highlight.
+     */
     that.highlight = function(lineNumber) {
         var elt = document.getElementById("li-" + lineNumber);
         if(elt === null || elt === highlightedElt) {
@@ -44,6 +50,13 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         scrollTo(elt, lineNumber);
     };
 
+    /**
+     * Set the gui according to the current state of the animation (for example:
+     * used not to have a pause button when the animation is already paused).
+     *
+     * @param {string} animationStatus "running" to set the gui for a running
+     * animation.
+     */
     that.setStatusAnimation = function(animationStatus) {
         if(animationStatus === "running") {
             that.widgets.resume.hidden = true;
@@ -54,6 +67,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         }
     };
 
+    //Add an image widget, set it with the id and the position.
     function addWidget(id, x, y, src) {
         var elt = document.createElement("img");
         elt.id = id;
@@ -85,6 +99,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         };
     }
 
+    //Set the buttons for displaying size in millimeter or inch.
     function setUnitButtons(x, y, callbackIn, callbackMm) {
         addWidget("displayInIn", x, y,
                 "data:image/png;base64," + GCodeViewer.inImage);
@@ -104,6 +119,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         that.widgets.displayInIn.hidden = true;
     }
 
+    //Set the buttons for setting the camera in perspective or orthographic mode.
     function setCameraButtons(x, y, callbackPers, callbackOrtho) {
         addWidget("perspective", x, y,
                 "data:image/png;base64," + GCodeViewer.perspectiveImage);
@@ -123,6 +139,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         that.widgets.perspective.hidden = true;
     }
 
+    //Set the buttons for managing the animation.
     function setAnimationButtons(y, callResume, callPause, callReset) {
         var x = (domElement.width / 2) - 34;  //middle - size image - 5 / 2
 
@@ -153,6 +170,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         };
     }
 
+    // Set the interface for displaying the gcode
     function setGCodeInterface(y) {
         var id = "divGCode";
         var div = document.createElement("div");
@@ -194,6 +212,7 @@ GCodeViewer.Gui = function(domElement, callbacks) {
     }
 
     //This is ugly, find a way to do that in JavaScript/CSS if possible
+    //Used to dislaing the line numbers aligned to each other
     function lineFormat(line, numberLines) {
         var spaces = numberLines.toString().length - line.toString().length;
         var str = "";
@@ -212,7 +231,11 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         };
     }
 
-    //gcode is the array in the parsed gcode
+    /**
+     * Set the GCode in the GUI.
+     *
+     * @param {array} gcode The array in the parsed gcode.
+     */
     that.setGCode = function(gcode) {
         var i = 0;
         var li, pre;
@@ -238,7 +261,9 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         }
     };
 
-    //To call when the canvas or container has resized
+    /**
+     * To call when the canvas or container has resized
+     */
     that.resized = function() {
         var divGCode = document.getElementById("divGCode");
         var s = GCodeViewer.iconSize, m = that.margin;

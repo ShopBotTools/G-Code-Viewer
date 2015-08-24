@@ -19,16 +19,23 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     var lengthBit = 1;
 
+    /**
+     * Shows the bit in the scene.
+     */
     that.show = function() {
         that.scene.add(that.bit);
         that.refreshFunction();
     };
 
+    /**
+     * Hides the bit from the scene.
+     */
     that.hide = function() {
         that.scene.remove(that.bit);
         that.refreshFunction();
     };
 
+    //Get the real position of the tip of the bit.
     function getPositionBit() {
         return {
             x : that.bit.position.x,
@@ -37,6 +44,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         };
     }
 
+    //Get the position of the tip of the bit according to the meshes of
+    //the path class.
     function getPositionBitRelative() {
         var pos = getPositionBit();
         return {
@@ -58,7 +67,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         setPositionBit(pos);
     }
 
-    //Give the move to do
+    //Gives the move to do
     function deltaSpeed(position, destination, speed, deltaTime) {
         speed = speed * deltaTime;
         var dX = destination.x - position.x;
@@ -83,6 +92,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     }
 
     //Used to have an smooth animation
+    //Returns the time elapsed between each update.
     function calculateDeltaTime() {
         var newTime = new Date().getTime();
         var deltaTime = newTime - that.lastTime;
@@ -131,6 +141,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return true;
     }
 
+    // Updates the position and do the logical for the animation.
     function update() {
         var deltaTime = calculateDeltaTime(); //Must be here to update each time
         if(that.isRunning() === false) {
@@ -150,19 +161,38 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.refreshFunction();
     }
 
+    /**
+     * Returns if the animation is paused (ie: started but doing nothing).
+     *
+     * @return {boolean} True if the animation is paused.
+     */
     that.isPaused = function() {
         return that.isInPause === true && that.animating === true;
     };
 
+    /**
+     * Returns if the animation is stopped (ie: not start).
+     *
+     * @return {boolean} True if the animation is stopped.
+     */
     that.isStopped = function() {
         return that.isInPause === false && that.animating === false;
     };
 
+    /**
+     * Returns if the animation is running (ie: started but animating).
+     *
+     * @return {boolean} True if the animation is running.
+     */
     that.isRunning = function() {
         return that.isInPause === false && that.animating === true;
     };
 
-    // returns true if start the animation; false if problem
+    /**
+     * Starts the animation from the beginning of the path.
+     *
+     * @return {boolean} Returns true if start the animation; false if problem.
+     */
     that.start = function() {
         that.currentPath = that.path.getPath();
         that.iPath = 0;
@@ -197,8 +227,13 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return -1;
     }
 
-    //Go to the command in the line number
-    //Returns false if lineNumber is wrong
+    /**
+     * Starts the animation according to the command in the line number given
+     * (the animation is paused).
+     *
+     * @param {number} lineNumber The line number of the command.
+     * @return {boolean} Returns true if start the animation; false if problem.
+     */
     that.goTo = function(lineNumber) {
         that.path.redoMeshes();
         that.stop();
@@ -237,6 +272,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return true;
     };
 
+    /**
+     * Pauses the animation.
+     */
     that.pause = function() {
         if(that.isStopped() === false) {
             that.isInPause = true;
@@ -244,6 +282,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         }
     };
 
+    /**
+     * Resumes the animation.
+     */
     that.resume = function() {
         if(that.isStopped() === false) {
             that.isInPause = false;
@@ -251,12 +292,18 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         }
     };
 
+    /**
+     * Stops the animation.
+     */
     that.stop = function() {
         that.isInPause = false;
         that.animating = false;
         that.gui.setStatusAnimation("stop");
     };
 
+    /**
+     * Resets the animation.
+     */
     that.reset = function() {
         setPositionBit(that.initialPosition);
         that.path.redoMeshes();
