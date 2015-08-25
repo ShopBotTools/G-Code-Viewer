@@ -313,7 +313,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     function createBit() {
         var geometry = new THREE.CylinderGeometry(0, lengthBit / 3, lengthBit, 32);
-        var material = new THREE.MeshBasicMaterial({color: 0x7f7f7f});
+        var material = new THREE.MeshBasicMaterial({color: 0x7f715a});
         that.bit = new THREE.Mesh(geometry, material);
         that.bit.rotateX(-Math.PI / 2);
         setPositionBit(that.initialPosition);
