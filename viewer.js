@@ -352,7 +352,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.renderer.domElement.style.zIndex = 1;
     container.appendChild(that.renderer.domElement);
 
-    // that.renderer.setClearColor( 0xf0f0f0 );
+    that.renderer.setClearColor( 0x303030 );
     that.renderer.setPixelRatio( window.devicePixelRatio );
 
     that.scene = new THREE.Scene();
