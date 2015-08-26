@@ -286,25 +286,17 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.iPath = 0;
 
         for(that.iPath=0; that.iPath <= iLine; that.iPath++) {
-            console.log(that.iPath + " <= " + iLine);
             pointPath = that.currentPath[that.iPath];
             if(isStartingPath() === true) {
-                console.log("start");
                 that.path.startPath(pointPath);
             } else if(isEndingPath() === true) {
-                console.log("end");
                 that.path.endPath(pointPath);
             } else {
-                console.log("intermediate");
                 that.path.reachedIntermediate(pointPath);
             }
         }
 
         pos = that.currentPath[that.iPath-1].point;
-        // if(that.iPath > 0) {
-        //     that.iPath++;
-        // }
-
         pos.x += that.initialPosition.x;
         pos.y += that.initialPosition.y;
         pos.z += that.initialPosition.z;

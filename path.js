@@ -527,14 +527,16 @@ GCodeViewer.Path = function(scene) {
     that.startPath = function(pointPath) {
         // console.log("start path");
         var meshes = getMeshes(pointPath.type);
-        var meshDone = meshes.done, meshUndone = meshes.undone;
+        var meshDone = meshes.done/* , meshUndone = meshes.undone */;
         var verticesDone = meshDone.geometry.vertices;
-        var verticesUndone = meshUndone.geometry.vertices;
+        // var verticesUndone = meshUndone.geometry.vertices;
+        var p = pointPath.point;
 
-        verticesDone.push(verticesUndone[0].clone());
-        verticesDone.push(verticesUndone[0].clone());
+        verticesDone.push(new THREE.Vector3(p.x, p.y, p.z));
+        verticesDone.push(new THREE.Vector3(p.x, p.y, p.z));
+        // verticesDone.push(verticesUndone[0].clone());
+        // verticesDone.push(verticesUndone[0].clone());
         //No need to change vertices of the meshUndone
-        console.log(verticesDone.length);
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
         // changeMesh(meshUndone, verticesUndone, pointPath.type, false);
@@ -547,11 +549,13 @@ GCodeViewer.Path = function(scene) {
         var meshDone = meshes.done, meshUndone = meshes.undone;
         var verticesDone = meshDone.geometry.vertices;
         var verticesUndone = meshUndone.geometry.vertices;
+        var p = pointPath.point;
 
         if(verticesDone.length === 0) {
             return false;
         }
-        verticesDone[verticesDone.length -1] = verticesUndone[0].clone();
+        verticesDone[verticesDone.length -1] = new THREE.Vector3(p.x, p.y, p.z);
+        // verticesDone[verticesDone.length -1] = verticesUndone[0].clone();
 
         //Remove the vertex following the bit and the one at the end of the path
         verticesUndone.splice(0, 2);
@@ -565,10 +569,6 @@ GCodeViewer.Path = function(scene) {
         // console.log("reached intermediate");
         that.endPath(pointPath);
         that.startPath(pointPath);
-        // var meshes = getMeshes(pointPath.type);
-        // var meshDone = meshes.done, meshUndone = meshes.undone;
-        // var verticesDone = meshDone.geometry.vertices;
-        // var verticesUndone = meshUndone.geometry.vertices;
     };
 
     /**
@@ -588,7 +588,6 @@ GCodeViewer.Path = function(scene) {
         var verticesDone = meshDone.geometry.vertices;
         var verticesUndone = meshUndone.geometry.vertices;
         var p = currentPosition;
-
 
         if(verticesDone.length < 2) {
             return false;
