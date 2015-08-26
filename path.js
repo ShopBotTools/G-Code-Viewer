@@ -466,6 +466,71 @@ GCodeViewer.Path = function(scene) {
         }
     }
 
+    //Return an object containing the "undone" and the "done" meshes
+    function getMeshes(type) {
+        var res = { undone : {}, done : {} };
+
+        if(type === "G0") {
+            res.undone = that.meshG0Undone;
+            res.done = that.meshG0Done;
+        } else if(type === "G1") {
+            res.undone = that.meshG1Undone;
+            res.done = that.meshG1Done;
+        } else {  //I assume the types are correct
+            res.undone = that.meshG2G3Undone;
+            res.done = that.meshG2G3Done;
+        }
+
+        return res;
+    }
+
+    // To call when the bit starts a new path
+    that.startPath = function(pointPath) {
+        console.log("start path");
+        var meshes = getMeshes(pointPath.type);
+        var meshDone = meshes.done, meshUndone = meshes.undone;
+        var verticesDone = meshDone.geometry.vertices;
+        var verticesUndone = meshUndone.geometry.vertices;
+
+        verticesDone.push(verticesUndone[0].clone());
+        verticesDone.push(verticesUndone[0].clone());
+        //No need to change vertices of the meshUndone
+
+        changeMesh(meshDone, verticesDone, pointPath.type, true);
+        // changeMesh(meshUndone, verticesUndone, pointPath.type, false);
+    };
+
+    //To call when the bit ends a path
+    that.endPath = function(pointPath) {
+        console.log("end path");
+        var meshes = getMeshes(pointPath.type);
+        var meshDone = meshes.done, meshUndone = meshes.undone;
+        var verticesDone = meshDone.geometry.vertices;
+        var verticesUndone = meshUndone.geometry.vertices;
+
+        if(verticesDone.length === 0) {
+            return false;
+        }
+        verticesDone[verticesDone.length -1] = verticesUndone[0].clone();
+
+        //Remove the vertex following the bit and the one at the end of the path
+        verticesUndone.splice(0, 2);
+
+        changeMesh(meshDone, verticesDone, pointPath.type, true);
+        changeMesh(meshUndone, verticesUndone, pointPath.type, false);
+    };
+
+    //To call when the bit reaches an intermediate point of a path
+    that.reachedIntermediate = function(pointPath) {
+        console.log("end path");
+        that.endPath(pointPath);
+        that.startPath(pointPath);
+        // var meshes = getMeshes(pointPath.type);
+        // var meshDone = meshes.done, meshUndone = meshes.undone;
+        // var verticesDone = meshDone.geometry.vertices;
+        // var verticesUndone = meshUndone.geometry.vertices;
+    };
+
     /**
      * To call when the bit from the animation is reaching one point from the
      * path. WARNING: this function must be called at least one between two use
@@ -477,26 +542,13 @@ GCodeViewer.Path = function(scene) {
      * @return {boolean} False if there was a problem.
      */
     that.isReachingPoint = function(pointPath, currentPosition) {
-        var verticesDone = [], verticesUndone = [];
-        var meshDone = {}, meshUndone = {};
+        console.log("isReachingPoint");
+        var meshes = getMeshes(pointPath.type);
+        var meshDone = meshes.done, meshUndone = meshes.undone;
+        var verticesDone = meshDone.geometry.vertices;
+        var verticesUndone = meshUndone.geometry.vertices;
         var p = currentPosition;
 
-        if(pointPath.type === "G0") {
-            meshUndone = that.meshG0Undone;
-            meshDone = that.meshG0Done;
-            verticesUndone = that.meshG0Undone.geometry.vertices;
-            verticesDone = that.meshG0Done.geometry.vertices;
-        } else if(pointPath.type === "G1") {
-            meshUndone = that.meshG1Undone;
-            meshDone = that.meshG1Done;
-            verticesUndone = that.meshG1Undone.geometry.vertices;
-            verticesDone = that.meshG1Done.geometry.vertices;
-        } else {  //I assume the types are correct
-            meshUndone = that.meshG2G3Undone;
-            meshDone = that.meshG2G3Done;
-            verticesUndone = that.meshG2G3Undone.geometry.vertices;
-            verticesDone = that.meshG2G3Done.geometry.vertices;
-        }
 
         if(verticesDone.length < 2) {
             return false;
@@ -519,25 +571,11 @@ GCodeViewer.Path = function(scene) {
      * @return {boolean} False if there was a problem.
      */
     that.reachedPoint = function(pointPath) {
-        var verticesDone = [], verticesUndone = [];
-        var meshDone = {}, meshUndone = {};
-
-        if(pointPath.type === "G0") {
-            meshUndone = that.meshG0Undone;
-            meshDone = that.meshG0Done;
-            verticesUndone = that.meshG0Undone.geometry.vertices;
-            verticesDone = that.meshG0Done.geometry.vertices;
-        } else if(pointPath.type === "G1") {
-            meshUndone = that.meshG1Undone;
-            meshDone = that.meshG1Done;
-            verticesUndone = that.meshG1Undone.geometry.vertices;
-            verticesDone = that.meshG1Done.geometry.vertices;
-        } else {  //I assume the types are correct
-            meshUndone = that.meshG2G3Undone;
-            meshDone = that.meshG2G3Done;
-            verticesUndone = that.meshG2G3Undone.geometry.vertices;
-            verticesDone = that.meshG2G3Done.geometry.vertices;
-        }
+        console.log("reached");
+        var meshes = getMeshes(pointPath.type);
+        var meshDone = meshes.done, meshUndone = meshes.undone;
+        var verticesDone = meshDone.geometry.vertices;
+        var verticesUndone = meshUndone.geometry.vertices;
 
         if(verticesUndone.length < 2) {
             return false;
@@ -558,17 +596,26 @@ GCodeViewer.Path = function(scene) {
         if(GCodeViewer.samePosition(verticesUndone[0], verticesUndone[1]) === false) {
             verticesDone.push(verticesUndone[0].clone());
             verticesDone.push(verticesUndone[0].clone());
+            if(pointPath.type === "G0") {
+                console.log("Clone two vertices (start)");
+            }
         } else {  //End of a path (intermediate or not)
             if(verticesDone.length > 0) {
                 verticesDone[verticesDone.length -1].x = verticesUndone[0].x;
                 verticesDone[verticesDone.length -1].y = verticesUndone[0].y;
                 verticesDone[verticesDone.length -1].z = verticesUndone[0].z;
+                if(pointPath.type === "G0") {
+                    console.log("Last done = first undone");
+                }
             }
             //End of an intermediate
             if(verticesUndone.length > 2 &&
                     GCodeViewer.samePosition(verticesUndone[0], verticesUndone[2]) === true) {
                 verticesDone.push(verticesUndone[0].clone());
                 verticesDone.push(verticesUndone[0].clone());
+                if(pointPath.type === "G0") {
+                    console.log("Clone two vertices (intermediate)");
+                }
             }
 
             verticesUndone.splice(0, 2);
@@ -592,6 +639,7 @@ GCodeViewer.Path = function(scene) {
             { color : 0x000ff });
     that.matG0Done = new THREE.LineDashedMaterial(
             { color : 0xff00ff, dashSize : 2 });
-    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
+    // that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
+    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xffffff });
     that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
 };

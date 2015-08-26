@@ -100,16 +100,59 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return deltaTime;
     }
 
+    //Check if the animation is starting to animate a new path
+    function isStartingPath() {
+        if(that.iPath === 0) {
+            return true;
+        }
+        var currentLine = that.currentPath[that.iPath].lineNumber;
+        var previousLine = that.currentPath[that.iPath-1].lineNumber;
+
+        return (currentLine !== previousLine);
+    }
+
+    //Check if the animation is ending the animation of a path
+    function isEndingPath() {
+        if(that.iPath === 0) {
+            return false;
+        }
+        if(that.iPath === that.currentPath.length - 1) {
+            return true;
+        }
+        var currentLine = that.currentPath[that.iPath].lineNumber;
+        var nextLine = that.currentPath[that.iPath+1].lineNumber;
+
+        return (currentLine !== nextLine);
+    }
+
+    // function hasReachedIntermediate() {
+    //     return ((isStartingPath() || isEndingPath()) === false);
+    // }
+
     //Warn the path class of the current position
     //forward {bool}, true if the bit goes forward (do the path chronologically)
     //changedIndex: if true, means that the point reached the current point
     function warnPath(changedIndex) {
-        if(changedIndex === true) {
-            that.path.reachedPoint(that.currentPath[that.iPath]);
+        var pointPath = that.currentPath[that.iPath];
+        if(changedIndex === false) {
+            that.path.isReachingPoint(pointPath, getPositionBitRelative());
         } else {
-            that.path.isReachingPoint(that.currentPath[that.iPath],
-                    getPositionBitRelative());
+            if(isStartingPath() === true) {
+                that.path.startPath(pointPath);
+            } else if(isEndingPath() === true) {
+                that.path.endPath(pointPath);
+            } else {
+                that.path.reachedIntermediate(pointPath);
+            }
         }
+
+        // if(changedIndex === true) {
+        //     that.path.reachedPoint(that.currentPath[that.iPath]);
+        // } else {
+        //     that.path.isReachingPoint(that.currentPath[that.iPath],
+        //             getPositionBitRelative());
+        // }
+
     }
 
     function setCurrentSpeed() {
@@ -324,6 +367,23 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.normalSpeed = normalSpeed / 360000;
         that.fastSpeed = fastSpeed / 360000;
     }
+
+    //TODO: delete
+    that.printCurrentPath = function() {
+        if(that.currentPath === undefined) {
+            return;
+        }
+        var i = 0;
+        var point, line, type, str;
+        for(i=0; i < that.currentPath.length; i++) {
+            point = that.currentPath[i].point;
+            line = that.currentPath[i].lineNumber;
+            type = that.currentPath[i].type;
+            str = type + " " + line + " => ";
+            str += "{ " + point.x + ", " + point.y  + ", "+ point.z + " }";
+            console.log(str);
+        }
+    };
 
     //initialize
     that.path = path;
