@@ -618,7 +618,6 @@ GCodeViewer.Path = function(scene) {
             { color : 0x000ff });
     that.matG0Done = new THREE.LineDashedMaterial(
             { color : 0xff00ff, dashSize : 2 });
-    // that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
-    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xffffff });
+    that.matG1Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
     that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
 };
