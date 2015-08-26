@@ -363,6 +363,7 @@ GCodeViewer.Path = function(scene) {
         return index;
     }
 
+    //Return the new path without the doubloons
     function removeDoubloons(path) {
         var iPath = 0, iSP = 0, lineNumber = 0; //iSinglePath
         var singlePath = [], newPath = [];
@@ -398,17 +399,8 @@ GCodeViewer.Path = function(scene) {
 
 
         }
+
         return newPath;
-
-        // for(iStart = 0; iStart < path.length; iStart++) {
-        //     while(iStart < path.length - 1 &&
-        //             path[iStart].lineNumber === path[iStart+1].lineNumber &&
-        //             GCodeViewer.pointsEqual(path[iStart].point, path[iStart+1].point))
-        //     {
-        //         path.splice(iStart+1, 1);
-        //     }
-        // }
-
     }
 
     /**
@@ -460,8 +452,6 @@ GCodeViewer.Path = function(scene) {
         }
 
         return removeDoubloons(path);
-        //
-        // return path;
     };
 
     //This is ridiculous not to manage to update the vertices
@@ -544,6 +534,7 @@ GCodeViewer.Path = function(scene) {
         verticesDone.push(verticesUndone[0].clone());
         verticesDone.push(verticesUndone[0].clone());
         //No need to change vertices of the meshUndone
+        console.log(verticesDone.length);
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
         // changeMesh(meshUndone, verticesUndone, pointPath.type, false);

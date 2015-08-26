@@ -145,14 +145,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
                 that.path.reachedIntermediate(pointPath);
             }
         }
-
-        // if(changedIndex === true) {
-        //     that.path.reachedPoint(that.currentPath[that.iPath]);
-        // } else {
-        //     that.path.isReachingPoint(that.currentPath[that.iPath],
-        //             getPositionBitRelative());
-        // }
-
     }
 
     function setCurrentSpeed() {
@@ -262,8 +254,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     // returns -1 if nothing found
     function fineIndexPath(lineNumber) {
         var i = 0;
+        console.log("Finding: " + lineNumber);
         for(i=0; i < that.currentPath.length; i++) {
-            if(that.currentPath[i].lineNumber >= lineNumber) {
+            if(that.currentPath[i].lineNumber === lineNumber) {
                 return i;
             }
         }
@@ -282,7 +275,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         that.stop();
         that.currentPath = that.path.getPath();
         var iLine = fineIndexPath(lineNumber);
+        console.log("iLine = " + iLine);
         var pos = { x : 0, y : 0, z : 0 };
+        var pointPath;
 
         if(iLine === -1) {
             return false;
@@ -290,16 +285,25 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
         that.iPath = 0;
 
-        for(that.iPath=0; that.iPath < iLine; that.iPath++) {
-            that.path.isReachingPoint(that.currentPath[that.iPath],
-                    that.currentPath[that.iPath].point);
-            that.path.reachedPoint(that.currentPath[that.iPath]);
+        for(that.iPath=0; that.iPath <= iLine; that.iPath++) {
+            console.log(that.iPath + " <= " + iLine);
+            pointPath = that.currentPath[that.iPath];
+            if(isStartingPath() === true) {
+                console.log("start");
+                that.path.startPath(pointPath);
+            } else if(isEndingPath() === true) {
+                console.log("end");
+                that.path.endPath(pointPath);
+            } else {
+                console.log("intermediate");
+                that.path.reachedIntermediate(pointPath);
+            }
         }
 
-        pos = that.currentPath[that.iPath].point;
-        if(that.iPath > 0) {
-            that.iPath++;
-        }
+        pos = that.currentPath[that.iPath-1].point;
+        // if(that.iPath > 0) {
+        //     that.iPath++;
+        // }
 
         pos.x += that.initialPosition.x;
         pos.y += that.initialPosition.y;
