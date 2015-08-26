@@ -125,13 +125,13 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         return (currentLine !== nextLine);
     }
 
+    // Keep this function here in case but this function is useless for the moment
     // function hasReachedIntermediate() {
     //     return ((isStartingPath() || isEndingPath()) === false);
     // }
 
     //Warn the path class of the current position
-    //forward {bool}, true if the bit goes forward (do the path chronologically)
-    //changedIndex: if true, means that the point reached the current point
+    //changedIndex {bool}, if true, means that the point reached the current point
     function warnPath(changedIndex) {
         var pointPath = that.currentPath[that.iPath];
         if(changedIndex === false) {
