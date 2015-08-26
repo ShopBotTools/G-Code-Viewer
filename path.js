@@ -323,10 +323,12 @@ GCodeViewer.Path = function(scene) {
         if(index >= vertices.length) {
             return -1;
         }
+        var numberAdded = 0;
 
         while(index < vertices.length &&
                 GCodeViewer.pointsEqual(vertices[index], end) === false)
         {
+            numberAdded++;
             path.push({
                 point : GCodeViewer.copyPoint(vertices[index]),
                 type : type,
@@ -338,6 +340,7 @@ GCodeViewer.Path = function(scene) {
         if(index < vertices.length &&
                 GCodeViewer.pointsEqual(vertices[index], end) === true)
         {
+            numberAdded++;
             path.push({
                 point : GCodeViewer.copyPoint(vertices[index]),
                 type : type,
@@ -346,20 +349,66 @@ GCodeViewer.Path = function(scene) {
             index++;
         }
 
+        //A path have at least 2 points. It happens this isn't the case here...
+        if(numberAdded === 1) {
+            path.push({
+                point : GCodeViewer.copyPoint(vertices[index]),
+                type : type,
+                lineNumber : lineNumber
+            });
+            index++;
+            numberAdded++;  //Not useful here
+        }
+
         return index;
     }
 
     function removeDoubloons(path) {
-        var i = 0;
+        var iPath = 0, iSP = 0, lineNumber = 0; //iSinglePath
+        var singlePath = [], newPath = [];
 
-        for(i = 0; i < path.length; i++) {
-            while(i < path.length - 1 &&
-                    path[i].lineNumber === path[i+1].lineNumber &&
-                    GCodeViewer.pointsEqual(path[i].point, path[i+1].point))
-            {
-                path.splice(i+1, 1);
+        while(iPath < path.length) {
+            lineNumber = path[iPath].lineNumber;
+            singlePath = [];
+
+            //Recuperate a single path
+            while(iPath < path.length && path[iPath].lineNumber === lineNumber) {
+                singlePath.push(path[iPath]);
+                iPath++;
             }
+
+            //Remove doubloons
+            if(singlePath.length > 2) {
+                iSP = 0;
+                //Never delete the last point
+                while(iSP < singlePath.length-2) {
+                    while(iSP < singlePath.length-2 &&
+                            GCodeViewer.pointsEqual(singlePath[iSP].point,
+                                singlePath[iSP+1].point) === true)
+                    {
+                        singlePath.splice(iSP+1, 1);
+                    }
+                    iSP++;
+                }
+            }
+
+            for(iSP=0; iSP < singlePath.length; iSP++) {
+                newPath.push(singlePath[iSP]);
+            }
+
+
         }
+        return newPath;
+
+        // for(iStart = 0; iStart < path.length; iStart++) {
+        //     while(iStart < path.length - 1 &&
+        //             path[iStart].lineNumber === path[iStart+1].lineNumber &&
+        //             GCodeViewer.pointsEqual(path[iStart].point, path[iStart+1].point))
+        //     {
+        //         path.splice(iStart+1, 1);
+        //     }
+        // }
+
     }
 
     /**
@@ -410,9 +459,9 @@ GCodeViewer.Path = function(scene) {
             }
         }
 
-        removeDoubloons(path);
-
-        return path;
+        return removeDoubloons(path);
+        //
+        // return path;
     };
 
     //This is ridiculous not to manage to update the vertices
@@ -486,7 +535,7 @@ GCodeViewer.Path = function(scene) {
 
     // To call when the bit starts a new path
     that.startPath = function(pointPath) {
-        console.log("start path");
+        // console.log("start path");
         var meshes = getMeshes(pointPath.type);
         var meshDone = meshes.done, meshUndone = meshes.undone;
         var verticesDone = meshDone.geometry.vertices;
@@ -502,7 +551,7 @@ GCodeViewer.Path = function(scene) {
 
     //To call when the bit ends a path
     that.endPath = function(pointPath) {
-        console.log("end path");
+        // console.log("end path");
         var meshes = getMeshes(pointPath.type);
         var meshDone = meshes.done, meshUndone = meshes.undone;
         var verticesDone = meshDone.geometry.vertices;
@@ -522,7 +571,7 @@ GCodeViewer.Path = function(scene) {
 
     //To call when the bit reaches an intermediate point of a path
     that.reachedIntermediate = function(pointPath) {
-        console.log("end path");
+        // console.log("reached intermediate");
         that.endPath(pointPath);
         that.startPath(pointPath);
         // var meshes = getMeshes(pointPath.type);
@@ -542,7 +591,7 @@ GCodeViewer.Path = function(scene) {
      * @return {boolean} False if there was a problem.
      */
     that.isReachingPoint = function(pointPath, currentPosition) {
-        console.log("isReachingPoint");
+        // console.log("isReachingPoint");
         var meshes = getMeshes(pointPath.type);
         var meshDone = meshes.done, meshUndone = meshes.undone;
         var verticesDone = meshDone.geometry.vertices;
@@ -571,7 +620,7 @@ GCodeViewer.Path = function(scene) {
      * @return {boolean} False if there was a problem.
      */
     that.reachedPoint = function(pointPath) {
-        console.log("reached");
+        // console.log("reached");
         var meshes = getMeshes(pointPath.type);
         var meshDone = meshes.done, meshUndone = meshes.undone;
         var verticesDone = meshDone.geometry.vertices;
