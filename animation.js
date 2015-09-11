@@ -68,6 +68,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     //Gives the move to do
+    //speed is the speed in milliseconds
     function deltaSpeed(position, destination, speed, deltaTime) {
         speed = speed * deltaTime;
         var dX = destination.x - position.x;
@@ -148,6 +149,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     function setCurrentSpeed() {
+        //We use in/ms here and feedrate is in in/min
         that.currentSpeed = that.currentPath[that.iPath].feedrate / 60000;
     }
 
