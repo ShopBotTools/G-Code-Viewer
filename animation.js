@@ -68,7 +68,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     //Gives the move to do
-    //speed is the speed in milliseconds
+    //speed is the speed in in/ms
     function deltaSpeed(position, destination, speed, deltaTime) {
         speed = speed * deltaTime;
         var dX = destination.x - position.x;
