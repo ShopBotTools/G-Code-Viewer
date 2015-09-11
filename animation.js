@@ -130,7 +130,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     //     return ((isStartingPath() || isEndingPath()) === false);
     // }
 
-    //Warn the path class of the current position
+    //Warns the path class of the current position
     //changedIndex {bool}, if true, means that the point reached the current point
     function warnPath(changedIndex) {
         var pointPath = that.currentPath[that.iPath];

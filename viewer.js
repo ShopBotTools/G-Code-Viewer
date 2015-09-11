@@ -166,7 +166,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         showPlane("z");
     };
 
-    //Helpers management:
     /**
      * Shows the axis helpers (refreshes the display).
      */
@@ -261,7 +260,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     /**
      * Sets the GCode and displays the result.
      *
-     * @param {string} string The GCode.
+     * @param {string} The GCode.
      */
     that.setGCode = function(string) {
         that.gcode = GCodeToGeometry.parse(string);
