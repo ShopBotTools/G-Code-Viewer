@@ -394,9 +394,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
     that.gui = new GCodeViewer.Gui(that.renderer.domElement, callbacks);
 
-    //normal: 3 in/s; fast: 6 in/s
     //Add animation
     that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
-            that.gui, that.path, 180, 360,
-            that.cncConfiguration.initialPosition);
+            that.gui, that.path, 24, that.cncConfiguration.initialPosition);
 };

@@ -319,7 +319,8 @@ GCodeViewer.Path = function(scene) {
     };
 
     //Return the next index
-    function setPathFromVertices(path, vertices, index, end, type, lineNumber) {
+    function setPathFromVertices(path, vertices, index, end, type, lineNumber,
+            feedrate) {
         if(index >= vertices.length) {
             return -1;
         }
@@ -332,7 +333,8 @@ GCodeViewer.Path = function(scene) {
             path.push({
                 point : GCodeViewer.copyPoint(vertices[index]),
                 type : type,
-                lineNumber : lineNumber
+                lineNumber : lineNumber,
+                feedrate : feedrate
             });
             index++;
         }
@@ -344,7 +346,8 @@ GCodeViewer.Path = function(scene) {
             path.push({
                 point : GCodeViewer.copyPoint(vertices[index]),
                 type : type,
-                lineNumber : lineNumber
+                lineNumber : lineNumber,
+                feedrate : feedrate
             });
             index++;
         }
@@ -354,7 +357,8 @@ GCodeViewer.Path = function(scene) {
             path.push({
                 point : GCodeViewer.copyPoint(vertices[index]),
                 type : type,
-                lineNumber : lineNumber
+                lineNumber : lineNumber,
+                feedrate : feedrate
             });
             index++;
             numberAdded++;  //Not useful here
@@ -412,6 +416,7 @@ GCodeViewer.Path = function(scene) {
         var path = [], vertices = [];
         var iLine = 0, iG0 = 0, iG1 = 0, iG2G3 = 0;
         var line = {}, end = {}, type = "", lineNumber = 0;
+        var feedrate = 0;
 
         if(that.lines === undefined) {
             return [];
@@ -422,11 +427,12 @@ GCodeViewer.Path = function(scene) {
             line = that.lines[iLine];
             type = line.type;
             lineNumber = line.lineNumber;
+            feedrate = line.feedrate;
             if(type === "G0") {
                 vertices = that.meshG0Undone.geometry.vertices;
                 end = line.end;
                 iG0 = setPathFromVertices(path, vertices, iG0, end, type,
-                        lineNumber);
+                        lineNumber, feedrate);
                 if(iG0 < 0) {
                     return [];
                 }
@@ -434,7 +440,7 @@ GCodeViewer.Path = function(scene) {
                 vertices = that.meshG1Undone.geometry.vertices;
                 end = line.end;
                 iG1 = setPathFromVertices(path, vertices, iG1, end, type,
-                        lineNumber);
+                        lineNumber, feedrate);
                 if(iG1 < 0) {
                     return [];
                 }
@@ -442,7 +448,7 @@ GCodeViewer.Path = function(scene) {
                 vertices = that.meshG2G3Undone.geometry.vertices;
                 end = line.beziers[line.beziers.length - 1].p3;
                 iG2G3 = setPathFromVertices(path, vertices, iG2G3, end, type,
-                        lineNumber);
+                        lineNumber, feedrate);
                 if(iG2G3 < 0) {
                     return [];
                 }

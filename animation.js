@@ -12,8 +12,8 @@
 //refreshFunction is the function to refresh the display/render the scene
 //speeds are in inches by minutes (feedrate)
 //path is the instance of the class Path
-GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
-        fastSpeed, initialPosition) {
+GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
+        initialPosition) {
     "use strict";
     var that = this;
 
@@ -148,12 +148,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     }
 
     function setCurrentSpeed() {
-        var type = that.currentPath[that.iPath].type;
-        if(type === "G0") {
-            that.currentSpeed = that.fastSpeed;
-        } else {
-            that.currentSpeed = that.normalSpeed;
-        }
+        that.currentSpeed = that.currentPath[that.iPath].feedrate / 60000;
     }
 
     //Check if need to change index of the path
@@ -358,29 +353,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
         setPositionBit(that.initialPosition);
     }
 
-    //Speed are in inches by minutes. Internally converted it in inches by ms
-    function setSpeeds(normalSpeed, fastSpeed) {
-        that.normalSpeed = normalSpeed / 360000;
-        that.fastSpeed = fastSpeed / 360000;
-    }
-
-    //TODO: delete
-    that.printCurrentPath = function() {
-        if(that.currentPath === undefined) {
-            return;
-        }
-        var i = 0;
-        var point, line, type, str;
-        for(i=0; i < that.currentPath.length; i++) {
-            point = that.currentPath[i].point;
-            line = that.currentPath[i].lineNumber;
-            type = that.currentPath[i].type;
-            str = type + " " + line + " => ";
-            str += "{ " + point.x + ", " + point.y  + ", "+ point.z + " }";
-            console.log(str);
-        }
-    };
-
     //initialize
     that.path = path;
     if(initialPosition === undefined) {
@@ -388,7 +360,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
     } else {
         that.initialPosition = initialPosition;
     }
-    setSpeeds(normalSpeed, fastSpeed);
     that.scene = scene;
     that.refreshFunction = refreshFunction;
     that.gui = gui;
@@ -396,5 +367,5 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, normalSpeed,
 
     that.stop();
     that.lastTime = new Date().getTime();
-    setInterval(update, 41);  //41 = 240 FPS (not a vidya but below it is rough)
+    setInterval(update, 1000 / fps);
 };
