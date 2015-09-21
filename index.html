@@ -38,8 +38,16 @@
         // var width = window.innerWidth, height = window.innerHeight;
         var width = 600, height = 400;
         // var width = 320, height = 480;  //vertical iPhone size
-        var viewer = new GCodeViewer.Viewer(container,
-                width, height, function(msg) { alert(msg); }/* , config */);
+        var viewer = new GCodeViewer.Viewer(
+            container,
+            width, 
+            height, 
+            function(msg) { alert(msg); },
+            {
+                hideGCode : false
+            }
+        );
+
         document.getElementById("view").onclick = function() {
             viewer.setGCode(document.getElementById("gcode").value);
             viewer.viewPaths();
