@@ -264,6 +264,51 @@ GCodeViewer.Gui = function(domElement, callbacks) {
         }
     };
 
+    function createLoadingMessage() {
+        var div = document.createElement("div");
+        var p = document.createElement("p");
+        p.innerHTML = "Loading file. Please wait.";
+        div.appendChild(p);
+
+        div.id = "loadingMessage";
+        div.style.position = "absolute";
+        div.style.background = "#ffffff";
+        div.style.border = "black solid 1px";
+        div.style.zIndex = 10;
+        div.width = "auto";
+        div.height = "100px";
+        domElement.parentNode.appendChild(div);
+
+        //Stupid trick to set the correct width and height of the div:
+        that.displayLoadingMessage();
+        that.hideLoadingMessage();
+    }
+
+    function loadingMessageDisplayed() {
+        var message = document.getElementById("loadingMessage");
+        if(message === null) {
+            return false;
+        }
+        return message.style.display !== "none";
+    }
+
+    // Show a message for the loading
+    that.displayLoadingMessage = function() {
+        var elt = document.getElementById("loadingMessage");
+        elt.style.display = "inline-block"; //Put that before doing calculus
+        var x = (domElement.width - elt.offsetWidth) / 2;
+        var y = (domElement.height - elt.offsetHeight) / 2;
+        elt.style.left = x + "px";
+        elt.style.top = y + "px";
+    };
+
+    // Hide a message for the loading
+    that.hideLoadingMessage = function() {
+        if(loadingMessageDisplayed() === true) {
+            document.getElementById("loadingMessage").style.display = "none";
+        }
+    };
+
     /**
      * To call when the canvas or container has resized
      */
@@ -324,6 +369,8 @@ GCodeViewer.Gui = function(domElement, callbacks) {
 
     y = domElement.height - GCodeViewer.iconSize - that.margin;
     setAnimationButtons(y, callbacks.resume, callbacks.pause, callbacks.reset);
+
+    createLoadingMessage();
 };
 
 GCodeViewer.iconSize = 32;

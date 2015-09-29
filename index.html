@@ -41,8 +41,9 @@
         var viewer = new GCodeViewer.Viewer(container,
                 width, height, function(msg) { alert(msg); }/* , config */);
         document.getElementById("view").onclick = function() {
-            viewer.setGCode(document.getElementById("gcode").value);
-            viewer.viewPaths();
+            viewer.setGCode(document.getElementById("gcode").value,
+                    viewer.viewPaths);
+            // viewer.viewPaths();
         }
         document.getElementById("resize").onclick = function() {
             var container = document.getElementById("container");

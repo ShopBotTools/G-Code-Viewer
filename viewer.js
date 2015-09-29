@@ -257,15 +257,14 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.scene.remove(that.boardBox);
     };
 
-    /**
-     * Sets the GCode and displays the result.
-     *
-     * @param {string} The GCode.
-     */
-    that.setGCode = function(string) {
+    // Function created because web front end ecosystem is so awesome that we
+    // cannot display an HTML element if the function is not over, during a
+    // loop or whatever other reason
+    function reallySetGCode(string) {
         that.gcode = GCodeToGeometry.parse(string);
         if(that.gcode.isComplete === false) {
             displayError(that.gcode.errorMessage);
+            that.gui.hideLoadingMessage();
             return;
         }
 
@@ -274,6 +273,29 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
                 that.cncConfiguration.initialPosition);
         that.refreshDisplay();  //To avoid confusion, we remove everything
         that.gui.setGCode(that.gcode.gcode);
+        that.gui.hideLoadingMessage();
+    }
+
+    /**
+     * Sets the GCode and displays the result.
+     *
+     * @param {string} The GCode.
+     * @param {function} Callback function called when the meshes are created.
+     */
+    that.setGCode = function(string, callback) {
+        that.gui.displayLoadingMessage();
+        var cb;
+        if(callback === undefined) {
+            cb = function() {
+                reallySetGCode(string);
+            };
+        } else {
+            cb = function() {
+                reallySetGCode(string);
+                callback();
+            };
+        }
+        setTimeout(cb, 100);
     };
 
     /**

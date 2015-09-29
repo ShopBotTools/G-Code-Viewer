@@ -38,18 +38,14 @@ The parameters are:
   dimensions of the board are in **inches**.
 
 Then, each time you will want to see the 3D representation of the GCode: set
-the GCode of your viewer object then view the paths.
+the GCode of your viewer object then view the paths through the callback
+parameter.
 
-    viewer.setGCode(gcode);  //gcode is a string
-    viewer.viewPaths();      //refresh the display
+    var callback = function() { viewer.viewPaths(); /* other code */ };
+    viewer.setGCode(gcode, callback);  //gcode is a string
 
 `setGCode` will remove everything displayed in the viewer (except the helpers).
 `viewPaths` displays the paths.
 
 ##Example
 The code in the `index.html` is pretty straightforward and should help a lot.
-
-##TODO:
-A lot of things can be added to this viewer:
-* Improve the design of interface (icons, colors...)
-* Display the result of the cut by setting a type of bit
