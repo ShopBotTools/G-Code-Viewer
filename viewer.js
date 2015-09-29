@@ -381,13 +381,13 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.renderer.domElement.style.zIndex = 1;
     container.appendChild(that.renderer.domElement);
 
-    that.renderer.setClearColor( 0x303030 );
+    that.renderer.setClearColor( 0xebebeb );
     that.renderer.setPixelRatio( window.devicePixelRatio );
 
     that.scene = new THREE.Scene();
     setCombinedCamera();
     that.showZ();
-   
+
     that.light1 = new THREE.PointLight( 0xffffff, 1, 100 );
     that.light1.position.set( 0, 0, -10 );
     that.scene.add( that.light1 );
