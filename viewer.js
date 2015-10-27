@@ -260,12 +260,13 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     // Function created because web front end ecosystem is so awesome that we
     // cannot display an HTML element if the function is not over, during a
     // loop or whatever other reason
+    // Returns true if the GCode was parsed correctly.
     function reallySetGCode(string) {
         that.gcode = GCodeToGeometry.parse(string);
         if(that.gcode.isComplete === false) {
             displayError(that.gcode.errorMessage);
             that.gui.hideLoadingMessage();
-            return;
+            return false;
         }
 
         that.path.remove();  //Removing old stuff
@@ -274,6 +275,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.refreshDisplay();  //To avoid confusion, we remove everything
         that.gui.setGCode(that.gcode.gcode);
         that.gui.hideLoadingMessage();
+        return true;
     }
 
     /**
@@ -291,8 +293,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
             };
         } else {
             cb = function() {
-                reallySetGCode(string);
-                callback();
+                if(reallySetGCode(string) === true) {
+                    callback();
+                }
             };
         }
         setTimeout(cb, 100);
