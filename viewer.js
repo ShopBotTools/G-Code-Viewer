@@ -362,6 +362,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
 
     // initialize
+
     //Members declaration
     that.renderer = {};
     that.camera = {};
@@ -373,6 +374,11 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.inMm = false;
     that.inchToVector = 1; //Convert an inch to the value to put in vectors
     that.callbackError = callbackError;
+
+    if(GCodeViewer.webGLEnabled() === false) {
+        displayError("WebGL is not enable. Impossible to preview.");
+        return;
+    }
 
     if(container === undefined || container === null) {
         displayError("No container set.");
