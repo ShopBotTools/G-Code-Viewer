@@ -257,7 +257,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     // returns -1 if nothing found
     function fineIndexPath(lineNumber) {
         var i = 0;
-        console.log("Finding: " + lineNumber);
         for(i=0; i < that.currentPath.length; i++) {
             if(that.currentPath[i].lineNumber === lineNumber) {
                 return i;
@@ -278,7 +277,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         that.stop();
         that.currentPath = that.path.getPath();
         var iLine = fineIndexPath(lineNumber);
-        console.log("iLine = " + iLine);
         var pos = { x : 0, y : 0, z : 0 };
         var pointPath;
 
