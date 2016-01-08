@@ -10,7 +10,6 @@
  */
 
 //refreshFunction is the function to refresh the display/render the scene
-//speeds are in inches by minutes (feedrate)
 //path is the instance of the class Path
 GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         initialPosition) {
@@ -283,8 +282,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         if(iLine === -1) {
             return false;
         }
-
-        that.iPath = 0;
 
         for(that.iPath=0; that.iPath <= iLine; that.iPath++) {
             pointPath = that.currentPath[that.iPath];

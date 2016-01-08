@@ -318,6 +318,8 @@ GCodeViewer.Path = function(scene) {
         that.add();
     };
 
+    // Set the path the animation will follow. It is based on the vertices of a
+    // THREE.Geometry object display.
     //Return the next index
     function setPathFromVertices(path, vertices, index, end, type, lineNumber,
             feedrate) {
