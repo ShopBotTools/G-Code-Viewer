@@ -76,7 +76,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         var dZ = destination.z - position.z;
         var length = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
 
-        if(length === 0) {
+        if(length === 0 || speed > length) {
             return { x : dX, y : dY, z : dZ };
         }
 
@@ -86,9 +86,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
             z : dZ / length * speed
         };
 
-        if(GCodeToGeometry.lengthVector3(move) > length) {
-            return { x : dX, y : dY, z : dZ };
-        }
         return move;
     }
 
