@@ -61,7 +61,7 @@ GCodeViewer.copyPoint = function(point) {
  * @return {boolean} True if the two value are nearly equal.
  */
 GCodeViewer.nearlyEqual = function(a, b) {
-    return Math.abs(b - a) <= 0.001;
+    return Math.abs(b - a) <= 0.0001;
 };
 
 /**
