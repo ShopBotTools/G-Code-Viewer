@@ -225,10 +225,13 @@ GCodeViewer.Path = function(scene) {
             p3 = new THREE.Vector3(bez[i].p3.x, bez[i].p3.y, bez[i].p3.z);
 
             v = new THREE.CubicBezierCurve3(p0, p1, p2, p3).getPoints(32);
-            for(j=0; j < v.length; j++) {
+            for(j=0; j < v.length-1; j++) {
                 geometry.vertices.push(v[j]);
             }
         }
+        //When mutltiple Bézier curves, useless to have the end point and the
+        //next start point in the same place
+        geometry.vertices.push(v[v.length-1]);
         return geometry;
     }
 
