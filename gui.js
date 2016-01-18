@@ -296,9 +296,15 @@ GCodeViewer.Gui = function(domElement, configuration, callbacks) {
      * To call when the canvas or container has resized
      */
     that.resized = function() {
+        console.log("gui.js resized");
         var divGCode = document.getElementById("divGCode");
         var s = GCodeViewer.iconSize, m = that.margin;
         var w = domElement.width, h = domElement.height;
+
+        console.log("domElement");
+        console.log(domElement);
+        console.log("domElement.height");
+        console.log(domElement.height);
 
         var x = m, y = m;
         placeWidget("showX", x, y);
@@ -340,6 +346,11 @@ GCodeViewer.Gui = function(domElement, configuration, callbacks) {
     var x = 5, y = 5;
 
     setAxesButtons(x, y, callbacks.showX, callbacks.showY, callbacks.showZ);
+
+        console.log("domElement");
+        console.log(domElement);
+        console.log("domElement.height");
+        console.log(domElement.height);
 
     y = domElement.height - GCodeViewer.iconSize - that.margin;
     setUnitButtons(x, y, callbacks.displayInIn, callbacks.displayInMm);

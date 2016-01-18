@@ -101,11 +101,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         return (currentLine !== nextLine);
     }
 
-    // Keep this function here in case but this function is useless for the moment
-    // function hasReachedIntermediate() {
-    //     return ((isStartingPath() || isEndingPath()) === false);
-    // }
-
     //Warns the path class of the current position
     //changedIndex {bool}, if true, means that the point reached the current point
     function warnPath(changedIndex) {
