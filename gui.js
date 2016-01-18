@@ -184,14 +184,14 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     function setGCodeInterface(y) {
         var id = "divGCode";
         var div = document.createElement("div");
-        var width = 200;
+        var toggleWidth = 200;
         div.id = id;
         if(that.hideGCode) {
             div.style.visibility = "hidden";
         }
         renderer.domElement.parentNode.appendChild(div);
         that.widgets[id] = div;
-        placeWidget("divGCode", ((width - width) / 2), y);
+        placeWidget("divGCode", ((width - toggleWidth) / 2), y);
 
         var p = document.createElement("p");
         p.id = "toggleGCode";
@@ -301,7 +301,6 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     that.resized = function(newWidth, newHight) {
         var divGCode = document.getElementById("divGCode");
         var s = GCodeViewer.iconSize, m = that.margin;
-        // var w = width, h = height;
         width = newWidth;
         height = newHight;
 
