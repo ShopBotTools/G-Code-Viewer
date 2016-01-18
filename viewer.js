@@ -53,7 +53,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.camera.updateProjectionMatrix();
         that.refreshDisplay();
 
-        that.gui.resized();
+        that.gui.resized(width, height);
     };
 
     /**
@@ -437,7 +437,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         goToLine : goToLineFun
 
     };
-    that.gui = new GCodeViewer.Gui(that.renderer, that.cncConfiguration, callbacks);
+    that.gui = new GCodeViewer.Gui(that.renderer, widthCanvas, heightCanvas,
+            that.cncConfiguration, callbacks);
 
     //Add animation
     that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,

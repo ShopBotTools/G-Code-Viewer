@@ -9,8 +9,11 @@
  * This file contains the class managing the GUI.
  */
 
-//the renderer.domElement of the canvas, callbacks functions for the button
-GCodeViewer.Gui = function(renderer, configuration, callbacks) {
+//the width and the height is the dimension of the domElement (for some reason,
+// when resizing the renderer, the domElement dimension is completly wrong on
+// some operating system)
+//callbacks functions for the button
+GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     "use strict";
     var that = this;
 
@@ -148,7 +151,7 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
 
     //Set the buttons for managing the animation.
     function setAnimationButtons(y, callResume, callPause, callReset) {
-        var x = (renderer.domElement.width / 2) - 34;  //middle - size image - 5 / 2
+        var x = (width / 2) - 34;  //middle - size image - 5 / 2
 
         addWidget("resume", x, y,
                 "data:image/png;base64," + GCodeViewer.resumeImage);
@@ -188,7 +191,7 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
         }
         renderer.domElement.parentNode.appendChild(div);
         that.widgets[id] = div;
-        placeWidget("divGCode", ((renderer.domElement.width - width) / 2), y);
+        placeWidget("divGCode", ((width - width) / 2), y);
 
         var p = document.createElement("p");
         p.id = "toggleGCode";
@@ -279,8 +282,8 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
     that.displayLoadingMessage = function() {
         var elt = document.getElementById("loadingMessage");
         elt.style.display = "inline-block"; //Put that before doing calculus
-        var x = (renderer.domElement.width - elt.offsetWidth) / 2;
-        var y = (renderer.domElement.height - elt.offsetHeight) / 2;
+        var x = (width - elt.offsetWidth) / 2;
+        var y = (height - elt.offsetHeight) / 2;
         elt.style.left = x + "px";
         elt.style.top = y + "px";
     };
@@ -295,16 +298,18 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
     /**
      * To call when the canvas or container has resized
      */
-    that.resized = function() {
+    that.resized = function(newWidth, newHight) {
         console.log("gui.js resized");
         var divGCode = document.getElementById("divGCode");
         var s = GCodeViewer.iconSize, m = that.margin;
-        var w = renderer.domElement.width, h = renderer.domElement.height;
+        // var w = width, h = height;
+        width = newWidth;
+        height = newHight;
 
         console.log("renderer.domElement");
         console.log(renderer.domElement);
-        console.log("renderer.domElement.height");
-        console.log(renderer.domElement.height);
+        console.log("height");
+        console.log(height);
 
         var x = m, y = m;
         placeWidget("showX", x, y);
@@ -312,22 +317,22 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
         placeWidget("showZ", x, y + (s + m) * 2);
 
         x = m;
-        y = h - m - s;
+        y = height - m - s;
         placeWidget("displayInIn", x, y);
         placeWidget("displayInMm", x, y);
 
-        x = w - m - s;
-        y = h - m - s;
+        x = width - m - s;
+        y = height - m - s;
         placeWidget("perspective", x, y);
         placeWidget("orthographic", x, y);
 
-        x = (w / 2) - s - m / 2;
-        y = h - m - s;
+        x = (width / 2) - s - m / 2;
+        y = height - m - s;
         placeWidget("resume", x, y);
         placeWidget("pause", x, y);
-        placeWidget("reset", (w / 2) + m / 2, y);
+        placeWidget("reset", (width / 2) + m / 2, y);
 
-        x = (w - (parseInt(divGCode.style.width, 10))) / 2;
+        x = (width - (parseInt(divGCode.style.width, 10))) / 2;
         y = m;
         placeWidget("divGCode", x, y);
     };
@@ -349,19 +354,19 @@ GCodeViewer.Gui = function(renderer, configuration, callbacks) {
 
         console.log("renderer.domElement");
         console.log(renderer.domElement);
-        console.log("renderer.domElement.height");
-        console.log(renderer.domElement.height);
+        console.log("height");
+        console.log(height);
 
-    y = renderer.domElement.height - GCodeViewer.iconSize - that.margin;
+    y = height - GCodeViewer.iconSize - that.margin;
     setUnitButtons(x, y, callbacks.displayInIn, callbacks.displayInMm);
 
-    x = renderer.domElement.width - GCodeViewer.iconSize - that.margin;
+    x = width - GCodeViewer.iconSize - that.margin;
     setCameraButtons(x, y, callbacks.perspective, callbacks.orthographic);
 
     setGCodeInterface(5);
     that.cbGoToLine = callbacks.goToLine;
 
-    y = renderer.domElement.height - GCodeViewer.iconSize - that.margin;
+    y = height - GCodeViewer.iconSize - that.margin;
     setAnimationButtons(y, callbacks.resume, callbacks.pause, callbacks.reset);
 
     createLoadingMessage();
