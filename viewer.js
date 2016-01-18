@@ -317,7 +317,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.viewPaths = function() {
         that.path.remove();  //Don't know how to check if already in scene
         that.path.add();
-        that.totalSize.setMeshes(that.gcode.size, that.inMm,
+        that.totalSize.setMeshes(that.gcode.size,
+                that.gcode.displayInInch === false,
                 that.cncConfiguration.initialPosition);
 
         var lx = ((that.gcode.size.max.x - that.gcode.size.min.x) / 2.0 ) || 0.0;
