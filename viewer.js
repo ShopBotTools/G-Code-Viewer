@@ -437,7 +437,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         goToLine : goToLineFun
 
     };
-    that.gui = new GCodeViewer.Gui(that.renderer.domElement, that.cncConfiguration, callbacks);
+    that.gui = new GCodeViewer.Gui(that.renderer, that.cncConfiguration, callbacks);
 
     //Add animation
     that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
