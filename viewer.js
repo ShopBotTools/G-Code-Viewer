@@ -227,7 +227,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.gui.setGCode(that.gcode.gcode);
         that.gui.hideLoadingMessage();
         that.animation.reset();
-        that.animation.show();
 
         lx = ((that.gcode.size.max.x - that.gcode.size.min.x) / 2.0 ) || 0.0;
         ly = ((that.gcode.size.max.y - that.gcode.size.min.y) / 2.0 ) || 0.0;
