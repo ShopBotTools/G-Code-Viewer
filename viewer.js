@@ -169,54 +169,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
 
     /**
-     * Shows the axis helpers (refreshes the display).
-     */
-    that.showAxisHelper = function() {
-        that.helpers.addAxisHelper();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Hides the axis helpers (refreshes the display).
-     */
-    that.hideAxisHelper = function() {
-        that.helpers.removeAxisHelper();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Shows the arrow helpers (refreshes the display).
-     */
-    that.showArrows = function() {
-        that.helper.addArrows();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Hides the arrow helpers (refreshes the display).
-     */
-    that.hideArrows = function() {
-        that.helper.removeArrows();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Shows the arrow and axis helpers (refreshes the display).
-     */
-    that.showHelpers = function() {
-        that.helper.addHelpers();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Hides the arrow and axis helpers (refreshes the display).
-     */
-    that.hideHelpers = function() {
-        that.helper.removeHelpers();
-        that.refreshDisplay();
-    };
-
-    /**
      * Shows the ghost of the board (if it was set in the configuration).
      */
     that.showBoard = function() {
@@ -255,6 +207,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     // cannot display an HTML element if the function is not over, during a
     // loop or whatever other reason
     function reallySetGCode(string) {
+        var lx = 0, ly = 0, lz = 0;
         var message = "";
         that.gcode = GCodeToGeometry.parse(string);
         if(that.gcode.errorList.length > 0) {
@@ -264,14 +217,27 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
             that.gui.hideLoadingMessage();
         }
 
-        that.path.remove();  //Removing old stuff
         that.path.setMeshes(that.gcode.lines,
                 that.cncConfiguration.initialPosition);
-        that.refreshDisplay();  //To avoid confusion, we remove everything
+        that.totalSize.setMeshes(that.gcode.size,
+                that.gcode.displayInInch === false,
+                that.cncConfiguration.initialPosition);
+
+        that.helpers.resize(that.gcode.size);
         that.gui.setGCode(that.gcode.gcode);
         that.gui.hideLoadingMessage();
         that.animation.reset();
         that.animation.show();
+
+        lx = ((that.gcode.size.max.x - that.gcode.size.min.x) / 2.0 ) || 0.0;
+        ly = ((that.gcode.size.max.y - that.gcode.size.min.y) / 2.0 ) || 0.0;
+        lz = ((that.gcode.size.max.z - that.gcode.size.min.z) / 2.0 ) || 0.0;
+
+        that.light1.position.set(lx,ly,lz-10);
+        that.light2.position.set(lx,ly,lz+10);
+
+        that.showZ();
+        that.refreshDisplay();
     }
 
     /**
@@ -297,45 +263,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         setTimeout(cb, 100);
     };
 
-    /**
-     * Hides the path.
-     */
-    that.hidePaths = function() {
-        that.path.remove();
-        that.refreshDisplay();
-    };
-
-    /**
-     * Show the paths that the bit will take.
-     */
-    that.viewPaths = function() {
-        that.path.remove();  //Don't know how to check if already in scene
-        that.path.add();
-        that.totalSize.setMeshes(that.gcode.size,
-                that.gcode.displayInInch === false,
-                that.cncConfiguration.initialPosition);
-
-        var lx = ((that.gcode.size.max.x - that.gcode.size.min.x) / 2.0 ) || 0.0;
-        var ly = ((that.gcode.size.max.y - that.gcode.size.min.y) / 2.0 ) || 0.0;
-        var lz = ((that.gcode.size.max.z - that.gcode.size.min.z) / 2.0 ) || 0.0;
-
-        that.light1.position.set(lx,ly,lz-10);
-        that.light2.position.set(lx,ly,lz+10);
-
-        that.totalSize.add();
-        that.animation.hide();
-        that.animation.reset();
-        that.showZ();
-        that.helpers.resize(that.gcode.size);
-        that.refreshDisplay();
-    };
-
     // Show the size in inch (if false) or millimeter (if true)
     function changeDisplay(inMm) {
         if(that.gcode.size !== undefined) {
             that.totalSize.setMeshes(that.gcode.size, inMm,
                 that.cncConfiguration.initialPosition);
-            that.totalSize.add();
+            // that.totalSize.add();
         }
         that.refreshDisplay();
     }

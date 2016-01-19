@@ -70,6 +70,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     //Used to have an smooth animation
     //Returns the time elapsed between each update.
     function calculateDeltaTime() {
+        //TODO: should have a maximum
         var newTime = new Date().getTime();
         var deltaTime = newTime - that.lastTime;
         that.lastTime = newTime;
@@ -218,6 +219,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      * @return {boolean} Returns true if start the animation; false if problem.
      */
     that.start = function() {
+        console.log("[animation] start");
         that.currentPath = that.path.getPath();
         that.iPath = 0;
         if(that.currentPath.length === 0) {
@@ -320,11 +322,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         }
     };
 
-
-    /**
-     * Resets the animation.
-     */
-    that.reset = function() {
+    that.rewind = function() {
         setBitPosition(that.initialPosition);
         that.iPath = 0;
         that.path.redoMeshes();
@@ -332,9 +330,23 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         that.refreshFunction();
     };
 
+    /**
+     * Resets the animation.
+     */
+    that.reset = function() {
+        console.log("[animation] reset");
+        setBitPosition(that.initialPosition);
+        that.iPath = 0;
+        that.path.redoMeshes();
+        that.currentPath = that.path.getPath();
+        that.pause();
+        that.refreshFunction();
+    };
+
     function createBit() {
         var geometry = new THREE.CylinderGeometry(0, lengthBit / 5, lengthBit, 32);
-        var material = new THREE.MeshLambertMaterial({color: 0xF07530, transparent: true, opacity: 0.5});
+        var material = new THREE.MeshLambertMaterial({color: 0xF07530,
+            transparent: true, opacity: 0.5});
         that.bit = new THREE.Mesh(geometry, material);
         that.bit.rotateX(-Math.PI / 2);
         setBitPosition(that.initialPosition);

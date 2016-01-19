@@ -32,6 +32,7 @@ GCodeViewer.TotalSize = function(scene) {
      * Adds the meshes to the scene.
      */
     that.add = function() {
+        console.log("[TotalSize] add");
         that.scene.add(that.textWidth);
         that.scene.add(that.lineWidth);
         that.scene.add(that.textLength);
@@ -144,6 +145,8 @@ GCodeViewer.TotalSize = function(scene) {
             that.textHeight.position.z += initialPosition.z;
             that.lineHeight.position.z += initialPosition.z;
         }
+
+        that.add();
     };
 
     // initialize
@@ -171,6 +174,7 @@ GCodeViewer.Path = function(scene) {
     }
 
     function resetPathsMesh() {
+        that.remove();
         that.meshG0Undone = {};
         that.meshG1Undone = {};
         that.meshG2G3Undone = {};
@@ -298,13 +302,14 @@ GCodeViewer.Path = function(scene) {
     }
 
     /**
-     * Sets the meshes.
+     * Sets the meshes (and remove the old ones).
      *
      * @param {array} lines The array of lines describing the whole path.
      * @param {object} initialPosition The position, in 3D, where thr whole
      * path begins (optional).
      */
     that.setMeshes = function(lines, initialPosition) {
+        console.log("[Path] set meshes");
         resetPathsGeo();
         resetPathsMesh();
         setGeometries(lines);
@@ -341,12 +346,14 @@ GCodeViewer.Path = function(scene) {
             that.meshG2G3Done.position.set(initialPosition.x,
                     initialPosition.y, initialPosition.z);
         }
+        that.add();
     };
 
     /**
      * Redoes the meshes as it was
      */
     that.redoMeshes = function() {
+        //TODO: check if needed
         that.remove();
         that.setMeshes(that.lines, that.initialPosition);
         that.add();
@@ -596,6 +603,9 @@ GCodeViewer.Path = function(scene) {
 
     // initialize
     that.scene = scene;
+    that.commandsUndoneManager = [];  //TODO: find a better name
+    that.commandsDoneManager = [];  //TODO: find a better name
+
     resetPathsGeo();
     resetPathsMesh();
     that.matG0Undone = new THREE.LineBasicMaterial({ color : 0xff0000 });
