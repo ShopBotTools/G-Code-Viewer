@@ -359,45 +359,6 @@ GCodeViewer.Path = function(scene) {
         }
     };
 
-    //Return the new path without the doubloons
-    function removeDoubloons(path) {
-        var iPath = 0, iSP = 0, lineNumber = 0; //iSinglePath
-        var singlePath = [], newPath = [];
-
-        while(iPath < path.length) {
-            lineNumber = path[iPath].lineNumber;
-            singlePath = [];
-
-            //Recuperate a single path
-            while(iPath < path.length && path[iPath].lineNumber === lineNumber) {
-                singlePath.push(path[iPath]);
-                iPath++;
-            }
-
-            //Remove doubloons
-            if(singlePath.length > 2) {
-                iSP = 0;
-                //Never delete the last point
-                while(iSP < singlePath.length-2) {
-                    while(iSP < singlePath.length-2 &&
-                            GCodeViewer.pointsEqual(singlePath[iSP].point,
-                                singlePath[iSP+1].point) === true)
-                    {
-                        singlePath.splice(iSP+1, 1);
-                    }
-                    iSP++;
-                }
-            }
-
-            for(iSP=0; iSP < singlePath.length; iSP++) {
-                newPath.push(singlePath[iSP]);
-            }
-
-        }
-
-        return newPath;
-    }
-
     /**
      * Returns the path the animation has to follow.
      *
@@ -425,8 +386,15 @@ GCodeViewer.Path = function(scene) {
                 iCurrent = iG2G3;
                 vertices = that.meshG2G3Undone.geometry.vertices;
             }
-            iEnd = iCurrent + command.numberVertices;
+            iEnd = iCurrent + command.numberVertices - 1;
 
+            path.push({
+                point : GCodeViewer.copyPoint(vertices[iCurrent]),
+                type : command.type,
+                lineNumber : command.lineNumber,
+                feedrate : command.feedrate
+            });
+            iCurrent++;
             while(iCurrent < iEnd) {
                 path.push({
                     point : GCodeViewer.copyPoint(vertices[iCurrent]),
@@ -434,19 +402,26 @@ GCodeViewer.Path = function(scene) {
                     lineNumber : command.lineNumber,
                     feedrate : command.feedrate
                 });
-                iCurrent++;
+                iCurrent += 2;
             }
+            path.push({
+                point : GCodeViewer.copyPoint(vertices[iCurrent]),
+                type : command.type,
+                lineNumber : command.lineNumber,
+                feedrate : command.feedrate
+            });
+            iCurrent++;
 
             if(command.type === "G0") {
-               iG0 = iCurrent ;
+               iG0 = iCurrent;
             } else if(command.type === "G1") {
-               iG1 = iCurrent ;
+               iG1 = iCurrent;
             } else {
                iG2G3 = iCurrent;
             }
         }
 
-        return removeDoubloons(path);
+        return path;
     };
 
     //This is ridiculous not to manage to update the vertices
