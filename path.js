@@ -353,10 +353,14 @@ GCodeViewer.Path = function(scene) {
      * Redoes the meshes as it was
      */
     that.redoMeshes = function() {
-        //TODO: check if needed
-        that.remove();
-        that.setMeshes(that.lines, that.initialPosition);
-        that.add();
+        if(that.meshG0Done.geometry.vertices.length > 0 ||
+                that.meshG1Done.geometry.vertices.length > 0 ||
+                that.meshG2G3Done.geometry.vertices.length > 0)
+        {
+            that.remove();
+            that.setMeshes(that.lines, that.initialPosition);
+            that.add();
+        }
     };
 
     //Return the new path without the doubloons
