@@ -52,15 +52,10 @@
         document.getElementById("view").onclick = function() {
             viewer.setGCode(document.getElementById("gcode").value,
                     viewer.viewPaths);
-            // viewer.viewPaths();
         }
         document.getElementById("resize").onclick = function() {
             var container = document.getElementById("container");
-            // var width = 300 + 400 * Math.random();
-            // var canvas = document.getElementById("container").children[0];
-            // var width = 300, height = 600;
             var width = 600, height = 300;
-            // container.style.border = "12px green solid";
             container.style.width = width + "px";
             container.style.height = height + "px";
             viewer.resize(width, height);

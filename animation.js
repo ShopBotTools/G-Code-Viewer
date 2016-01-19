@@ -140,8 +140,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
             that.iPath++;
 
             if(that.iPath >= that.currentPath.length) {
-                that.animating = false;
-                that.gui.setStatusAnimation("stop");
+                that.isInPause = true;
+                that.gui.setStatusAnimation("pause");
                 return false;
             }
             that.gui.highlight(that.currentPath[that.iPath].lineNumber);
@@ -185,7 +185,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     // Updates the position and do the logical for the animation.
     function update() {
         var deltaTime = calculateDeltaTime(); //Must be here to update each time
-        if(that.isRunning() === false) {
+        if(that.isPaused() === true) {
             return;
         }
 
@@ -195,30 +195,21 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     /**
-     * Returns if the animation is paused (ie: started but doing nothing).
+     * Returns if the animation is paused.
      *
      * @return {boolean} True if the animation is paused.
      */
     that.isPaused = function() {
-        return that.isInPause === true && that.animating === true;
+        return that.isInPause === true;
     };
 
     /**
-     * Returns if the animation is stopped (ie: not start).
-     *
-     * @return {boolean} True if the animation is stopped.
-     */
-    that.isStopped = function() {
-        return that.isInPause === false && that.animating === false;
-    };
-
-    /**
-     * Returns if the animation is running (ie: started but animating).
+     * Returns if the animation is running.
      *
      * @return {boolean} True if the animation is running.
      */
     that.isRunning = function() {
-        return that.isInPause === false && that.animating === true;
+        return that.isInPause === false;
     };
 
     /**
@@ -269,7 +260,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      */
     that.goTo = function(lineNumber) {
         that.path.redoMeshes();
-        that.stop();
+        that.pause();
         that.currentPath = that.path.getPath();
         var iLine = fineIndexPath(lineNumber);
         var pos = { x : 0, y : 0, z : 0 };
@@ -309,38 +300,35 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      * Pauses the animation.
      */
     that.pause = function() {
-        if(that.isStopped() === false) {
-            that.isInPause = true;
-            that.gui.setStatusAnimation("pause");
-        }
+        that.isInPause = true;
+        that.gui.setStatusAnimation("pause");
     };
 
     /**
      * Resumes the animation.
      */
     that.resume = function() {
-        if(that.isStopped() === false) {
+        if(that.currentPath.length > 0) {
+            if(that.iPath === that.currentPath.length) {
+                that.reset();
+            }
             that.isInPause = false;
             that.gui.setStatusAnimation("running");
+        } else {
+            that.show();
+            that.start();
         }
     };
 
-    /**
-     * Stops the animation.
-     */
-    that.stop = function() {
-        that.isInPause = false;
-        that.animating = false;
-        that.gui.setStatusAnimation("stop");
-    };
 
     /**
      * Resets the animation.
      */
     that.reset = function() {
         setBitPosition(that.initialPosition);
+        that.iPath = 0;
         that.path.redoMeshes();
-        that.stop();
+        that.pause();
         that.refreshFunction();
     };
 
@@ -353,6 +341,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     //initialize
+    that.currentPath = [];
     that.path = path;
     if(initialPosition === undefined) {
         that.initialPosition = { x : 0, y : 0, z : 0};
@@ -364,7 +353,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     that.gui = gui;
     createBit();
 
-    that.stop();
+    that.pause();
     that.lastTime = new Date().getTime();
     setInterval(update, 1000 / fps);
 };

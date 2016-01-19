@@ -217,14 +217,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
 
     /**
-     * Starts the animation of the path.
-     */
-    that.animatePath = function() {
-        that.animation.show();
-        that.animation.start();
-    };
-
-    /**
      * Shows the ghost of the board (if it was set in the configuration).
      */
     that.showBoard = function() {
@@ -278,6 +270,8 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.refreshDisplay();  //To avoid confusion, we remove everything
         that.gui.setGCode(that.gcode.gcode);
         that.gui.hideLoadingMessage();
+        that.animation.reset();
+        that.animation.show();
     }
 
     /**
@@ -411,19 +405,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.refreshDisplay();
 
     //Add the UI
-    var resumeButtonFun = function () {
-        if(that.animation.isStopped()) {
-            that.animatePath();
-        } else if(that.animation.isPaused()) {
-            that.animation.resume();
-        }
-    };
-
-    var goToLineFun = function(lineNumber) {
-        that.animation.show();
-        that.animation.goTo(lineNumber);
-    };
-
     var callbacks = {
         showX : that.showX,
         showY : that.showY,
@@ -432,10 +413,11 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         displayInIn : that.displayInInch ,
         perspective : that.setPerspectiveCamera,
         orthographic : that.setOrthographicCamera,
-        resume : resumeButtonFun,
+        // resume : resumeButtonFun,
+        resume : function() { that.animation.resume(); },
         pause : function() { that.animation.pause(); },
         reset : function() { that.animation.reset(); },
-        goToLine : goToLineFun
+        goToLine : function(lineNumber) { that.animation.goTo(lineNumber); }
 
     };
     that.gui = new GCodeViewer.Gui(that.renderer, widthCanvas, heightCanvas,
