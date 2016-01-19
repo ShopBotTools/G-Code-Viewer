@@ -18,7 +18,10 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     var that = this;
 
     var highlightedElt = null;
-    var configuration = configuration || {};
+
+    if(configuration === undefined) {
+        configuration = {};
+    }
 
     that.hideXButton = configuration.hideXButton || false;
     that.hideYButton = configuration.hideYButton || false;
@@ -29,9 +32,8 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     //elt is the li element in the ul
     //lineNumber is the lineNumber corresponding to this li
     function scrollTo(elt, lineNumber) {
-        var height = elt.offsetHeight;
         lineNumber--;
-        elt.parentNode.scrollTop = height * lineNumber;
+        elt.parentNode.scrollTop = elt.offsetHeight * lineNumber;
         elt.parentNode.scrollLeft = 0;
     }
 
@@ -92,11 +94,14 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
 
     //Set the buttons for displaying the planes. X and Y for the first button
     function setAxesButtons(x, y, callbackX, callbackY, callbackZ) {
-        addWidget("showX", x, y, "data:image/png;base64," + GCodeViewer.xImage, that.hideXButton);
+        addWidget("showX", x, y, "data:image/png;base64," + GCodeViewer.xImage,
+                that.hideXButton);
         y += GCodeViewer.iconSize + that.margin;
-        addWidget("showY", x, y, "data:image/png;base64," + GCodeViewer.yImage, that.hideYButton);
+        addWidget("showY", x, y, "data:image/png;base64," + GCodeViewer.yImage,
+                that.hideYButton);
         y += GCodeViewer.iconSize + that.margin;
-        addWidget("showZ", x, y, "data:image/png;base64," + GCodeViewer.zImage, that.hideZButton);
+        addWidget("showZ", x, y, "data:image/png;base64," + GCodeViewer.zImage,
+                that.hideZButton);
 
         that.widgets.showX.onclick = function(){
             callbackX();

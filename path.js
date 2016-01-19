@@ -242,12 +242,10 @@ GCodeViewer.Path = function(scene) {
     function setGeometries(lines) {
         var i = 0, j = 0;
         var geometry = new THREE.Geometry();
-        // var startIndex = 0, endIndex = 0;
-        // var previousTotal = 0;
 
         //Store the number of vertices of each command
-        that.commandsUndoneManager = [];  //TODO: find a better name
-        that.commandsDoneManager = [];  //TODO: find a better name
+        that.commandsUndoneManager = [];
+        that.commandsDoneManager = [];
 
         if(lines.length === 0) {
             return;
@@ -285,9 +283,7 @@ GCodeViewer.Path = function(scene) {
                     that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
                     that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
                 }
-                that.geoG2G3Undone.vertices.push(
-                        geometry.vertices[geometry.vertices.length - 1]
-                        );
+                that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
 
                 that.commandsUndoneManager.push({
                     type : lines[i].type,
