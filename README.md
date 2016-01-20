@@ -1,23 +1,23 @@
-#GCode viewer
-This app generates a 3D representation of GCode.
+#G-Code viewer
+This app generates a 3D representation of G-Code.
 
 ##Functionalities
 The viewer can display the paths the bit will do and shows the total size of the
 operation.
 
 This app uses the [Gcode-To-Geometry
-app](https://github.com/ShopBotTools/Handibot-GCode-To-Geometry). The GCode
+app](https://github.com/ShopBotTools/Handibot-GCode-To-Geometry). The G-Code
 commands supported are listed there.
 
 The G0 paths are displayed by red lines, the G1, G2 and G3 by blue lines.
 
 It is possible to see the animation of the bit during the operation. For
 convenience, it is possible to see the command currently animated by toggling
-the GCode displayer. It is also possible to click on a GCode line command to
+the G-Code displayer. It is also possible to click on a G-Code line command to
 have the animation starting direcly from this command.
 
 ##How to use the app:
-In your code you need to instantiate the class GCodeViewer.Viewer
+In your code you need to instantiate the class G-CodeViewer.Viewer
 
     var viewer =  new = GCodeViewer.Viewer(container, widthCanvas, heightCanvas,
         callbackError, configuration);
@@ -37,15 +37,13 @@ The parameters are:
   If the board is set, a box representing the board will be displayed, the
   dimensions of the board are in **inches**.
 
-Then, each time you will want to see the 3D representation of the GCode: set
-the GCode of your viewer object then view the paths through the callback
+Then, each time you will want to see the 3D representation of the G-Code: set
+the G-Code of your viewer object then view the paths through the callback
 parameter.
 
-    var callback = function() { viewer.viewPaths(); /* other code */ };
     viewer.setGCode(gcode, callback);  //gcode is a string
 
-`setGCode` will remove everything displayed in the viewer (except the helpers).
-`viewPaths` displays the paths.
+`setGCode` will display the interpretation of the G-Code.
 
 ##Example
 The code in the `index.html` is pretty straightforward and should help a lot.
