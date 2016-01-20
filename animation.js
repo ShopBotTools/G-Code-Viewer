@@ -41,7 +41,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     //Used to have an smooth animation
     //Returns the time elapsed between each update.
     function calculateDeltaTime() {
-        //TODO: should have a maximum
         var newTime = new Date().getTime();
         var deltaTime = newTime - that.lastTime;
         that.lastTime = newTime;
@@ -184,35 +183,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         return that.isInPause === false;
     };
 
-    /**
-     * Starts the animation from the beginning of the path.
-     *
-     * @return {boolean} Returns true if start the animation; false if problem.
-     */
-    that.start = function() {
-        console.log("[animation] start");
-        that.currentPath = that.path.getPath();
-        that.iPath = 0;
-        if(that.currentPath.length === 0) {
-            return false;
-        }
-
-        that.gui.highlight(that.currentPath[that.iPath].lineNumber);
-        that.bit.position.setX(that.initialPosition.x + that.currentPath[0].point.x);
-        that.bit.position.setY(that.initialPosition.y + that.currentPath[0].point.y);
-        that.bit.position.setZ(that.initialPosition.z + that.currentPath[0].point.z);
-        setCurrentSpeed();
-        that.refreshFunction();
-
-        that.animating = true;  //Must be at the end
-        that.isInPause = false;
-
-        return true;
-    };
-
     //Returns the index of the point in path associated to this lineNumber
     // returns -1 if nothing found
-    function fineIndexPath(lineNumber) {
+    function findIndexPath(lineNumber) {
         var i = 0;
         for(i=0; i < that.currentPath.length; i++) {
             if(that.currentPath[i].lineNumber === lineNumber) {
@@ -233,7 +206,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         that.path.redoMeshes();
         that.pause();
         that.currentPath = that.path.getPath();
-        var iLine = fineIndexPath(lineNumber);
+        var iLine = findIndexPath(lineNumber);
         var pos = { x : 0, y : 0, z : 0 };
         var pointPath;
 
@@ -259,7 +232,6 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
 
         that.gui.highlight(that.currentPath[that.iPath].lineNumber);
         setCurrentSpeed();
-        that.animating = true;
         that.isInPause = true;
         that.refreshFunction();
 
@@ -278,32 +250,35 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      * Resumes the animation.
      */
     that.resume = function() {
-        if(that.currentPath.length > 0) {
-            if(that.iPath === that.currentPath.length) {
-                that.reset();
-            }
-            that.isInPause = false;
-            that.gui.setStatusAnimation("running");
-        } else {
-            that.start();
+        if(that.currentPath.length === 0) {
+            return;
         }
+
+        if(that.iPath === that.currentPath.length) {
+            that.rewind();
+        }
+        that.isInPause = false;
+        that.gui.setStatusAnimation("running");
     };
 
+    /**
+     * Goes back to the beginning of the animation without modifying the path.
+     */
     that.rewind = function() {
         setBitPosition(that.initialPosition);
         that.iPath = 0;
         that.path.redoMeshes();
+        setCurrentSpeed();
         that.pause();
         that.refreshFunction();
     };
 
     /**
-     * Resets the animation.
+     * Resets the animation (gets the new path and goes to the beginning).
      */
     that.reset = function() {
-        console.log("[animation] reset");
-        that.rewind();
         that.currentPath = that.path.getPath();
+        that.rewind();
     };
 
     function createBit() {

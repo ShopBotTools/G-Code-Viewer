@@ -510,7 +510,6 @@ GCodeViewer.Path = function(scene) {
         //No need to change vertices of the meshUndone
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
-        // changeMesh(meshUndone, verticesUndone, pointPath.type, false);
     };
 
     /**
