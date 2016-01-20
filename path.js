@@ -32,7 +32,6 @@ GCodeViewer.TotalSize = function(scene) {
      * Adds the meshes to the scene.
      */
     that.add = function() {
-        console.log("[TotalSize] add");
         that.scene.add(that.textWidth);
         that.scene.add(that.lineWidth);
         that.scene.add(that.textLength);
@@ -305,7 +304,6 @@ GCodeViewer.Path = function(scene) {
      * path begins (optional).
      */
     that.setMeshes = function(lines, initialPosition) {
-        console.log("[Path] set meshes");
         resetPathsGeo();
         resetPathsMesh();
         setGeometries(lines);
@@ -510,6 +508,15 @@ GCodeViewer.Path = function(scene) {
         //No need to change vertices of the meshUndone
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
+
+        that.commandsDoneManager.push({
+            type : that.commandsUndoneManager[0].type,
+            lineNumber : that.commandsUndoneManager[0].lineNumber,
+            feedrate : that.commandsUndoneManager[0].feedrate,
+            start : GCodeViewer.copyPoint(that.commandsUndoneManager[0].start),
+            end : GCodeViewer.copyPoint(that.commandsUndoneManager[0].end),
+            numberVertices : 2
+        });
     };
 
     /**
@@ -535,6 +542,12 @@ GCodeViewer.Path = function(scene) {
 
         changeMesh(meshDone, verticesDone, pointPath.type, true);
         changeMesh(meshUndone, verticesUndone, pointPath.type, false);
+
+        if(that.commandsUndoneManager[0].numberVertices > 2) {
+            that.commandsUndoneManager[0].numberVertices -= 2;
+        } else {
+            that.commandsUndoneManager.splice(0, 1);
+        }
     };
 
     /**
@@ -575,10 +588,29 @@ GCodeViewer.Path = function(scene) {
         return true;
     };
 
+    // //Returns false if error else returns true
+    // that.goToLine = function(lineNumber) {
+    //     var undone = that.commandsUndoneManager, done = that.commandsDoneManager;
+    //
+    //     if((undone.length === 0 && done.length === 0) ||
+    //             lineNumber < 0 || (undone.length > 0 &&
+    //             undone[undone.length - 1].lineNumber < lineNumber))
+    //     {
+    //         return false;
+    //     }
+    //
+    //     var incrementing = true;
+    //     if(undone.length === 0 && lineNumber < undone[0].lineNumber) {
+    //         incrementing = false;
+    //     }
+    //
+    //     return true;
+    // };
+
     // initialize
     that.scene = scene;
-    that.commandsUndoneManager = [];  //TODO: find a better name
-    that.commandsDoneManager = [];  //TODO: find a better name
+    that.commandsUndoneManager = [];
+    that.commandsDoneManager = [];
 
     resetPathsGeo();
     resetPathsMesh();

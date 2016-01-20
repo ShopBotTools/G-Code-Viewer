@@ -90,6 +90,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
     }
 
     function setCurrentSpeed() {
+        if(that.currentPath.length === 0) {
+            return;
+        }
         //We use in/ms here and feedrate is in in/min
         var line = that.currentPath[that.iPath];
         if(line.type === "G0") {
@@ -123,7 +126,8 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
 
     //deltaDistance : the distance to make
     //returns true if can continue animation
-    function moveBit(deltaDistance) {
+    function animateBit(deltaTime) {
+        var deltaDistance = that.currentSpeed * deltaTime;
         var destination = that.currentPath[that.iPath].point;
         var position = getRelativeBitPosition();
         var translation = {
@@ -134,9 +138,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         var distance2 = translation.x * translation.x;
         distance2 += translation.y * translation.y;
         distance2 += translation.z * translation.z;
+        var length = Math.sqrt(distance2);
 
-        if(distance2 > deltaDistance * deltaDistance) {
-            var length = Math.sqrt(distance2);
+        if(length > deltaDistance) {
             translation.x = translation.x / length * deltaDistance;
             translation.y = translation.y / length * deltaDistance;
             translation.z = translation.z / length * deltaDistance;
@@ -146,11 +150,12 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         }
 
         setBitPosition(destination);
+        deltaTime -= length / that.currentSpeed;
         if(checkChangeIndexPath() === false) {
             return false;
         }
 
-        return moveBit(deltaDistance - Math.sqrt(distance2));
+        return animateBit(deltaTime);
     }
 
     // Updates the position and do the logical for the animation.
@@ -160,7 +165,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
             return;
         }
 
-        moveBit(that.currentSpeed * deltaTime);
+        animateBit(deltaTime);
 
         that.refreshFunction();
     }
@@ -277,8 +282,9 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      * Resets the animation (gets the new path and goes to the beginning).
      */
     that.reset = function() {
-        that.currentPath = that.path.getPath();
         that.rewind();
+        that.currentPath = that.path.getPath();
+        setCurrentSpeed();
     };
 
     function createBit() {
