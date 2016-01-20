@@ -590,21 +590,14 @@ GCodeViewer.Path = function(scene) {
 
     // //Returns false if error else returns true
     // that.goToLine = function(lineNumber) {
-    //     var undone = that.commandsUndoneManager, done = that.commandsDoneManager;
-    //
-    //     if((undone.length === 0 && done.length === 0) ||
-    //             lineNumber < 0 || (undone.length > 0 &&
-    //             undone[undone.length - 1].lineNumber < lineNumber))
-    //     {
-    //         return false;
-    //     }
-    //
-    //     var incrementing = true;
-    //     if(undone.length === 0 && lineNumber < undone[0].lineNumber) {
-    //         incrementing = false;
-    //     }
-    //
-    //     return true;
+    //     //NOTE: commandsUndoneManager and commandsDoneManager were creating
+    //     //to ease and improve the way to generate meshes when the users wants
+    //     //to go directly to a specific line.
+    //     //To sum up the algorithm:
+    //     //* find if need to increment or decrement
+    //     //* extract for the undone (increment) or done (decrement) vertices
+    //     //  according to numberVertices and push them to the other one mesh
+    //     //* update commandsUndoneManager and commandsDoneManager
     // };
 
     // initialize
