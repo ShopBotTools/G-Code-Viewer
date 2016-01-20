@@ -207,7 +207,7 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
      * @param {number} lineNumber The line number of the command.
      * @return {boolean} Returns true if start the animation; false if problem.
      */
-    that.goTo = function(lineNumber) {
+    that.goToLine = function(lineNumber) {
         that.path.redoMeshes();
         that.pause();
         that.currentPath = that.path.getPath();

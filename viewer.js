@@ -348,7 +348,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         resume : function() { that.animation.resume(); },
         pause : function() { that.animation.pause(); },
         reset : function() { that.animation.reset(); },
-        goToLine : function(lineNumber) { that.animation.goTo(lineNumber); }
+        goToLine : function(lineNumber) { that.animation.goToLine(lineNumber); }
 
     };
     that.gui = new GCodeViewer.Gui(that.renderer, widthCanvas, heightCanvas,
