@@ -200,7 +200,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
 
         var p = document.createElement("p");
         p.id = "toggleGCode";
-        p.innerHTML = "Toggle GCode";
+        p.innerHTML = "Toggle G-Code";
         div.appendChild(p);
 
         var ul = document.createElement("ul");
