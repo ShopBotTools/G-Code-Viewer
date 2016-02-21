@@ -163,15 +163,6 @@ GCodeViewer.Path = function(scene) {
     "use strict";
     var that = this;
 
-    function resetPathsGeo() {
-        that.geoG0Undone = new THREE.Geometry();
-        that.geoG1Undone = new THREE.Geometry();
-        that.geoG2G3Undone = new THREE.Geometry();
-        that.geoG0Done = new THREE.Geometry();
-        that.geoG1Done = new THREE.Geometry();
-        that.geoG2G3Done = new THREE.Geometry();
-    }
-
     function resetPathsMesh() {
         that.remove();
         that.meshG0Undone = {};
@@ -241,19 +232,24 @@ GCodeViewer.Path = function(scene) {
     function setGeometries(lines) {
         var i = 0, j = 0;
         var geometry = new THREE.Geometry();
+        var geometries = {
+            G0 : new THREE.Geometry(),
+            G1 : new THREE.Geometry(),
+            G2G3 : new THREE.Geometry()
+        };
 
         //Store the number of vertices of each command
         that.commandsUndoneManager = [];
         that.commandsDoneManager = [];
 
         if(lines.length === 0) {
-            return;
+            return geometries;
         }
 
         for(i=0; i < lines.length; i++) {
             if(lines[i].type === "G0") {
                 geometry = getGeometryStraight(lines[i]);
-                that.geoG0Undone.merge(geometry);
+                geometries.G0.merge(geometry);
 
                 that.commandsUndoneManager.push({
                     type : lines[i].type,
@@ -265,7 +261,7 @@ GCodeViewer.Path = function(scene) {
                 });
             } else if(lines[i].type === "G1") {
                 geometry = getGeometryStraight(lines[i]);
-                that.geoG1Undone.merge(geometry);
+                geometries.G1.merge(geometry);
 
                 that.commandsUndoneManager.push({
                     type : lines[i].type,
@@ -277,12 +273,13 @@ GCodeViewer.Path = function(scene) {
                 });
             } else if(lines[i].type === "G2" || lines[i].type === "G3") {
                 geometry = getGeometryCurve(lines[i]);
-                that.geoG2G3Undone.vertices.push(geometry.vertices[0]);
+                geometries.G2G3.vertices.push(geometry.vertices[0]);
+
                 for(j=1; j < geometry.vertices.length-1; j++) {
-                    that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
-                    that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
+                    geometries.G2G3.vertices.push(geometry.vertices[j]);
+                    geometries.G2G3.vertices.push(geometry.vertices[j]);
                 }
-                that.geoG2G3Undone.vertices.push(geometry.vertices[j]);
+                geometries.G2G3.vertices.push(geometry.vertices[j]);
 
                 that.commandsUndoneManager.push({
                     type : lines[i].type,
@@ -294,6 +291,8 @@ GCodeViewer.Path = function(scene) {
                 });
             }
         }
+
+        return geometries;
     }
 
     /**
@@ -304,23 +303,22 @@ GCodeViewer.Path = function(scene) {
      * path begins (optional).
      */
     that.setMeshes = function(lines, initialPosition) {
-        resetPathsGeo();
         resetPathsMesh();
-        setGeometries(lines);
+        var geometries = setGeometries(lines);
         that.lines = lines;
         that.initialPosition = { x : 0, y : 0, z : 0};
 
-        that.meshG0Undone = new THREE.Line(that.geoG0Undone,
+        that.meshG0Undone = new THREE.Line(geometries.G0,
                 that.matG0Undone, THREE.LinePieces);
-        that.meshG1Undone = new THREE.Line(that.geoG1Undone,
+        that.meshG1Undone = new THREE.Line(geometries.G1,
                 that.matG1Undone, THREE.LinePieces);
-        that.meshG2G3Undone = new THREE.Line(that.geoG2G3Undone,
+        that.meshG2G3Undone = new THREE.Line(geometries.G2G3,
                 that.matG2G3Undone, THREE.LinePieces);
-        that.meshG0Done = new THREE.Line(that.geoG0Done,
+        that.meshG0Done = new THREE.Line(new THREE.Geometry(),
                 that.matG0Done, THREE.LinePieces);
-        that.meshG1Done = new THREE.Line(that.geoG1Done,
+        that.meshG1Done = new THREE.Line(new THREE.Geometry(),
                 that.matG1Done, THREE.LinePieces);
-        that.meshG2G3Done = new THREE.Line(that.geoG2G3Done,
+        that.meshG2G3Done = new THREE.Line(new THREE.Geometry(),
                 that.matG2G3Done, THREE.LinePieces);
 
         if(initialPosition !== undefined) {
@@ -605,7 +603,8 @@ GCodeViewer.Path = function(scene) {
     that.commandsUndoneManager = [];
     that.commandsDoneManager = [];
 
-    resetPathsGeo();
+    // that.meshDoing = new 
+
     resetPathsMesh();
     that.matG0Undone = new THREE.LineBasicMaterial({ color : 0xff0000 });
     that.matG1Undone = new THREE.LineBasicMaterial({ color : 0x000ff });
@@ -613,4 +612,6 @@ GCodeViewer.Path = function(scene) {
     that.matG0Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
     that.matG1Done = new THREE.LineBasicMaterial({color : 0xff00ff });
     that.matG2G3Done = new THREE.LineBasicMaterial({ color : 0xff00ff });
+
+    that.matDoing = new THREE.LineBasicMaterial({ color : 0x00ffff });
 };

@@ -11,7 +11,7 @@
  */
 
 GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
-        callbackError, configuration) {
+        callbackError, configuration, liveMode) {
     "use strict";
     var that = this;
 
@@ -226,7 +226,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         that.helpers.resize(that.gcode.size);
         that.gui.setGCode(that.gcode.gcode);
         that.gui.hideLoadingMessage();
-        that.animation.reset();
+        if(liveMode === false) {
+            that.animation.reset();
+        }
 
         lx = ((that.gcode.size.max.x - that.gcode.size.min.x) / 2.0 ) || 0.0;
         ly = ((that.gcode.size.max.y - that.gcode.size.min.y) / 2.0 ) || 0.0;
@@ -286,6 +288,18 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         changeDisplay(false);
     };
 
+    /**
+     * Sets the currently executed command.
+     *
+     * @param {number} The line number of the command.
+     * @param {string} The G-Code command.
+     */
+    that.livePreview = function(lineNumber, command) {
+        if(liveMode === true) {
+            that.path.livePreview(lineNumber, command);
+        }
+    };
+
     // initialize
 
     //Members declaration
@@ -308,6 +322,16 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     if(container === undefined || container === null) {
         displayError("No container set.");
         return;
+    }
+
+    if(liveMode === undefined) {
+        liveMode = false;
+    }
+
+    if(liveMode === true) {
+        console.log("Live mode");
+    } else {
+        console.log("Viewer mode");
     }
 
     that.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -352,9 +376,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     };
     that.gui = new GCodeViewer.Gui(that.renderer, widthCanvas, heightCanvas,
-            that.cncConfiguration, callbacks);
+            that.cncConfiguration, callbacks, liveMode);
 
     //Add animation
-    that.animation = new GCodeViewer.Animation(that.scene, that.refreshDisplay,
-            that.gui, that.path, 24, that.cncConfiguration.initialPosition);
+    if(liveMode === false) {
+        that.animation = new GCodeViewer.Animation(that.scene,
+                that.refreshDisplay, that.gui, that.path, 24,
+                that.cncConfiguration.initialPosition);
+    }
 };

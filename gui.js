@@ -13,7 +13,8 @@
 // when resizing the renderer, the domElement dimension is completly wrong on
 // some operating system)
 //callbacks functions for the button
-GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
+GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
+        liveMode) {
     "use strict";
     var that = this;
 
@@ -360,8 +361,11 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks) {
     setGCodeInterface(5);
     that.cbGoToLine = callbacks.goToLine;
 
-    y = height - GCodeViewer.iconSize - that.margin;
-    setAnimationButtons(y, callbacks.resume, callbacks.pause, callbacks.reset);
+    if(liveMode === false) {
+        y = height - GCodeViewer.iconSize - that.margin;
+        setAnimationButtons(y, callbacks.resume, callbacks.pause,
+                callbacks.reset);
+    }
 
     createLoadingMessage();
 };
