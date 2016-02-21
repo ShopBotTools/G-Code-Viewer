@@ -171,6 +171,7 @@ GCodeViewer.Path = function(scene) {
         that.meshG0Done = {};
         that.meshG1Done = {};
         that.meshG2G3Done = {};
+        that.meshDoing = {};
     }
 
     /**
@@ -183,6 +184,7 @@ GCodeViewer.Path = function(scene) {
         that.scene.remove(that.meshG0Done);
         that.scene.remove(that.meshG1Done);
         that.scene.remove(that.meshG2G3Done);
+        that.scene.remove(that.meshDoing);
     };
 
     /**
@@ -229,6 +231,7 @@ GCodeViewer.Path = function(scene) {
         return geometry;
     }
 
+     // Returns the geometries
     function setGeometries(lines) {
         var i = 0, j = 0;
         var geometry = new THREE.Geometry();
@@ -320,6 +323,9 @@ GCodeViewer.Path = function(scene) {
                 that.matG1Done, THREE.LinePieces);
         that.meshG2G3Done = new THREE.Line(new THREE.Geometry(),
                 that.matG2G3Done, THREE.LinePieces);
+
+        that.meshDoing = new THREE.Line(new THREE.Geometry(),
+                that.matDoing, THREE.LinePieces);
 
         if(initialPosition !== undefined) {
             that.initialPosition.x = initialPosition.x;
@@ -598,12 +604,45 @@ GCodeViewer.Path = function(scene) {
     //     //* update commandsUndoneManager and commandsDoneManager
     // };
 
+    /**
+     * Sets the currently executed line command.
+     *
+     * @param {number} The line number of the command.
+     * @return {boolean} True if the command is displayed.
+     */
+    that.livePreview = function(lineNumber) {
+        var i = 0;
+        var meshDone, meshUndone, verticesDone, verticesUndone;
+
+        if(lineNumber === that.currentLineNumber) {
+            return true;
+        }
+
+        //Checking if the commands in this line are possibly displayed
+        while(that.commandsUndoneManager[i].lineNumber !== lineNumber) {
+            if(that.commandsUndoneManager[i].lineNumber > lineNumber) {
+                return false;
+            }
+        }
+        that.currentLineNumber = lineNumber;
+
+        //Put in done meshes the vertices of the doing mesh
+
+
+        //Put the vertices in the doing of the currently executed commands
+
+        //Remove the vertices in the undone meshes
+
+        console.log("lineNumber = " + lineNumber);
+        return false;
+    };
+
     // initialize
     that.scene = scene;
     that.commandsUndoneManager = [];
     that.commandsDoneManager = [];
 
-    // that.meshDoing = new 
+    that.currentLineNumber = -1;
 
     resetPathsMesh();
     that.matG0Undone = new THREE.LineBasicMaterial({ color : 0xff0000 });

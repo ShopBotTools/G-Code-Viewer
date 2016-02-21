@@ -289,15 +289,18 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     };
 
     /**
-     * Sets the currently executed command.
+     * Sets the currently executed line command.
      *
      * @param {number} The line number of the command.
      * @param {string} The G-Code command.
+     * @return {boolean} True if the command is displayed.
      */
-    that.livePreview = function(lineNumber, command) {
+    that.livePreview = function(lineNumber) {
         if(liveMode === true) {
-            that.path.livePreview(lineNumber, command);
+            return that.path.livePreview(lineNumber);
         }
+
+        return false;
     };
 
     // initialize
