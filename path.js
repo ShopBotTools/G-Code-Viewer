@@ -390,6 +390,7 @@ GCodeViewer.Path = function(scene) {
                 point : GCodeViewer.copyPoint(vertices[iCurrent]),
                 type : command.type,
                 lineNumber : command.lineNumber,
+                commandNumber : iCommand,
                 feedrate : command.feedrate
             });
             iCurrent++;
@@ -398,6 +399,7 @@ GCodeViewer.Path = function(scene) {
                     point : GCodeViewer.copyPoint(vertices[iCurrent]),
                     type : command.type,
                     lineNumber : command.lineNumber,
+                    commandNumber : iCommand,
                     feedrate : command.feedrate
                 });
                 iCurrent += 2;
@@ -406,6 +408,7 @@ GCodeViewer.Path = function(scene) {
                 point : GCodeViewer.copyPoint(vertices[iCurrent]),
                 type : command.type,
                 lineNumber : command.lineNumber,
+                commandNumber : iCommand,
                 feedrate : command.feedrate
             });
             iCurrent++;

@@ -52,10 +52,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         if(that.iPath === 0) {
             return true;
         }
-        var currentLine = that.currentPath[that.iPath].lineNumber;
-        var previousLine = that.currentPath[that.iPath-1].lineNumber;
+        var currentCommand = that.currentPath[that.iPath].commandNumber;
+        var previousCommand = that.currentPath[that.iPath-1].commandNumber;
 
-        return (currentLine !== previousLine);
+        return (currentCommand !== previousCommand);
     }
 
     //Check if the animation is ending the animation of a path
@@ -66,10 +66,10 @@ GCodeViewer.Animation = function(scene, refreshFunction, gui, path, fps,
         if(that.iPath === that.currentPath.length - 1) {
             return true;
         }
-        var currentLine = that.currentPath[that.iPath].lineNumber;
-        var nextLine = that.currentPath[that.iPath+1].lineNumber;
+        var currentCommand = that.currentPath[that.iPath].commandNumber;
+        var nextCommand = that.currentPath[that.iPath+1].commandNumber;
 
-        return (currentLine !== nextLine);
+        return (currentCommand !== nextCommand);
     }
 
     //Warns the path class of the current position
