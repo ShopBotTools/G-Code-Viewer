@@ -428,28 +428,30 @@ GCodeViewer.Path = function(scene) {
 
     //This is ridiculous not to manage to update the vertices
     //Change the selectionned mesh
-    function changeMesh(mesh, vertices, type, done) {
+    function changeMesh(vertices, type, done) {
         var mat = {}, pos = {};
         var geo = new THREE.Geometry();
         geo.vertices = vertices;
-        that.scene.remove(mesh);
 
         if(done === true) {
             if(type === "G0") {
                 mat = that.matG0Done;
                 pos = that.meshG0Done.position.clone();
+                that.scene.remove(that.meshG0Done);
                 that.meshG0Done = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG0Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG0Done);
             } else if(type === "G1") {
                 mat = that.matG1Done;
                 pos = that.meshG1Done.position.clone();
+                that.scene.remove(that.meshG1Done);
                 that.meshG1Done = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG1Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG1Done);
             } else {
                 mat = that.matG2G3Done;
                 pos = that.meshG2G3Done.position.clone();
+                that.scene.remove(that.meshG2G3Done);
                 that.meshG2G3Done = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG2G3Done.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG2G3Done);
@@ -458,18 +460,21 @@ GCodeViewer.Path = function(scene) {
             if(type === "G0") {
                 mat = that.matG0Undone;
                 pos = that.meshG0Undone.position.clone();
+                that.scene.remove(that.meshG0Undone);
                 that.meshG0Undone = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG0Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG0Undone);
             } else if(type === "G1") {
                 mat = that.matG1Undone;
                 pos = that.meshG1Undone.position.clone();
+                that.scene.remove(that.meshG1Undone);
                 that.meshG1Undone = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG1Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG1Undone);
             } else {
                 mat = that.matG2G3Undone;
                 pos = that.meshG2G3Undone.position.clone();
+                that.scene.remove(that.meshG2G3Undone);
                 that.meshG2G3Undone = new THREE.Line(geo, mat, THREE.LinePieces);
                 that.meshG2G3Undone.position.set(pos.x, pos.y, pos.z);
                 that.scene.add(that.meshG2G3Undone);
@@ -511,7 +516,7 @@ GCodeViewer.Path = function(scene) {
         verticesDone.push(new THREE.Vector3(p.x, p.y, p.z));
         //No need to change vertices of the meshUndone
 
-        changeMesh(meshDone, verticesDone, pointPath.type, true);
+        changeMesh(verticesDone, pointPath.type, true);
 
         that.commandsDoneManager.push({
             type : that.commandsUndoneManager[0].type,
@@ -544,8 +549,8 @@ GCodeViewer.Path = function(scene) {
         //Remove the vertex following the bit and the one at the end of the path
         verticesUndone.splice(0, 2);
 
-        changeMesh(meshDone, verticesDone, pointPath.type, true);
-        changeMesh(meshUndone, verticesUndone, pointPath.type, false);
+        changeMesh(verticesDone, pointPath.type, true);
+        changeMesh(verticesUndone, pointPath.type, false);
 
         if(that.commandsUndoneManager[0].numberVertices > 2) {
             that.commandsUndoneManager[0].numberVertices -= 2;
@@ -586,8 +591,8 @@ GCodeViewer.Path = function(scene) {
         }
         verticesUndone[0].set(p.x, p.y, p.z);
         verticesDone[verticesDone.length -1].set(p.x, p.y, p.z);
-        changeMesh(meshDone, verticesDone, pointPath.type, true);
-        changeMesh(meshUndone, verticesUndone, pointPath.type, false);
+        changeMesh(verticesDone, pointPath.type, true);
+        changeMesh(verticesUndone, pointPath.type, false);
 
         return true;
     };
@@ -612,7 +617,9 @@ GCodeViewer.Path = function(scene) {
      */
     that.livePreview = function(lineNumber) {
         var i = 0;
-        var meshDone, meshUndone, verticesDone, verticesUndone;
+        var meshes;
+        var geometry, position;
+        var addingGeometry, removingGeometry, numberVertices, vertices;
 
         if(lineNumber === that.currentLineNumber) {
             return true;
@@ -623,17 +630,67 @@ GCodeViewer.Path = function(scene) {
             if(that.commandsUndoneManager[i].lineNumber > lineNumber) {
                 return false;
             }
+            i++;
         }
         that.currentLineNumber = lineNumber;
 
+        //NOTE: At this point, that.commandsUndoneManager[0] corresponds to the
+        //doing mesh
+
         //Put in done meshes the vertices of the doing mesh
+        while(that.meshDoing.geometry.vertices.length > 0) {
+            meshes = getMeshes(that.commandsUndoneManager[0].type);
+            addingGeometry = meshes.done.geometry;
+            removingGeometry = that.meshDoing.geometry;
+            numberVertices = that.commandsUndoneManager[0].numberVertices;
 
+            vertices = removingGeometry.vertices.splice(0, numberVertices);
+            addingGeometry.vertices = addingGeometry.vertices.concat(vertices);
+        }
 
-        //Put the vertices in the doing of the currently executed commands
+        //Put from undone to done all the commands that are passed
+        while(that.commandsUndoneManager[0].lineNumber !== lineNumber) {
+            meshes = getMeshes(that.commandsUndoneManager[0].type);
+            addingGeometry = meshes.done.geometry;
+            removingGeometry = meshes.undone.geometry;
+            numberVertices = that.commandsUndoneManager[0].numberVertices;
 
-        //Remove the vertices in the undone meshes
+            vertices = removingGeometry.vertices.splice(0, numberVertices);
+            addingGeometry.vertices = addingGeometry.vertices.concat(vertices);
 
-        console.log("lineNumber = " + lineNumber);
+            that.commandsUndoneManager.splice(0, 1);
+        }
+
+        //Put the vertices in the doing of the currently executed commands and
+        //remove the vertices in the undone meshes
+        while(that.commandsUndoneManager[0].lineNumber === lineNumber) {
+            meshes = getMeshes(that.commandsUndoneManager[0].type);
+            addingGeometry = that.meshDoing.geometry;
+            removingGeometry = meshes.undone.geometry;
+            numberVertices = that.commandsUndoneManager[0].numberVertices;
+
+            vertices = removingGeometry.vertices.splice(0, numberVertices);
+            addingGeometry.vertices = addingGeometry.vertices.concat(vertices);
+
+            that.commandsUndoneManager.splice(0, 1);
+        }
+
+        //Updating meshes
+        changeMesh(that.meshG0Undone.geometry.vertices, "G0", false);
+        changeMesh(that.meshG1Undone.geometry.vertices, "G1", false);
+        changeMesh(that.meshG2G3Undone.geometry.vertices, "G2G3", false);
+        changeMesh(that.meshG0Done.geometry.vertices, "G0", true);
+        changeMesh(that.meshG1Done.geometry.vertices, "G1", true);
+        changeMesh(that.meshG2G3Done.geometry.vertices, "G2G3", true);
+
+        that.scene.remove(that.meshDoing);
+        geometry = new THREE.Geometry();
+        geometry.vertices = that.meshDoing.geometry.vertices;
+        position = that.meshDoing.position.clone();
+        that.meshDoing = new THREE.Line(geometry, that.matDoing, THREE.LinePieces);
+        that.meshDoing.position.set(position.x, position.y, position.z);
+        that.scene.add(that.meshDoing);
+
         return false;
     };
 
