@@ -649,7 +649,8 @@ GCodeViewer.Path = function(scene) {
         }
 
         //Put from undone to done all the commands that are passed
-        while(that.commandsUndoneManager[0].lineNumber !== lineNumber) {
+        while(that.commandsUndoneManager[0] !== undefined &&
+                that.commandsUndoneManager[0].lineNumber !== lineNumber) {
             meshes = getMeshes(that.commandsUndoneManager[0].type);
             addingGeometry = meshes.done.geometry;
             removingGeometry = meshes.undone.geometry;
@@ -663,7 +664,8 @@ GCodeViewer.Path = function(scene) {
 
         //Put the vertices in the doing of the currently executed commands and
         //remove the vertices in the undone meshes
-        while(that.commandsUndoneManager[0].lineNumber === lineNumber) {
+        while(that.commandsUndoneManager[0] !== undefined &&
+                that.commandsUndoneManager[0].lineNumber === lineNumber) {
             meshes = getMeshes(that.commandsUndoneManager[0].type);
             addingGeometry = that.meshDoing.geometry;
             removingGeometry = meshes.undone.geometry;
@@ -691,7 +693,7 @@ GCodeViewer.Path = function(scene) {
         that.meshDoing.position.set(position.x, position.y, position.z);
         that.scene.add(that.meshDoing);
 
-        return false;
+        return true;
     };
 
     // initialize
