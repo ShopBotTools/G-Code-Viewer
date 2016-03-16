@@ -254,7 +254,9 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
             li.id = "li-"+(i+1);
             li.className = "liGCode";
             that.widgets.listGCode.appendChild(li);
-            li.onclick = makeLiHandler(i+1);
+            if(liveMode === false) {
+                li.onclick = makeLiHandler(i+1);
+            }
         }
         //We do not care of the li, just here for knowing the height
         if(li !== undefined) {
@@ -359,9 +361,9 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
     setCameraButtons(x, y, callbacks.perspective, callbacks.orthographic);
 
     setGCodeInterface(5);
-    that.cbGoToLine = callbacks.goToLine;
-
     if(liveMode === false) {
+        that.cbGoToLine = callbacks.goToLine;
+
         y = height - GCodeViewer.iconSize - that.margin;
         setAnimationButtons(y, callbacks.resume, callbacks.pause,
                 callbacks.reset);

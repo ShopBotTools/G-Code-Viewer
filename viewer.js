@@ -296,8 +296,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
      * @return {boolean} True if the command is displayed.
      */
     that.livePreview = function(lineNumber) {
-        if(liveMode === true) {
-            return that.path.livePreview(lineNumber);
+        if(liveMode === true && that.path.livePreview(lineNumber) === true) {
+            that.gui.highlight(lineNumber);
+            that.refreshDisplay();
+            return true;
         }
 
         return false;
