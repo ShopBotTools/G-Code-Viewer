@@ -20,6 +20,19 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
 
     var highlightedElt = null;
 
+    // Ids, classes and values according to the CSS.
+    var idGCodeDisplayer = "gcode-displayer";
+    var idGCodeContainer = "gcode-container";
+    var idGCodeLines = "gcode-lines";
+    var classGCodeLine = "gcode-line";
+    var classHighlighted = "highlighted";
+    var displayerWidthInPx = 200;
+    var classWidget = "widget";
+    var idToggle = "toggleGCode";
+    var idLoading = "loadingMessage";
+
+    var prefixIdLine = "gcode-line-number-";
+
     if(configuration === undefined) {
         configuration = {};
     }
@@ -34,8 +47,8 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
     //lineNumber is the lineNumber corresponding to this li
     function scrollTo(elt, lineNumber) {
         lineNumber--;
-        elt.parentNode.scrollTop = elt.offsetHeight * lineNumber;
-        elt.parentNode.scrollLeft = 0;
+        that.widgets.gcodeContainer.scrollTop = elt.offsetHeight * lineNumber;
+        that.widgets.gcodeContainer.scrollLeft = 0;
     }
 
     //Place a widget in the position
@@ -50,14 +63,16 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
      * @param {number} lineNumber The number of the line to highlight.
      */
     that.highlight = function(lineNumber) {
-        var elt = document.getElementById("li-" + lineNumber);
+        var elt = document.getElementById(prefixIdLine + lineNumber);
         if(elt === null || elt === highlightedElt) {
             return;
         }
         if(highlightedElt !== null) {
-            highlightedElt.children[0].id = "";
+            highlightedElt.children[0].className = "";
+            highlightedElt.children[1].className = "";
         }
-        elt.children[0].id = "highlighted";
+        elt.children[0].className = classHighlighted;
+        elt.children[1].className = classHighlighted;
         highlightedElt = elt;
         scrollTo(elt, lineNumber);
     };
@@ -85,7 +100,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
         elt.id = id;
         that.widgets[id] = elt;
         elt.src = src;
-        elt.className = "widget";
+        elt.className = classWidget;
         if(hide) {
             elt.style.visibility = "hidden";
         }
@@ -188,49 +203,38 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
 
     // Set the interface for displaying the gcode
     function setGCodeInterface(y) {
-        var id = "divGCode";
-        var div = document.createElement("div");
-        var toggleWidth = 200;
-        div.id = id;
+        var gcodeDisplayer = document.createElement("div");
+        gcodeDisplayer.id = idGCodeDisplayer;
         if(that.hideGCode) {
-            div.style.visibility = "hidden";
+            gcodeDisplayer.style.visibility = "hidden";
         }
-        renderer.domElement.parentNode.appendChild(div);
-        that.widgets[id] = div;
-        placeWidget("divGCode", ((width - toggleWidth) / 2), y);
+        renderer.domElement.parentNode.appendChild(gcodeDisplayer);
+        that.widgets[idGCodeDisplayer] = gcodeDisplayer;
+        placeWidget(idGCodeDisplayer, ((width - displayerWidthInPx) / 2), y);
 
         var p = document.createElement("p");
-        p.id = "toggleGCode";
+        p.id = idToggle;
         p.innerHTML = "Toggle G-Code";
-        div.appendChild(p);
+        gcodeDisplayer.appendChild(p);
 
-        var ul = document.createElement("ul");
-        div.appendChild(ul);
-        ul.hidden = true;
-        ul.id = "linesGCode";
+        var gcodeContainer = document.createElement("div");
+        gcodeContainer.id = idGCodeContainer;
+        gcodeContainer.hidden = true;
+        gcodeDisplayer.appendChild(gcodeContainer);
+
+        var table = document.createElement("table");
+        table.id = idGCodeLines;
+        gcodeContainer.appendChild(table);
 
         p.onclick = function() {
-            ul.hidden = !ul.hidden;
+            gcodeContainer.hidden = !gcodeContainer.hidden;
         };
 
-        that.widgets.listGCode = ul;
+        that.widgets.gcodeContainer = gcodeContainer;
+        that.widgets.gcodeLines = table;
     }
 
-    //This is ugly, find a way to do that in JavaScript/CSS if possible
-    //Used to dislaing the line numbers aligned to each other
-    function lineFormat(line, numberLines) {
-        var spaces = numberLines.toString().length - line.toString().length;
-        var str = "";
-        var i = 0;
-        for(i = 0; i < spaces; i++) {
-            str += " ";
-        }
-        return str + line + " | ";
-    }
-
-    //Weird stuff for JavaScript awesome hipstered awesomeness lolilol le meme
-    // (sarcasm intended)
-    function makeLiHandler(lineNumber) {
+    function callbackGoToLineFactory(lineNumber) {
         return function() {
             return that.cbGoToLine(lineNumber);
         };
@@ -243,24 +247,28 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
      */
     that.setGCode = function(gcode) {
         var i = 0;
-        var li, pre;
-        that.widgets.listGCode.innerHTML = "";
+        var tr, th, td;
+
+        that.widgets.gcodeLines.innerHTML = "";
         for(i=0; i < gcode.length; i++) {
-            pre = document.createElement("pre");
-            pre.className = "preGCode";
-            pre.innerHTML = lineFormat(i+1, gcode.length) + gcode[i];
-            li = document.createElement("li");
-            li.appendChild(pre);
-            li.id = "li-"+(i+1);
-            li.className = "liGCode";
-            that.widgets.listGCode.appendChild(li);
+            th = document.createElement("th");
+            th.innerHTML = i + 1;
+            td = document.createElement("td");
+            td.innerHTML = gcode[i];
+            tr = document.createElement("tr");
+            tr.appendChild(th);
+            tr.appendChild(td);
+            tr.className = classGCodeLine;
+            tr.id = prefixIdLine + (i+1);
+            that.widgets.gcodeLines.appendChild(tr);
             if(liveMode === false) {
-                li.onclick = makeLiHandler(i+1);
+                tr.onclick = callbackGoToLineFactory(i+1);
             }
         }
-        //We do not care of the li, just here for knowing the height
-        if(li !== undefined) {
-            scrollTo(li, 0);
+
+        //We do not care of the tr, just here for knowing the height
+        if(tr !== undefined) {
+            scrollTo(tr, 0);
         }
     };
 
@@ -270,7 +278,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
         p.innerHTML = "Loading file. Please wait.";
         div.appendChild(p);
 
-        div.id = "loadingMessage";
+        div.id = idLoading;
         renderer.domElement.parentNode.appendChild(div);
 
         //Stupid trick to set the correct width and height of the div:
@@ -279,7 +287,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
     }
 
     function loadingMessageDisplayed() {
-        var message = document.getElementById("loadingMessage");
+        var message = document.getElementById(idLoading);
         if(message === null) {
             return false;
         }
@@ -288,7 +296,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
 
     // Show a message for the loading
     that.displayLoadingMessage = function() {
-        var elt = document.getElementById("loadingMessage");
+        var elt = document.getElementById(idLoading);
         elt.style.display = "inline-block"; //Put that before doing calculus
         var x = (width - elt.offsetWidth) / 2;
         var y = (height - elt.offsetHeight) / 2;
@@ -299,7 +307,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
     // Hide a message for the loading
     that.hideLoadingMessage = function() {
         if(loadingMessageDisplayed() === true) {
-            document.getElementById("loadingMessage").style.display = "none";
+            document.getElementById(idLoading).style.display = "none";
         }
     };
 
