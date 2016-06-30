@@ -315,7 +315,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
      * To call when the canvas or container has resized
      */
     that.resized = function(newWidth, newHight) {
-        var divGCode = document.getElementById("divGCode");
+        var divGCode = document.getElementById(idGCodeDisplayer);
         var s = GCodeViewer.iconSize, m = that.margin;
         width = newWidth;
         height = newHight;
@@ -343,7 +343,7 @@ GCodeViewer.Gui = function(renderer, width, height, configuration, callbacks,
 
         x = (width - (parseInt(divGCode.style.width, 10))) / 2;
         y = m;
-        placeWidget("divGCode", x, y);
+        placeWidget(idGCodeDisplayer, x, y);
     };
 
     //intialize
