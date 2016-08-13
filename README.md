@@ -32,13 +32,15 @@ The parameters are:
 * **callbackError** : function, the callback function if an error occurs,
   should have one parameter: a string which will contain the error message
 * **configuration** : object (optional), the configuration of the machine.
-  Should be in the same format as the [Handibot Configuration
-  Helper](https://github.com/ShopBotTools/Handibot-Configuration-Helper).
   If the board is set, a box representing the board will be displayed, the
   dimensions of the board are in **inches**.
 * **liveMode** : boolean (optional), the viewer mode. If set true, the viewer
   will be in live mode (this mode is explain below), else it is in normal mode.
   By default, it is set to false.
+* **inInch** : boolean (optional), how the unit is displayed. If set true, the
+  unit will be displayed in inch. If set false, the unit will be displayed in
+  millimeters. If not set (undefined), the unit will automatically be displayed
+  according to the G-Code commands.
 
 Then, each time you will want to see the 3D representation of the G-Code: set
 the G-Code of your viewer object then view the paths through the callback
