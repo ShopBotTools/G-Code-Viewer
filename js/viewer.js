@@ -6,10 +6,38 @@
  */
 
 /**
- * This file contains the class managing the viewer. This is the class that the
- * user will instantiate. This is the main class.
+ * Defines the viewer class. This is the class that the user will instantiate.
+ * This is the main class.
+ *
+ * @class
+ * @param {DomElement} container - The container of the viewer.  Warning: style
+ * of the container: the position must be set as `absolute` or `relative`, else
+ * the position is automatically set to relative (this is needed for the GUI).
+ * @param {number} widthCanvas - The width of the viewer.
+ * @param {number} heightCanvas - The height of the viewer.
+ * @param {function} [callbackError] - The callback function if an error
+ * occurs, should have one parameter: a string which will contain the error
+ * message.
+ * @param {object} [configuration] - The configuration of the machine. If the
+ * board is set, a box representing the board will be displayed, the dimensions
+ * of the board are in inches.
+ * @param {object} [configuration.board] - The dimension of the cut board.
+ * @param {number} configuration.board.width - The width in inches.
+ * @param {number} configuration.board.height - The height in inches.
+ * @param {number} configuration.board.length - The length in inches.
+ * @param {object} [configuration.initialPosition] - The initial position of
+ * the job. If not set, it will be consider as (0; 0; 0).
+ * @param {number} configuration.initialPosition.x - The x position in inches.
+ * @param {number} configuration.initialPosition.y - The y position in inches.
+ * @param {number} configuration.initialPosition.z - The z position in inches.
+ * @param {boolean} [liveMode=false] - The viewer mode. If set true, the viewer
+ * will be in live mode (this mode is explain below), else it is in normal
+ * mode.
+ * @param {boolean} [inInch] - How the unit is displayed. If set true, the unit
+ * will be displayed in inch. If set false, the unit will be displayed in
+ * millimeters. If not set (undefined), the unit will automatically be
+ * displayed according to the G-Code commands.
  */
-
 GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         callbackError, configuration, liveMode, inInch) {
     "use strict";
@@ -29,6 +57,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     /**
      * Refreshes the screen. To call each time something is change and should be
      * displayed.
+     *
+     * @function refreshDisplay
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.refreshDisplay = function() {
         render();
@@ -42,10 +74,14 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     }
 
     /**
-     * To call when the canvas or container has resized
+     * To call when the canvas or container has resized.
      *
-     * @param {number} width The width of the dom element renderer in px.
-     * @param {number} height The height of the dom element renderer in px.
+     * @param {number} width - The width of the dom element renderer in px.
+     * @param {number} height - The height of the dom element renderer in px.
+     *
+     * @function resize
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.resize = function(width, height) {
         that.renderer.setSize(width, height);
@@ -58,6 +94,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Changes the type of camera to a perspective camera.
+     *
+     * @function setPerspectiveCamera
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.setPerspectiveCamera = function() {
         that.camera.toPerspective();
@@ -66,6 +106,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Changes the type of camera to an orthographic camera.
+     *
+     * @function setOrthographicCamera
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.setOrthographicCamera = function() {
         that.camera.toOrthographic();
@@ -149,6 +193,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Shows the plan YZ from the axe X perspective.
+     *
+     * @function showX
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.showX = function() {
         showPlane("x");
@@ -156,6 +204,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Shows the plan XZ from the axe Y perspective.
+     *
+     * @function showY
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.showY = function() {
         showPlane("y");
@@ -163,6 +215,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Shows the plan XY from the axe Z perspective.
+     *
+     * @function showZ
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.showZ = function() {
         showPlane("z");
@@ -170,6 +226,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Shows the ghost of the board (if it was set in the configuration).
+     *
+     * @function showBoard
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.showBoard = function() {
         if(that.cncConfiguration.board === undefined) {
@@ -197,6 +257,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     /**
      * Hides the ghost of the board.
+     *
+     * @function hideBoard
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.hideBoard = function() {
         that.scene.remove(that.boardObject);
@@ -250,9 +314,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     /**
      * Sets the GCode and displays the result.
      *
+     * @function setGCode
+     * @memberof GCodeViewer.Viewer
+     * @instance
      * @param {string} The GCode.
-     * @param {function} Callback function called when the meshes are created
-     *                   (in case want to do something fancy).
+     * @param {function} [callback] Callback function called when the meshes
+     * are created (in case want to do something fancy).
      */
     that.setGCode = function(string, callback) {
         that.gui.displayLoadingMessage();
@@ -275,20 +342,27 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         if(that.gcode.size !== undefined) {
             that.totalSize.setMeshes(that.gcode.size, inMm,
                 that.cncConfiguration.initialPosition);
-            // that.totalSize.add();
         }
         that.refreshDisplay();
     }
 
     /**
-     * Show the size in millimiter.
+     * Shows the size in millimiters.
+     *
+     * @function displayInMm
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.displayInMm = function() {
         changeDisplay(true);
     };
 
     /**
-     * Show the size in inch.
+     * Shows the size in inches.
+     *
+     * @function displayInInch
+     * @memberof GCodeViewer.Viewer
+     * @instance
      */
     that.displayInInch = function() {
         changeDisplay(false);
@@ -297,8 +371,10 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     /**
      * Sets the currently executed line command.
      *
-     * @param {number} The line number of the command.
-     * @param {string} The G-Code command.
+     * @function updateLiveViewer
+     * @memberof GCodeViewer.Viewer
+     * @instance
+     * @param {number} lineNumber - The line number of the command.
      * @return {boolean} True if the command is displayed.
      */
     that.updateLiveViewer = function(lineNumber) {
@@ -324,8 +400,6 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.cncConfiguration = configuration || {};
     that.gcode = {};
 
-    // that.inMm = false;
-    // that.inchToVector = 1; //Convert an inch to the value to put in vectors
     that.callbackError = callbackError;
 
     if(GCodeViewer.webGLEnabled() === false) {
