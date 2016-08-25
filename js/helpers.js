@@ -1,5 +1,4 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GParser, GCodeViewer */
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -9,7 +8,9 @@
  * This file contains the class managing the UI helpers (arrows, axis, etc).
  */
 
-GCodeViewer.Helpers = function(scene) {
+var THREE = require("three");
+
+var Helpers = function(scene) {
     "use strict";
     var that = this;
 
@@ -119,3 +120,5 @@ GCodeViewer.Helpers = function(scene) {
     that.axisHelpers = new THREE.AxisHelper(100);
     that.scene.add(that.axisHelpers);
 };
+
+exports.Helpers = Helpers;

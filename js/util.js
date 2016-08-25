@@ -1,5 +1,4 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeViewer*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -9,7 +8,7 @@
  * Checks if WebGL is enabled or not.
  * @return {boolean} True is enabled
  */
-GCodeViewer.webGLEnabled = function() {
+exports.webGLEnabled = function() {
     // From http://www.browserleaks.com/webgl#howto-detect-webgl
     if(!!window.WebGLRenderingContext) {
         var canvas = document.createElement("canvas");
@@ -39,7 +38,7 @@ GCodeViewer.webGLEnabled = function() {
  * @param {object} b Point B.
  * @return {boolean} True if the two points are equal.
  */
-GCodeViewer.pointsEqual = function(a, b) {
+exports.pointsEqual = function(a, b) {
     return (a.x === b.x && a.y === b.y && a.z === b.z);
 };
 
@@ -49,13 +48,14 @@ GCodeViewer.pointsEqual = function(a, b) {
  * @param {object} point A point in 3D.
  * @return {object} A copy of the point.
  */
-GCodeViewer.copyPoint = function(point) {
+exports.copyPoint = function(point) {
     return { x : point.x, y : point.y, z : point.z };
 };
 
-GCodeViewer.nearlyEqual = function(a, b) {
+function nearlyEqual(a, b) {
     return Math.abs(b - a) <= 0.001;
-};
+}
+exports.nearlyEqual = nearlyEqual;
 
 /**
  * Checks if two points in 3D are considered as "equal". This function is
@@ -66,8 +66,8 @@ GCodeViewer.nearlyEqual = function(a, b) {
  * @param {object} b Point B.
  * @return {boolean} True if the two points are nearly equal.
  */
-GCodeViewer.samePosition = function(posA, posB) {
-    return (GCodeViewer.nearlyEqual(posA.x, posB.x) &&
-            GCodeViewer.nearlyEqual(posA.y, posB.y) &&
-            GCodeViewer.nearlyEqual(posA.z, posB.z));
+exports.samePosition = function(posA, posB) {
+    return (nearlyEqual(posA.x, posB.x) &&
+            nearlyEqual(posA.y, posB.y) &&
+            nearlyEqual(posA.z, posB.z));
 };

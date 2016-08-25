@@ -1,5 +1,4 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -9,10 +8,11 @@
  * This file contains the class managing the path view.
  */
 
-var GCodeViewer = {};
+var THREE = require("three");
+var util = require("./util");
 
 //Class to create the meshes showing the measure of the path
-GCodeViewer.TotalSize = function(scene) {
+exports.TotalSize = function(scene) {
     "use strict";
     var that = this;
 
@@ -160,7 +160,7 @@ GCodeViewer.TotalSize = function(scene) {
 };
 
 
-GCodeViewer.Path = function(scene) {
+exports.Path = function(scene) {
     "use strict";
     var that = this;
 
@@ -259,8 +259,8 @@ GCodeViewer.Path = function(scene) {
                     type : lines[i].type,
                     lineNumber : lines[i].lineNumber,
                     feedrate : lines[i].feedrate,
-                    start : GCodeViewer.copyPoint(geometry.vertices[0]),
-                    end : GCodeViewer.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
+                    start : util.copyPoint(geometry.vertices[0]),
+                    end : util.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
                     numberVertices : geometry.vertices.length
                 });
             } else if(lines[i].type === "G1") {
@@ -271,8 +271,8 @@ GCodeViewer.Path = function(scene) {
                     type : lines[i].type,
                     lineNumber : lines[i].lineNumber,
                     feedrate : lines[i].feedrate,
-                    start : GCodeViewer.copyPoint(geometry.vertices[0]),
-                    end : GCodeViewer.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
+                    start : util.copyPoint(geometry.vertices[0]),
+                    end : util.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
                     numberVertices : geometry.vertices.length
                 });
             } else if(lines[i].type === "G2" || lines[i].type === "G3") {
@@ -289,8 +289,8 @@ GCodeViewer.Path = function(scene) {
                     type : lines[i].type,
                     lineNumber : lines[i].lineNumber,
                     feedrate : lines[i].feedrate,
-                    start : GCodeViewer.copyPoint(geometry.vertices[0]),
-                    end : GCodeViewer.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
+                    start : util.copyPoint(geometry.vertices[0]),
+                    end : util.copyPoint(geometry.vertices[geometry.vertices.length - 1]),
                     numberVertices : (geometry.vertices.length - 1) * 2
                 });
             }
@@ -392,7 +392,7 @@ GCodeViewer.Path = function(scene) {
             iEnd = iCurrent + command.numberVertices - 1;
 
             path.push({
-                point : GCodeViewer.copyPoint(vertices[iCurrent]),
+                point : util.copyPoint(vertices[iCurrent]),
                 type : command.type,
                 lineNumber : command.lineNumber,
                 commandNumber : iCommand,
@@ -401,7 +401,7 @@ GCodeViewer.Path = function(scene) {
             iCurrent++;
             while(iCurrent < iEnd) {
                 path.push({
-                    point : GCodeViewer.copyPoint(vertices[iCurrent]),
+                    point : util.copyPoint(vertices[iCurrent]),
                     type : command.type,
                     lineNumber : command.lineNumber,
                     commandNumber : iCommand,
@@ -410,7 +410,7 @@ GCodeViewer.Path = function(scene) {
                 iCurrent += 2;
             }
             path.push({
-                point : GCodeViewer.copyPoint(vertices[iCurrent]),
+                point : util.copyPoint(vertices[iCurrent]),
                 type : command.type,
                 lineNumber : command.lineNumber,
                 commandNumber : iCommand,
@@ -526,8 +526,8 @@ GCodeViewer.Path = function(scene) {
             type : that.commandsUndoneManager[0].type,
             lineNumber : that.commandsUndoneManager[0].lineNumber,
             feedrate : that.commandsUndoneManager[0].feedrate,
-            start : GCodeViewer.copyPoint(that.commandsUndoneManager[0].start),
-            end : GCodeViewer.copyPoint(that.commandsUndoneManager[0].end),
+            start : util.copyPoint(that.commandsUndoneManager[0].start),
+            end : util.copyPoint(that.commandsUndoneManager[0].end),
             numberVertices : 2
         });
     };

@@ -1,9 +1,17 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeViewer, gcodetogeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
  */
+
+var THREE = require("three");
+var gcodetogeometry = require("gcodetogeometry");
+var util = require("./util");
+var Path = require("./path").Path;
+var TotalSize = require("./path").TotalSize;
+var Helpers = require("./helpers").Helpers;
+var Gui = require("./gui").Gui;
+var Animation = require("./animation").Animation;
 
 /**
  * Defines the viewer class. This is the class that the user will instantiate.
@@ -11,34 +19,35 @@
  *
  * @class
  * @param {DomElement} container - The container of the viewer.  Warning: style
- * of the container: the position must be set as `absolute` or `relative`, else
- * the position is automatically set to relative (this is needed for the GUI).
+ *   of the container: the position must be set as `absolute` or `relative`,
+ *   else the position is automatically set to relative (this is needed for the
+ *   GUI).
  * @param {number} widthCanvas - The width of the viewer.
  * @param {number} heightCanvas - The height of the viewer.
  * @param {function} [callbackError] - The callback function if an error
- * occurs, should have one parameter: a string which will contain the error
- * message.
+ *   occurs, should have one parameter: a string which will contain the error
+ *   message.
  * @param {object} [configuration] - The configuration of the machine. If the
- * board is set, a box representing the board will be displayed, the dimensions
- * of the board are in inches.
+ *   board is set, a box representing the board will be displayed, the
+ *   dimensions of the board are in inches.
  * @param {object} [configuration.board] - The dimension of the cut board.
  * @param {number} configuration.board.width - The width in inches.
  * @param {number} configuration.board.height - The height in inches.
  * @param {number} configuration.board.length - The length in inches.
  * @param {object} [configuration.initialPosition] - The initial position of
- * the job. If not set, it will be consider as (0; 0; 0).
+ *   the job. If not set, it will be consider as (0; 0; 0).
  * @param {number} configuration.initialPosition.x - The x position in inches.
  * @param {number} configuration.initialPosition.y - The y position in inches.
  * @param {number} configuration.initialPosition.z - The z position in inches.
  * @param {boolean} [liveMode=false] - The viewer mode. If set true, the viewer
- * will be in live mode (this mode is explain below), else it is in normal
- * mode.
+ *   will be in live mode (this mode is explain below), else it is in normal
+ *   mode.
  * @param {boolean} [inInch] - How the unit is displayed. If set true, the unit
- * will be displayed in inch. If set false, the unit will be displayed in
- * millimeters. If not set (undefined), the unit will automatically be
- * displayed according to the G-Code commands.
+ *   will be displayed in inch. If set false, the unit will be displayed in
+ *   millimeters. If not set (undefined), the unit will automatically be
+ *   displayed according to the G-Code commands.
  */
-GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
+exports.Viewer = function(container, widthCanvas, heightCanvas,
         callbackError, configuration, liveMode, inInch) {
     "use strict";
     var that = this;
@@ -402,7 +411,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
 
     that.callbackError = callbackError;
 
-    if(GCodeViewer.webGLEnabled() === false) {
+    if(util.webGLEnabled() === false) {
         displayError("WebGL is not enable. Impossible to preview.");
         return;
     }
@@ -442,9 +451,9 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     that.light2.position.set( 0, 0, 10 );
     that.scene.add( that.light2 );
 
-    that.path = new GCodeViewer.Path(that.scene);
-    that.totalSize = new GCodeViewer.TotalSize(that.scene);
-    that.helpers = new GCodeViewer.Helpers(that.scene);
+    that.path = new Path(that.scene);
+    that.totalSize = new TotalSize(that.scene);
+    that.helpers = new Helpers(that.scene);
     that.showBoard();
     that.refreshDisplay();
 
@@ -463,12 +472,12 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
         goToLine : function(lineNumber) { that.animation.goToLine(lineNumber); }
 
     };
-    that.gui = new GCodeViewer.Gui(that.renderer, widthCanvas, heightCanvas,
+    that.gui = new Gui(that.renderer, widthCanvas, heightCanvas,
             that.cncConfiguration, callbacks, liveMode);
 
     //Add animation
     if(liveMode === false) {
-        that.animation = new GCodeViewer.Animation(that.scene,
+        that.animation = new Animation(that.scene,
                 that.refreshDisplay, that.gui, that.path, 24,
                 that.cncConfiguration.initialPosition);
     }
