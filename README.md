@@ -19,7 +19,7 @@ have the animation starting direcly from this command.
 ## How to use the app:
 In your code you need to instantiate the class G-CodeViewer.Viewer
 
-    var viewer =  new = GCodeViewer.Viewer(container, widthCanvas, heightCanvas,
+    var viewer =  new = gcodeviewer.Viewer(container, widthCanvas, heightCanvas,
         callbackError, configuration, liveMode);
 
 The parameters are:

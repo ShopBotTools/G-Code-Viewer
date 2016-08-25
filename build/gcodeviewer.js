@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define(["THREE", "gcodetogeometry"], factory);
 	else if(typeof exports === 'object')
-		exports["GCodeViewer"] = factory(require("THREE"), require("gcodetogeometry"));
+		exports["gcodeviewer"] = factory(require("THREE"), require("gcodetogeometry"));
 	else
-		root["GCodeViewer"] = factory(root["THREE"], root["gcodetogeometry"]);
+		root["gcodeviewer"] = factory(root["THREE"], root["gcodetogeometry"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -75,32 +75,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * @class
 	 * @param {DomElement} container - The container of the viewer.  Warning: style
-	 * of the container: the position must be set as `absolute` or `relative`, else
-	 * the position is automatically set to relative (this is needed for the GUI).
+	 *   of the container: the position must be set as `absolute` or `relative`,
+	 *   else the position is automatically set to relative (this is needed for the
+	 *   GUI).
 	 * @param {number} widthCanvas - The width of the viewer.
 	 * @param {number} heightCanvas - The height of the viewer.
 	 * @param {function} [callbackError] - The callback function if an error
-	 * occurs, should have one parameter: a string which will contain the error
-	 * message.
+	 *   occurs, should have one parameter: a string which will contain the error
+	 *   message.
 	 * @param {object} [configuration] - The configuration of the machine. If the
-	 * board is set, a box representing the board will be displayed, the dimensions
-	 * of the board are in inches.
+	 *   board is set, a box representing the board will be displayed, the
+	 *   dimensions of the board are in inches.
 	 * @param {object} [configuration.board] - The dimension of the cut board.
 	 * @param {number} configuration.board.width - The width in inches.
 	 * @param {number} configuration.board.height - The height in inches.
 	 * @param {number} configuration.board.length - The length in inches.
 	 * @param {object} [configuration.initialPosition] - The initial position of
-	 * the job. If not set, it will be consider as (0; 0; 0).
+	 *   the job. If not set, it will be consider as (0; 0; 0).
 	 * @param {number} configuration.initialPosition.x - The x position in inches.
 	 * @param {number} configuration.initialPosition.y - The y position in inches.
 	 * @param {number} configuration.initialPosition.z - The z position in inches.
 	 * @param {boolean} [liveMode=false] - The viewer mode. If set true, the viewer
-	 * will be in live mode (this mode is explain below), else it is in normal
-	 * mode.
+	 *   will be in live mode (this mode is explain below), else it is in normal
+	 *   mode.
 	 * @param {boolean} [inInch] - How the unit is displayed. If set true, the unit
-	 * will be displayed in inch. If set false, the unit will be displayed in
-	 * millimeters. If not set (undefined), the unit will automatically be
-	 * displayed according to the G-Code commands.
+	 *   will be displayed in inch. If set false, the unit will be displayed in
+	 *   millimeters. If not set (undefined), the unit will automatically be
+	 *   displayed according to the G-Code commands.
 	 */
 	exports.Viewer = function(container, widthCanvas, heightCanvas,
 	        callbackError, configuration, liveMode, inInch) {

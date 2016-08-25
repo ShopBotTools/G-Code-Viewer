@@ -9,12 +9,8 @@ module.exports = {
     },
     output: {
         path: path.join(__dirname, "build"),
-        // path: __dirname,
-        // filename: "MyLibrary.[name].js",
-        // library: ["MyLibrary", "[name]"],
-        // filename: "[name].js",
         filename: "gcodeviewer.js",
-        library: "GCodeViewer",
+        library: "gcodeviewer",
         libraryTarget: "umd"
     }
 };
