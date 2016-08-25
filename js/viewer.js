@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeViewer, GCodeToGeometry*/
+/*global THREE, GCodeViewer, gcodetogeometry*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -273,7 +273,7 @@ GCodeViewer.Viewer = function(container, widthCanvas, heightCanvas,
     function reallySetGCode(string) {
         var lx = 0, ly = 0, lz = 0;
         var message = "";
-        that.gcode = GCodeToGeometry.parse(string);
+        that.gcode = gcodetogeometry.parse(string);
         if(that.gcode.errorList.length > 0) {
             message = "Be careful, some issues appear in this file.";
             message += "\nThe machine may not do as displayed here.";

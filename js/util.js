@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeViewer, GCodeToGeometry*/
+/*global THREE, GCodeViewer*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -12,17 +12,18 @@
 GCodeViewer.webGLEnabled = function() {
     // From http://www.browserleaks.com/webgl#howto-detect-webgl
     if(!!window.WebGLRenderingContext) {
-        var canvas = document.createElement("canvas"),
-            names = ["webgl", "experimental-webgl", "moz-webgl"],
-            gl = false;
-        for(var i=0; i < names.length; i++) {
+        var canvas = document.createElement("canvas");
+        var names = ["webgl", "experimental-webgl", "moz-webgl"];
+        var gl = false;
+        var i = 0;
+        for(i = 0; i < names.length; i++) {
             try {
                 gl = canvas.getContext(names[i]);
-                if (gl && typeof gl.getParameter == "function") {
+                if (gl && typeof gl.getParameter === "function") {
                     /* WebGL is enabled */
                     return true;
                 }
-            } catch(e) {}
+            } catch(ignore) {}
         }
         /* WebGL is supported, but disabled */
         return false;
@@ -52,6 +53,10 @@ GCodeViewer.copyPoint = function(point) {
     return { x : point.x, y : point.y, z : point.z };
 };
 
+GCodeViewer.nearlyEqual = function(a, b) {
+    return Math.abs(b - a) <= 0.001;
+};
+
 /**
  * Checks if two points in 3D are considered as "equal". This function is
  * useful to avoid to be too much precise (JavaScript can not do very precise
@@ -62,7 +67,7 @@ GCodeViewer.copyPoint = function(point) {
  * @return {boolean} True if the two points are nearly equal.
  */
 GCodeViewer.samePosition = function(posA, posB) {
-    return (GCodeToGeometry.nearlyEqual(posA.x, posB.x) &&
-            GCodeToGeometry.nearlyEqual(posA.y, posB.y) &&
-            GCodeToGeometry.nearlyEqual(posA.z, posB.z));
+    return (GCodeViewer.nearlyEqual(posA.x, posB.x) &&
+            GCodeViewer.nearlyEqual(posA.y, posB.y) &&
+            GCodeViewer.nearlyEqual(posA.z, posB.z));
 };

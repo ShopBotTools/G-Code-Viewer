@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GParser, GCodeViewer, GCodeToGeometry, dat */
+/*global THREE, GCodeViewer*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.

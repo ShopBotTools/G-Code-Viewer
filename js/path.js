@@ -1,5 +1,5 @@
 /*jslint todo: true, browser: true, continue: true, white: true*/
-/*global THREE, GCodeToGeometry*/
+/*global THREE*/
 
 /**
  * Written by Alex Canales for ShopBotTools, Inc.
@@ -76,6 +76,7 @@ GCodeViewer.TotalSize = function(scene) {
      * path begins (optional).
      */
     that.setMeshes = function(totalSize, displayInMm, initialPosition) {
+        var INCH_TO_MILLIMETER = 25.4;
         if(totalSize === undefined) {
             return;
         }
@@ -84,7 +85,7 @@ GCodeViewer.TotalSize = function(scene) {
         var material = new THREE.LineBasicMaterial({ color : color });
         var geometry = new THREE.Geometry();
         var type = (displayInMm === false) ? "in" : "mm";
-        var d = (displayInMm === false) ? 1 : GCodeToGeometry.INCH_TO_MILLIMETER;
+        var d = (displayInMm === false) ? 1 : INCH_TO_MILLIMETER;
         var width = Math.abs(totalSize.max.x - totalSize.min.x);
         var length = Math.abs(totalSize.max.y - totalSize.min.y);
         var height = Math.abs(totalSize.max.z - totalSize.min.z);
